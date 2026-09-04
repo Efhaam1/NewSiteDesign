@@ -1,0 +1,13 @@
+const path=require('path');const fs=require('fs');
+const PW='C:/Users/MUS/CurriculumWebsite/node_modules/playwright';
+const {chromium}=require(PW);
+const SRC=process.argv[2];
+const [TAG,X,Y,W,H,Z]=[process.argv[3],+process.argv[4],+process.argv[5],+process.argv[6],+process.argv[7],+(process.argv[8]||2)];
+const OUT=path.join(__dirname,'crops');fs.mkdirSync(OUT,{recursive:true});
+const b64=fs.readFileSync(SRC).toString('base64');
+(async()=>{const b=await chromium.launch();
+const dim=await (async()=>{const buf=fs.readFileSync(SRC);return {w:buf.readUInt32BE(16),h:buf.readUInt32BE(20)};})();
+const p=await b.newPage({viewport:{width:Math.round(W*Z),height:Math.round(H*Z)}});
+await p.setContent(`<style>html,body{margin:0;background:#000;overflow:hidden}img{position:absolute;left:${-X*Z}px;top:${-Y*Z}px;width:${dim.w*Z}px;height:${dim.h*Z}px}</style><img src="data:image/png;base64,${b64}">`);
+await p.waitForTimeout(350);
+const f=path.join(OUT,`${TAG}.png`);await p.screenshot({path:f});console.log('wrote '+f);await b.close();})().catch(e=>{console.error(e.message);process.exit(1)});

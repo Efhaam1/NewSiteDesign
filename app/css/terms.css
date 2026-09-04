@@ -1,0 +1,413 @@
+/* ============================================================================
+   ACT 6 — terms. The licence schedule, printed on the paper the room already
+   lifted to in act 5. Not a card grid and not a tick matrix: a ruled ledger,
+   one band per licence, cheapest first, with the pilot as its last band so the
+   smallest number on the sheet is the one we actually want asked about.
+   All colour comes from the ramp the director resolves in JS (--fg, --line,
+   --glass, --hue), so this sheet turns to ink-on-ivory with the rest of the page.
+   ========================================================================== */
+
+.terms {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+  --rows: clamp(0, calc((var(--t) - 0.03) / 0.3), 1);
+}
+
+.terms-head {
+  display: grid;
+  gap: 4px clamp(20px, 4vw, 64px);
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+  align-items: end;
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+.terms-head .kicker { grid-column: 1 / -1; margin-bottom: 2px; }
+.terms-head .d3 { font-size: clamp(1.4rem, 2.7vw, 2.6rem); }
+.terms-head .lead { max-width: 52ch; font-size: clamp(0.9rem, 1.02vw, 1.04rem); }
+
+/* --------------------------------------------------------------- the schedule */
+.rate {
+  margin-top: clamp(8px, 1.4vh, 18px);
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: clamp(5px, 0.8vh, 11px);
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+
+.rate-cap {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px clamp(14px, 2vw, 30px);
+  flex-wrap: wrap;
+  color: var(--fg-faint);
+}
+.rate-cap-l { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 20px); }
+.rate-prov { text-align: right; }
+
+.rate-bill { display: flex; border: 1px solid var(--line-2); }
+.rate-bill-b {
+  padding: 0.38em 0.72em; font: inherit; letter-spacing: 0.14em;
+  background: transparent; border: 0; color: var(--fg-faint); cursor: pointer;
+  transition: color 200ms var(--ease), background 200ms var(--ease);
+}
+.rate-bill-b + .rate-bill-b { border-left: 1px solid var(--line-2); }
+.rate-bill-b:hover { color: var(--fg); }
+.rate-bill-b[aria-pressed='true'] { background: var(--hue); color: var(--fg-inv); }
+
+/* The line that answers the only question a price list ever provokes. */
+.rate-inv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 4px clamp(14px, 2vw, 28px);
+  align-items: baseline;
+  background: var(--hue-soft);
+  border: 1px solid var(--line-2);
+  border-left: 2px solid var(--hue);
+  padding: clamp(6px, 0.9vh, 11px) clamp(10px, 1.1vw, 18px);
+}
+.rate-inv-l { color: var(--hue); white-space: nowrap; }
+.rate-inv-c { font-size: clamp(0.86rem, 1vw, 1rem); line-height: 1.36; color: var(--fg); }
+
+/* --------------------------------------------------------------------- bands */
+.rate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  background: var(--glass);
+}
+.rate-band {
+  display: grid;
+  grid-template-columns: 2.6em minmax(0, 1.16fr) minmax(0, 0.8fr) minmax(0, 1.3fr);
+  gap: 2px clamp(10px, 1.2vw, 22px);
+  align-items: baseline;
+  padding: clamp(5px, 0.82vh, 12px) clamp(10px, 1.1vw, 18px);
+  opacity: var(--r, 1);
+  transform: translateY(calc((1 - var(--r, 1)) * 8px));
+  --r: clamp(0, calc((var(--rows) - var(--i, 0) * 0.09) / 0.34), 1);
+}
+.rate-band + .rate-band { border-top: 1px solid var(--line); }
+.rate-band:nth-child(2) { --i: 1; }
+.rate-band:nth-child(3) { --i: 2; }
+.rate-band:nth-child(4) { --i: 3; }
+.rate-band:nth-child(5) { --i: 4; }
+.rate-band.is-fit { background: var(--hue-soft); box-shadow: inset 2px 0 0 var(--hue); }
+.rate-band.is-quiet { color: var(--fg-dim); }
+/* The pilot is an offer, not a tier, so it is ruled off from the licences. */
+.rate-band.is-pilot { border-top: 1px solid var(--line-2); }
+.rate-band.is-pilot .rate-i, .rate-band.is-pilot .rate-mo { color: var(--hue); }
+
+.rate-i { color: var(--fg-faint); font-size: 0.52rem; }
+.rate-who { display: grid; gap: 1px; }
+.rate-chip { display: block; color: var(--hue); font-size: 0.5rem; }
+.rate-name {
+  display: block;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(0.98rem, 1.24vw, 1.36rem);
+  line-height: 1.06;
+  letter-spacing: -0.016em;
+  font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0;
+}
+.rate-fit { display: block; color: var(--fg-faint); font-size: 0.5rem; line-height: 1.5; }
+
+.rate-fee { display: grid; gap: 1px; }
+.rate-mo { display: block; line-height: 1; letter-spacing: -0.03em;
+  font-size: clamp(1.15rem, 1.7vw, 1.85rem); }
+.rate-mo small { margin-left: 0.45em; font-size: 0.3em; color: var(--fg-faint); }
+.rate-yr { display: block; font-size: 0.76rem; color: var(--fg-faint); line-height: 1.2; }
+.rate-eff { display: block; font-size: 0.47rem; color: var(--fg-faint); line-height: 1.5; }
+.rate.is-annual .rate-mo { font-size: 0.76rem; color: var(--fg-faint); }
+.rate.is-annual .rate-mo small { font-size: 0.62em; }
+.rate.is-annual .rate-yr { font-size: clamp(1.15rem, 1.7vw, 1.85rem); color: var(--fg);
+  letter-spacing: -0.03em; line-height: 1.1; }
+/* P5 — THE SWAP ABOVE IS FOR FIGURES, AND TWO OF THE FIVE BANDS DO NOT HAVE ONE.
+   `pricing.json` puts prose in the annual slot for Enterprise ("Quoted, not listed.") and the
+   pilot ("Credited in full"), so for those two rows the swap promotes a sentence to price size and
+   demotes the price the sheet most wants asked about: measured at 390x844, those strings render at
+   18.4px while $499 and $199 fall to 12.16px. On a phone it also costs the layout - at 390 the fee
+   track is `minmax(0, auto)`, so the widened sentence takes width from the band name (Enterprise's
+   tracks 137/139 -> 77/199, the pilot's 159/117 -> 108/168, and the pilot row grows 80 -> 121px) -
+   and that is what pushes the CTA off the stage when a reader presses the only control in the act.
+   `findings.md:405-412` prescribes exactly this reversal, injection-verified, keyed on the two
+   classes `rate.js:24-25` already sets for those rows. It is a reversal, not a new size: every
+   FONT-SIZE below is the base rule's own. Colour is not, and P24 is why the two rows are split
+   below rather than sharing one selector list: `.is-quiet` inherits `--fg-dim` from
+   `terms.css:99`, and `.is-pilot` declares `--hue` at `terms.css:102`, so a shared
+   `color: var(--fg)` was correct for the first row and wrong for the second. */
+.rate.is-annual .rate-band.is-quiet .rate-mo {
+  font-size: clamp(1.15rem, 1.7vw, 1.85rem); color: var(--fg);
+}
+/* P24 - the pilot keeps its accent in the annual state. `terms.css:102` gives this cell `--hue`
+   because the sheet's whole point about the pilot is that the smallest number on it is the one it
+   wants asked about; the shared reversal above was promoting it back to price size and then
+   painting it `--fg`, measured rgb(20 20 28) against the declared rgb(201 162 39) at 1440x900 in
+   the annual state. Restoring `--hue` here is not a new colour: it is the value the same cell
+   already carries in the monthly state. It cannot fall through to `terms.css:102` on its own -
+   `.rate.is-annual .rate-mo` (terms.css:124) is (0,3,0), ties with it and wins on source order,
+   which would render the price `--fg-faint`, i.e. what shipped before P5. */
+.rate.is-annual .rate-band.is-pilot .rate-mo {
+  font-size: clamp(1.15rem, 1.7vw, 1.85rem); color: var(--hue);
+}
+.rate.is-annual .rate-band.is-quiet .rate-mo small,
+.rate.is-annual .rate-band.is-pilot .rate-mo small { font-size: 0.3em; }
+.rate.is-annual .rate-band.is-quiet .rate-yr,
+.rate.is-annual .rate-band.is-pilot .rate-yr {
+  font-size: 0.76rem; color: var(--fg-faint); letter-spacing: normal; line-height: 1.2;
+}
+
+.rate-adds { font-size: 0.73rem; line-height: 1.4; color: var(--fg-dim); }
+/* One benefit, two lengths. The long one is the sheet's own voice; the short one only
+   takes over where the column is too shallow for it (below 660px of height), which is
+   better than the sheet deleting its own answer there. Never both at once. */
+.ra-l { display: block; }
+.ra-s { display: none; }
+.rate-aside { display: block; margin-top: 2px; color: var(--hue); font-style: normal; }
+
+/* --------------------------------------------------------------- the footnotes */
+.rate-led {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(4px, 0.7vh, 9px) clamp(14px, 2.4vw, 34px);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(5px, 0.8vh, 10px);
+  font-size: 0.68rem;
+  line-height: 1.34;
+  color: var(--fg-dim);
+  opacity: clamp(0, calc((var(--t) - 0.2) / 0.16), 1);
+}
+.rate-led p { margin: 0; }
+.rate-cta { opacity: clamp(0, calc((var(--t) - 0.28) / 0.16), 1); }
+
+@media (prefers-reduced-motion: reduce) { .rate-band { transform: none; } }
+
+/* Short windows drop the least load-bearing lines rather than being cut off. */
+@media (max-height: 800px) and (min-width: 901px) {
+  .terms { padding-top: clamp(58px, 7.4vh, 96px); }
+  .rate-eff, .rate-prov { display: none; }
+  .terms-head .lead { font-size: 0.88rem; }
+  .rate-led { font-size: 0.64rem; }
+}
+
+/* Below about 660px there is no room for the prose column at all. The invariant
+   line and the five prices are the argument; the rest is detail that a reader on
+   a window this short cannot see anyway. */
+@media (max-height: 660px) and (min-width: 901px) {
+  /* Was: `.rate-band .rate-adds { display: none }` with the Growth row alone re-shown
+     at `grid-column: 3 / -1`. That left a reader at 1244x620 with five prices and one
+     explanation, and the re-show cost Growth a second grid row (114px against 55px for
+     every other band): auto-placement had already given track 3 to the earlier `.rate-fee`,
+     so the explicitly-placed `.rate-adds` could not fit beside it and dropped to row 2.
+     Now every band keeps its column and swaps to the short form, one row each. */
+  .ra-l { display: none; }
+  .ra-s { display: block; }
+  .rate-led { display: none; }
+  .rate-band { padding: 4px clamp(10px, 1.1vw, 18px); }
+  /* `.rate-cap` is one line and it is the only place the sheet states its currency -
+     and it carries the monthly / 2-months-free control. The head lead stays hidden:
+     that one is genuinely detail. */
+  .terms-head .lead { display: none; }
+  .terms-head .d3 { font-size: clamp(1.3rem, 2.1vw, 1.8rem); }
+  .terms { padding-top: clamp(52px, 6.6vh, 80px); }
+}
+
+/* ============================================ P3: the two heights and the width this act missed
+   The sheet's own short-window ladder is `(max-height: 800px)` then `(max-height: 660px)`, both
+   `min-width: 901px`. Measured at act 6 t=0.5 with `node .audit5/cta.cjs`, which reads the stage's
+   overflow and the CTA against the fold in BOTH billing states, the ladder stops short twice, and
+   the annual state is what makes the second one visible at wide widths:
+     661-720 of height, where only the 800 tier applies - `.act-terms .act-stage` over by
+     **+86 at 901x661**, +70 at 901x680, +53 at 901x700, +36 at 901x720, +84 at 950x661, +34 at
+     1244x661, +18 at 1244x680, +1 at 1244x700, each 12-19px worse again in the annual state at
+     901-950 (the toggle makes the sheet taller there and *shorter* at 1244, where annual is clean
+     by 0.78px at 680 while monthly clips: the price column reflows differently);
+     and 721-890 of height, worst at narrow widths but not confined to them - **+63 at 901x821**,
+     +42 at 950x821, +42 at 1001x821, +31 at 901x860, +9 at 950x860, and in the ANNUAL state
+     +64 at 1001x821, +20 at 901x900, +10 at 1920x821, +2 at 1100x821.
+   In every one of those the CTA and its `no email, no card` line are what goes past the fold:
+   884 of 821 at 901x821, 747 of 661 at 901x661.
+
+   Two blocks, because the two halves need very different amounts, and the reviewer's own ablation
+   is what set the line between them. The FIRST is the 800 tier's two droppable details plus the
+   660 tier's band padding, and it does almost all of the work: **from about 801 of height up, at
+   every width from 901, the cheap block alone holds the whole sheet with the ledger, the long adds
+   and the full head still on the page** (measured clearance to the lower of the CTA and its micro
+   line, annual state: 3px at 901x801, 10-11px at 901x810-821, 23px at 901x835, 37-60px at
+   850-875, 74px at 901x891, 25-45px at 1001 from 801, 96-153px at 1100 from 795). It is also what
+   clears the wide-and-short half on its own: 1920x821 annual +10 -> 0, 1101x821 annual +2 -> 0,
+   1244x661 +34 -> 0. It runs to 890 at every width and to 960 at 901-1100, because at 901x931 the
+   annual CTA lands only 6px inside the fold with a 930 ceiling — and no higher above 1100, so that
+   `.rate-prov` survives at 1101+ x 891-930, where nothing clips even with both blocks deleted.
+   The SECOND is the rest of the 660 tier's thinning, and it is scoped to the three places the cheap
+   block is genuinely not enough: the 901-1000 corner below 851 (cheap-only first clips at 745,
+   +6 annual, and holds only 3-11px of clearance at 801-821); the 1001-1100 corner below 781
+   (cheap-only +15 monthly and +28 annual at 1001x721, +6 annual at 1001x745, +15 / +8 at 1050x721,
+   clear from 780 — a gap that a width-only edge at 1000 left open and the re-sweep caught); and
+   every width below 721 (cheap-only at 1101x661 +19 / +12, 1244x661 +20 / +1, 1920x661 +6 / +30,
+   2560x661 0 / +16). Everywhere else
+   the ledger, the 35 words of band prose, the head's lead and the full head clamp stay.
+   THE FIRST ATTEMPT AT THIS SCOPE WAS FAILED, and the reason is worth keeping: it ran the thinning
+   to 930 across 901-1100, which stripped the ledger's 121 words (including the only statement of
+   the $299 setup fee), 35 words of band explanation, the head's lead and 22% of the head's display
+   size at windows with 96-153px of spare room. Gate 3 allows shortening copy that provably does
+   not fit; there it provably fitted.
+   After both, every window from 560 of height up is clean at 901, 950, 1000, 1001, 1100, 1101,
+   1244, 1440, 1920 and 2560 wide, in both billing states.
+
+   WHAT LEAVES THE PAGE, corrected by the reviewer's own reading: at 801-890 (and to 960 below
+   1101 wide) `.rate-eff` goes — the "ten months, two free" line — and so does `.rate-prov`, the
+   sheet's only on-page provenance for its own figures ("Bundle 1.1.0 · 213 of 213 sessions
+   written · 1,640 puzzles · 4,702 chess checks, 0 errors"). That one is defensible only because
+   the 800 tier already treats it as the first thing to go, which is why the 960 extension stops
+   at 1100 wide. Inside the two thinning branches the ledger goes with them, and **the ledger is
+   the only place the sheet states the $299 setup fee** — so at 901-1000 x <=850, at 1001-1100 x
+   <=780 and at any width <=720 that figure is off the page. Every band keeps an explanation in its short form,
+   `.rate-cap` keeps the currency and the billing toggle, and Enterprise's "SSO and localization
+   are planned, not built" survives inside `.ra-s` everywhere.
+
+   RESIDUAL, recorded not fixed, and its lever is measured rather than assumed: the sheet still
+   overflows below about **560 of height at 901-1100 wide** and below about **580 at 1920-2560**,
+   where the head and the fee column are widest — +12 monthly / +24 annual at 901x540, +4 annual at
+   901x560, +72 / +84 at 901x480, +49 / +42 at 1100x480, +30 / +55 at 1920x540, +10 / +35 at
+   1920x560, +15 annual at 1920x580, 2560 identical to 1920, and clean at 600 and 620 at every
+   width. Both new blocks are no-ops down there (below 661 they duplicate the <=660 tier), so this
+   band is untouched by this item rather than left by it — 901x480 still reads the item's own +72.
+   **It is not a product decision, and an earlier version of this comment was wrong to say it was.**
+   Measured one lever at a time, annual state, worst of the two: `.rate-fit` alone — the 0.5rem
+   "who it is for" line under each band name — takes 901x540 +24 -> +1 and 1920x560 +35 -> +30;
+   adding `.rate-aside` ("Cheaper than one coach-hour a week.") and `.terms-head .kicker` takes
+   901x540 -> 0, 901x480 +84 -> +23, 1920x560 -> +8 and 1920x580 +15 -> 0; adding a 24px `.terms`
+   padding-top floor takes 901x480, 1920x540 and 1920x560 -> 0. Only 1920/2560 x 480 survives all
+   of it, at +60. So the whole 540-620 band closes with three lines of detail and a padding floor —
+   no band, no price, no explanation, no currency row. Two cautions for whoever takes it: the hides
+   are NOT monotone (adding `.rate-inv-more` and `.rate-chip` made 1920x540 worse, 0 -> +7, and
+   1920x480 +60 -> +67), and `.rate-fit` is real content, so it wants keying to <=600 rather than to
+   this item's 890. Its own PASS2 line, same accepted-residual class as P1d and P10. */
+
+@media (min-width: 901px) and (max-height: 890px),
+       (min-width: 901px) and (max-width: 1100px) and (max-height: 960px) {
+  .rate-eff, .rate-prov { display: none; }
+  .rate-band { padding: 4px clamp(10px, 1.1vw, 18px); }
+}
+@media (min-width: 901px) and (max-width: 1000px) and (max-height: 850px),
+       (min-width: 1001px) and (max-width: 1100px) and (max-height: 780px),
+       (min-width: 901px) and (max-height: 720px) {
+  .ra-l { display: none; }
+  .ra-s { display: block; }
+  .rate-led { display: none; }
+  .terms-head .lead { display: none; }
+  .terms-head .d3 { font-size: clamp(1.3rem, 2.1vw, 1.8rem); }
+  .terms { padding-top: clamp(52px, 6.6vh, 80px); }
+}
+
+/* A phone reads the sheet as one column per band: who, what it costs, what it
+   adds — stacked, still ruled, nothing dropped. */
+@media (max-width: 900px) {
+  .terms-head { grid-template-columns: minmax(0, 1fr); }
+  .terms-head .d3 { font-size: clamp(1.35rem, 6vw, 2rem); }
+  .terms-head .lead { font-size: 0.82rem; }
+  .rate-cap { flex-direction: column; align-items: start; gap: 8px; }
+  .rate-prov { text-align: left; }
+  .rate-inv { grid-template-columns: minmax(0, 1fr); }
+  .rate-band {
+    grid-template-columns: 2.2em minmax(0, 1fr) minmax(0, auto);
+    gap: 3px clamp(8px, 2vw, 14px);
+  }
+  .rate-fee { text-align: right; }
+  .rate-led { grid-template-columns: minmax(0, 1fr); }
+
+  /* A phone gets the whole argument and every number, set shorter: the invariant
+     line already says each licence is the same curriculum, so only the tier a
+     pilot runs on and the pilot itself have to spell out what they add. */
+  .terms-head .lead-more { display: none; }
+  .rate-prov, .rate-eff { display: none; }
+  .rate-band .rate-adds { display: none; }
+  /* On a phone exactly one band gets its prose back, and it is Enterprise's rather than
+     Growth's. It is the only way the page keeps a "planned, not built" disclosure below
+     901px wide at all, and it must be one band and not both: with both, 390x844 overflows
+     its stage by 26px and the CTA lands 4px below the fold.
+     It is NOT free below 835px of height, and the first version of this comment said it was.
+     The 834px tier already hid Growth's prose, so down there this is a pure ADDITION of 36px
+     (the two-line wrap of Enterprise's sentence in a 390-wide column), not a swap - it is a
+     swap, and a 34px saving, only above 834. That 36px is paid for in the tier below by
+     tightening band padding and list gap. Above 835px of height Growth loses its 22-word
+     explanation on a phone; it keeps its chip, its fit line, both prices and its ROI aside. */
+  /* Enterprise keeps its line on a phone too, and it is the only reason this rule exists:
+     `SSO and localization are planned, not built` is the load-bearing "planned, not built"
+     disclosure, and below 901px wide it was the last one left - the other lives in
+     `.rate-led`'s second line, which `:nth-child(n + 2)` below hides, and the short-phone
+     tier hides `.rate-led` outright. So at <=900px wide the page carried no such disclosure
+     anywhere. Enterprise is the `is-quiet` band (pricing.json), and its short and long forms
+     are the same sentence, so this costs one line and invents nothing. */
+  .rate-band.is-quiet .rate-adds { display: block; grid-column: 2 / -1; }
+  .rate-fit { font-size: 0.46rem; }
+  .rate-name { font-size: 1.1rem; }
+  .rate-inv-c { font-size: 0.84rem; }
+  .rate-led p:nth-child(n + 2) { display: none; }
+  .rate-cap-l { gap: 10px; }
+  .rate-cap-l .mono { font-size: 0.55rem; letter-spacing: 0.13em; }
+  .rate-inv-more { display: none; }
+  .rate-band { padding: 4px 11px; }
+  .rate-cta .cta.ghost { display: none; }
+  .terms { padding-top: clamp(64px, 7.8vh, 96px); }
+  .rate { gap: 4px; margin-top: 7px; }
+  .rate-inv { padding: 5px 11px; }
+  .rate-cta .cta { padding: 0.7em 1.1em; font-size: 0.84rem; }
+  .terms { padding-bottom: 20px; }
+}
+
+/* A short phone keeps the five prices and the claim, and lets the prose go.
+   The ceiling was 720px, and the tier above it (max-width: 900px, no height bound)
+   thins nothing - so 721 to 833px tall was a band where the stacked bands were taller
+   than the stage and no tier thinned them. Measured at 390 wide: the stage overflowed
+   52px at 780 and 32px at 800, and the page's only filled CTA sat 29.89px and 10.05px
+   below the fold, clipped by `.act-stage`. Clean at 834 on its own, which is where the
+   ceiling now sits.
+   The currency + billing row STAYS in this band: hiding it here bought 41px the band did
+   not need (100px of slack without it, measured at 390x780 annual) and it would have cost
+   the only place the page states USD plus the only control that reaches the annual figure -
+   which is what B6 was raised to restore. findings.md:397 says the same thing: widen the
+   relief, not the gate. So `.rate-cap` keeps its own <=720px query, below. */
+@media (max-width: 900px) and (max-height: 834px) {
+  .rate-led { display: none; }
+  .terms-head .lead { display: none; }
+  /* `.rate-band.is-fit .rate-adds` used to be hidden here too, and that declaration is what
+     paid for this tier: at <=900px wide line 205 already hides every band's prose and only
+     Enterprise's is re-shown, so hiding Growth's again matched nothing and the 36px its
+     two-line wrap costs at 390 wide had to come from somewhere. It comes from spacing, which
+     is this tier's own idiom: 2px off each band's vertical padding and 2px off the list gap is
+     28px across five bands and four gaps, and it takes no content off the sheet. Measured at
+     390x721 in the annual state, where the sheet is tallest: `.rate-cta .mono.tiny` - the
+     "no email, no card" line - had its ink 12px below the fold and is back inside it. */
+  .rate-band { padding: 2px 11px; }
+  .rate { gap: 2px; }
+}
+/* P5 — 835-900 of height, and ONLY at the widths that need it. Between 835 and 900 nothing thinned
+   the phone sheet at all, so pressing the act's only control pushed the CTA off the stage: measured
+   before, annual state, `.act-terms .act-stage` over by +226 at 320x835, +218 at 320x844, +167 at
+   320x900, +78 at 360x835, +69 at 360x844, +18 at 360x900, with the "no email, no card" line 21px
+   further down again. The emphasis reversal above closes all of that from 390 wide up on its own —
+   measured with this branch ablated, 390, 393, 412, 600 and 900 wide all read 0 over at 835 and 900
+   in both states, with 42 to 224px of clearance and the ledger and the head lead still on the page.
+   So the branch stops at 389: raising the tier's own ceiling instead cost 66 words (the ledger's
+   first paragraph and the head's lead, which carries "Annual is ten months: two are free.") at
+   widths that had 34-224px of room, which is copy that provably fits.
+   Below 390 the branch is the fix and it is the tier's own four declarations, nothing new: at 320 it
+   closes the annual state at 835-900 (+134 -> 0 at 835) AND the monthly state (+95 -> 0), and at 360
+   it closes the 10px band the reversal leaves (+15 at 835, +7 at 844). */
+@media (max-width: 389px) and (max-height: 900px) {
+  .rate-led { display: none; }
+  .terms-head .lead { display: none; }
+  .rate-band { padding: 2px 11px; }
+  .rate { gap: 2px; }
+}
+
+/* Below 720 there is genuinely no room for it. Whether even that is right, now that B6 has
+   ruled this is the only place the page states its currency, is a separate question. */
+@media (max-width: 900px) and (max-height: 720px) {
+  .rate-cap { display: none; }
+}

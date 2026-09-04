@@ -1,0 +1,5 @@
+/* specificity proof: two-class rule FIRST, single-class rule LATER in the same sheet.
+   If the computed colour is the green, specificity beat source order - which is the
+   exact tie product.css:224 creates against acts.css. */
+.hero .kicker { color: rgb(0, 255, 0); }
+.kicker { color: rgb(255, 0, 0); }

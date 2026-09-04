@@ -1,0 +1,25 @@
+/* fb-nav.css — nav monogram growth candidate. Measured, not estimated.
+   ---------------------------------------------------------------------------
+   WHY 36px IS FREE
+   #nav is `display:flex; align-items:center`, so its content height is the
+   tallest child, and that child is the CTA, not the brand:
+       #nav .cta   37.17px  (0.8rem x 1.55 line + 2 x 0.6em pad + 2px border)
+       .brand      29.25px  (the .word line box, 18.88 x 1.549)
+   The mark therefore has 37.17px to fill before it drives anything. Measured
+   ladder at 1198x546 / 901x546 / 1024x600 / 1440x900 / 1920x1080: mark 26 -> 37
+   leaves #nav's height, the CTA's position and the kicker clearance bit-identical.
+   38px is the first size that grows the bar (+0.83px), and past that every +1px
+   of mark costs 1px of hero clearance.
+   36px keeps 1.17px of slack against the CTA, so the pending button work can
+   shave a hair off .cta-sm without the mark silently starting to drive the bar.
+   ---------------------------------------------------------------------------
+   Scoped to #nav on purpose: the same .mark class is also act 7's footer
+   (index.html:237). Unscoped, 36px pushes .foot's ink 5px lower and leaves it
+   4.17px off the fold at 1198x546 instead of 9.17px. */
+#nav .mark { width: 36px; height: 36px; }
+
+/* Optional companion — the lockup, not just the mark. 1.26rem = 20.16px, line
+   box 31.23px, still 5.94px under the CTA's 37.17px, so also free. Brand width
+   105.27 -> 119.97px; narrowest desktop (901px) keeps 234.51px of row slack,
+   the phone keeps 77.35px. */
+.brand .word { font-size: 1.26rem; }

@@ -1,0 +1,86 @@
+{
+  "_source": "CurriculumWebsite/docs/product/05-pricing-and-funnel.md §A for the tiers, the annual rule, the pilot and the implementation package; 02-auth-security-licensing.md §C for the soft caps and the one-location licence. Every figure is quoted from those files. The only derived numbers are the effective monthly prices, which are the annual price over twelve.",
+  "currency": "USD",
+  "billed": "per academy",
+  "annual": { "rule": "ten months, two free", "label": "Yearly · 2 months free" },
+  "provenance": "213 sessions · 1,640 puzzles · every puzzle position checked for legality",
+  "invariant": {
+    "label": "In every licence",
+    "claim": "Starter is the whole curriculum. Nothing above it adds a lesson.",
+    "claimMore": "It adds seats, a bigger roster, and the owner tools to see what was taught."
+  },
+  "bands": [
+    {
+      "i": "01",
+      "id": "starter",
+      "name": "Starter",
+      "fit": "Solo owner-coach · 2 coach seats · up to 50 students",
+      "monthly": "$39",
+      "per": "a month",
+      "annual": "$390 a year",
+      "effective": "$32.50 a month",
+      "adds": "All 213 written sessions, the teaching console and up to five groups. Print packs and parent reports when they ship.",
+      "addsShort": "All 213 sessions, the console, five groups. Packs and reports when they ship."
+    },
+    {
+      "i": "02",
+      "id": "growth",
+      "name": "Growth",
+      "chip": "What the pilot runs on",
+      "fit": "3–8 coach seats · up to 250 students",
+      "monthly": "$99",
+      "per": "a month",
+      "annual": "$990 a year",
+      "effective": "$82.50 a month",
+      "adds": "Everything in Starter, plus the owner dashboard, what coaches flag after a class, your name on the player and the packs, and priority support.",
+      "addsShort": "Everything in Starter, plus the owner dashboard, coach flags, your name on the packs, priority support.",
+      "aside": "About the price of one coach-hour a week.",
+      "recommended": true
+    },
+    {
+      "i": "03",
+      "id": "scale",
+      "name": "Scale",
+      "fit": "Up to 25 coach seats · up to 1,000 students",
+      "monthly": "$249",
+      "per": "a month",
+      "annual": "$2,490 a year",
+      "effective": "$207.50 a month",
+      "adds": "Everything in Growth, plus branches, exports and an onboarding workshop.",
+      "addsShort": "Everything in Growth, plus branches, exports and an onboarding workshop."
+    },
+    {
+      "i": "04",
+      "id": "enterprise",
+      "name": "Enterprise",
+      "fit": "Franchises, federations, school networks",
+      "monthly": "from $499",
+      "per": "a month",
+      "annual": "Quoted, not listed.",
+      "effective": "",
+      "adds": "Everything in Scale, on terms we agree with you. SSO and localization are planned, not built.",
+      "addsShort": "Custom terms. SSO and localization are planned, not built.",
+      "quiet": true
+    },
+    {
+      "i": "pilot",
+      "id": "pilot",
+      "name": "Six weeks",
+      "fit": "Growth features · Pawn and Knight stages · 3 coach seats",
+      "monthly": "$199",
+      "per": "flat",
+      "annual": "Credited in full",
+      "effective": "against your first annual licence",
+      "adds": "In week one we measure where prep time goes and where classes diverge. In week six you get a written report on both.",
+      "addsShort": "Week one we measure prep time and where classes diverge. Week six you get the report.",
+      "pilot": true
+    }
+  ],
+  "ledger": [
+    "Pass a seat or student limit and we tell you, and stop new additions — we never lock a coach out of a lesson mid-term. One academy per licence; branches are the Scale tier.",
+    "Not built yet: print packs, the owner dashboard, parent reports, your academy’s name on the player, exports, SSO and localization. A pilot tells you exactly what is live on the day you start.",
+    "Optional setup is $299, once: we map your existing material onto the curriculum and run a one-hour workshop. Scale includes the workshop.",
+    "Most of this market quotes on request. These are the prices; only Enterprise is quoted."
+  ],
+  "cta": { "micro": "no email, no card" }
+}

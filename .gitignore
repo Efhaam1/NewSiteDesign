@@ -1,0 +1,39 @@
+# ============================================================================
+# This repo is the SITE. Everything below is local-only scaffolding: rollbacks,
+# measurement output and the paper trail, none of which the site needs to run.
+# It stays on the machine unless someone asks for it (see STATE.md).
+# ============================================================================
+
+# 191 MB of measurement screenshots — regenerate with .audit5/shot.cjs
+/shots/
+
+# The only rollbacks, and there is no git history behind them. Local by design:
+# STATE.md warns that .audit5/snap/ is the only way back from the act-1 rebuild.
+/.bak/
+/.audit5/snap/
+
+# 236 planning, review and log files, superseded by STATE.md on 2026-09-01
+/.archive-2026-09-01/
+/older-audits/
+
+# Competitor study: 79 captures and the scripts that took them
+/research/
+
+# Generated: crops of the founder's reference image, and gate/sweep output
+/.ref/crops/
+/.ref/gate-*.txt
+/.audit5/*.txt
+/.audit5/*.json
+/.audit5/CURRENT
+
+# Scratch
+/wb-test/
+/.claude/scheduled_tasks.lock
+
+# Never
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*

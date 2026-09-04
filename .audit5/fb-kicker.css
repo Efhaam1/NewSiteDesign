@@ -1,0 +1,11 @@
+/* RECOMMENDED — .hero .kicker, measured 2026-09-02.
+   0.86rem = 13.76px: the largest step that stays UNDER the 14.4px .hero .lead and
+   .cta labels of the (max-height: 820px) tier, which is the reader own 1198x546.
+   0.15em = 2.064px, within 0.06px of the shipped 2.0064px absolute tracking, so the
+   letter gaps are unchanged and only the glyphs grow.
+   --fg-dim: 9.34:1 nominal / 3.27-3.39 rendered median, against --fg-faint 4.53 / 1.79.
+   Selector is (0,2,0) on purpose: product.css:224 sets .kicker (0,1,0) in a sheet that
+   loads after acts.css, so a single-class colour rule in acts.css loses the tie.
+   Verified: over 0 / ink unchanged at all six gate windows + 1198,1244,981,901 x 546,620;
+   one line at every width >= 901 (593.55px string in 821.72px at 901 wide). */
+.hero .kicker { font-size: 0.86rem; letter-spacing: 0.15em; color: var(--fg-dim); }

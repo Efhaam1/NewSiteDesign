@@ -1,0 +1,2 @@
+/* candidate: .hero .kicker at 0.94rem (two classes, beats product.css:224 .kicker) */
+.hero .kicker { font-size: 0.94rem; letter-spacing: 0.14em; color: var(--fg-dim); }

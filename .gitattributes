@@ -1,0 +1,15 @@
+# LF everywhere, in the repo and in every checkout. This project's own trap list
+# records that a line-ending flip has cost it real time ("A text-mode python write
+# flips the whole file LF->CRLF"), and Git for Windows defaults core.autocrlf to
+# true, which would hand a fresh clone CRLF copies of files the working tree keeps
+# as LF. core.autocrlf is also set false locally.
+* text=auto eol=lf
+
+# Binary: never touch, never diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.mp4 binary
+*.glb binary
+*.wasm binary
+*.pfx binary

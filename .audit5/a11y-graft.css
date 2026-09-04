@@ -1,0 +1,190 @@
+/* ============================================================================
+   fb-btn-3 — LIQUID METAL for .cta. APPROACH 3 of 3: THE EDGE-LIGHT.
+   A mercury edge. The light lives on the PERIMETER; the face stays type-first.
+
+   Three parts, no new palette VALUE and no new typeface, scale or radius:
+   1. A 1px ring pseudo-element masked out of the border box, carrying a STANDING
+      conic key light (--ivory alpha on the top land, --void alpha on the bottom
+      chamfer) plus a travelling --ivory bead that exists only while hovered.
+   2. Two inset shadows on the filled face — warm land at the top, cold chamfer
+      at the bottom — so the plate reads milled instead of printed.
+   3. A face gradient that rolls the plate off toward its bottom edge.
+
+   WHY --ivory AND --void, NOT --fg / --fg-inv. Those two ramps meet each other at
+   rgb(~131,~129,~127) at act 6 t~0.925 and read 1.01:1, so anything built on that
+   pair inherits the hole. --ivory (#f2ece0) and --void (#06060a) do not ramp, so
+   the key light keeps ONE direction — from above — across the paper flip: on the
+   ivory plate of acts 0-4 and 7 the warm half is invisible (the plate is already
+   at that value) and the cold half draws the bevel; on acts 5-6's gunmetal plate
+   the two halves swap roles by themselves. Nothing mixes against var(--lift), so
+   no element recomputes an uncacheable colour per frame (product.css:216-219).
+
+   CASCADE. This block must load AFTER acts.css. `.cta:hover` is (0,2,0) here,
+   equal to acts.css:75, and wins on order; `.cta.ghost:hover` is (0,3,0), equal
+   to acts.css:77, same. `background-image` is (0,1,0) and must sit after
+   product.css:228's `background` shorthand or that shorthand resets it to none.
+   ========================================================================== */
+
+.cta {
+  position: relative;          /* containing block for the ring. No layout change. */
+
+  /* alpha layers of two tokens that do not ramp -------------------------- */
+  --cta-land:   color-mix(in srgb, var(--ivory) 34%, transparent);  /* #f2ece0 .34 */
+  --cta-land-2: color-mix(in srgb, var(--ivory) 12%, transparent);
+  --cta-cham:   color-mix(in srgb, var(--void)  34%, transparent);  /* #06060a .34 */
+  --cta-cham-2: color-mix(in srgb, var(--void)  18%, transparent);
+
+  /* the milled face. Light from above: the top holds the plate's own value, the
+     bottom rolls into the chamfer. Only the FILLED variant gets this — acts.css:76
+     `background: transparent` is (0,2,0) and keeps the ghost's interior empty,
+     which is where the GL wash is doing the legibility work. */
+  background-image: linear-gradient(180deg,
+      color-mix(in srgb, var(--ivory) 16%, transparent) 0%,
+      transparent 32%,
+      color-mix(in srgb, var(--void) 5%, transparent) 72%,
+      color-mix(in srgb, var(--void) 13%, transparent) 100%);
+
+  /* border-color and box-shadow were NOT in acts.css:73's list, so the frame
+     snapped while the fill and the label eased. Both are in it now, and
+     `background-color` replaces `background` so the face gradient is never asked
+     to interpolate. */
+  transition:
+    transform 260ms var(--ease),
+    background-color 260ms var(--ease),
+    color 260ms var(--ease),
+    border-color 300ms var(--ease),
+    box-shadow 380ms var(--ease);
+}
+
+/* the bevel — exactly two inset shadows, and only on the filled plate. An inset
+   shadow is clipped to the padding box, so on the ghost it would tint the
+   interior and take over the job the wash is doing there. The ghost gets none. */
+.cta:not(.ghost) {
+  box-shadow:
+    inset 0  1px 0 0 color-mix(in srgb, var(--ivory) 62%, transparent),
+    inset 0 -1px 0 0 color-mix(in srgb, var(--void)  40%, transparent);
+}
+
+/* the ghost stays secondary: no face, a weaker ring, and the cold half pulled
+   right back so its bottom edge does not vanish into the board. */
+.cta.ghost {
+  background-image: none;
+  --cta-land:   color-mix(in srgb, var(--ivory) 26%, transparent);
+  --cta-land-2: color-mix(in srgb, var(--ivory) 9%, transparent);
+  --cta-cham:   color-mix(in srgb, var(--void)  16%, transparent);
+  --cta-cham-2: color-mix(in srgb, var(--void)  8%, transparent);
+}
+
+/* ------------------------------------------------------------------- the ring
+   1px of the border box, masked out of a full-box paint. Wrapped in @supports so
+   an engine without mask compositing gets the shipped border and nothing else —
+   never a filled rectangle over a ghost's transparent interior. */
+@supports (mask-composite: exclude) or (-webkit-mask-composite: xor) {
+  .cta::before {
+    content: "";
+    /* the containing block for an abs-pos child is the PADDING box, so -1px is
+       exactly the border box; `padding` is the ring's thickness. */
+    position: absolute; inset: -1px; padding: 1px;
+    pointer-events: none;
+    /* layer 1: the travelling bead, parked off the left edge at rest. It is
+       --ivory, not --hue: on hover the border-color IS var(--hue), and a hue bead
+       over a hue border is invisible — measured, x=0..168 of the top ring row
+       read (73,160,123)..(124,189,156) at three different phases of the sweep
+       with no bead in any of them. Ivory over the act hue reads (228,230,216),
+       which is the mercury bead this approach is named for, and it is the one
+       bright thing that can cross an ivory plate's edge without touching its face.
+       layer 2: the standing key light. 0deg is the top edge and 180deg the
+       bottom; on a 168x49 box the corners fall at ~74deg, so the land owns the
+       top edge, the chamfer owns the bottom, and the turn happens on the short
+       sides — which is where a real bevel turns away from the light. */
+    background-image:
+      linear-gradient(100deg,
+        transparent 0 45%,
+        color-mix(in srgb, var(--ivory) 30%, transparent) 48.6%,
+        color-mix(in srgb, var(--ivory) 95%, transparent) 50%,
+        color-mix(in srgb, var(--ivory) 30%, transparent) 51.4%,
+        transparent 55% 100%),
+      conic-gradient(from 0deg at 50% 50%,
+        var(--cta-land) 0deg, var(--cta-land-2) 58deg,
+        var(--cta-cham-2) 112deg, var(--cta-cham) 180deg,
+        var(--cta-cham-2) 248deg, var(--cta-land-2) 302deg,
+        var(--cta-land) 360deg);
+    background-repeat: no-repeat;
+    background-size: 300% 100%, 100% 100%;
+    background-position: 100% 0, 0 0;
+    /* ring = border box XOR content box. -webkit-* first for Safari, the standard
+       longhands last so Chromium takes `exclude`. */
+    -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    -webkit-mask-clip: content-box, border-box;
+    -webkit-mask-composite: xor;
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-clip: content-box, border-box;
+    mask-composite: exclude;
+  }
+  /* The animation does not EXIST off-hover, which is stronger than pausing it,
+     and it is the only moving part in the treatment. background-position is a
+     main-thread repaint of one 168x49 element and promotes no compositor layer. */
+  .cta:hover::before { animation: cta-edge-run 2.6s linear infinite; }
+  @keyframes cta-edge-run {
+    from { background-position: 100% 0, 0 0; }
+    to   { background-position: -20% 0, 0 0; }
+  }
+}
+
+/* --------------------------------------------------------------------- states
+   HOVER. acts.css:75 filled the plate with var(--hue) and set #fff ink: 3.06:1 on
+   act 0 and 2.41:1 on acts 6-7, a failure at every act. The hue moves to the EDGE
+   instead — plate and label do not change, so the label's ratio on hover is the
+   same 15-16:1 it is at rest, and the filled button stays the brightest thing in
+   its row. acts.css:77's ghost hover ink (var(--hue) over act 6's paper, ~2.0:1)
+   is refused the same way; the ghost's hue also goes to its edge. */
+.cta:hover { background-color: var(--fg); color: var(--fg-inv); border-color: var(--hue); }
+.cta.ghost:hover { background-color: transparent; color: var(--fg); border-color: var(--hue); }
+
+/* the bevel deepens as the pointer arrives: same two shadows, so the lists
+   interpolate cleanly over 380ms and the chamfer reads as flowing, not switching. */
+.cta:not(.ghost):hover {
+  box-shadow:
+    inset 0  1px 0 0 color-mix(in srgb, var(--ivory) 88%, transparent),
+    inset 0 -2px 0 0 color-mix(in srgb, var(--void)  52%, transparent);
+}
+
+/* ACTIVE. The plate sits back down out of acts.css:75's 2px lift and the bevel
+   inverts — chamfer on top, land at the bottom — which is what a pressed plate
+   does. 90ms so the two shadow lists cross without a grey middle. */
+.cta:active { transition-duration: 90ms; }
+.cta:not(.ghost):active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0  2px 0 0 color-mix(in srgb, var(--void)  46%, transparent),
+    inset 0 -1px 0 0 color-mix(in srgb, var(--ivory) 40%, transparent);
+}
+.cta.ghost:active {
+  transform: translateY(0);
+  box-shadow: inset 0 1px 0 0 color-mix(in srgb, var(--void) 30%, transparent);
+}
+
+/* FOCUS-VISIBLE. base.css:125's 2px --hue outline at 3px offset is untouched and
+   not duplicated — the edge simply lights the way it does on hover. The bead does
+   NOT run on focus: focus survives a scroll, and an infinite animation must not be
+   able to sit there during a pinned act. */
+.cta:focus-visible { border-color: var(--hue); }
+
+/* REDUCED MOTION. The one moving part stops. Everything that makes the metal is
+   static anyway — the standing conic edge, the two-shadow bevel, the milled face
+   — so what is left is a still plate whose edge lights on hover. */
+@media (prefers-reduced-motion: reduce) {
+  .cta:hover::before { animation: none; }
+}
+
+/* ===== GRAFT UNDER TEST (accessibility reviewer's probe, not a delivery) =====
+   Candidate 1's one inverting film on the ghost, clipped to the padding box so the
+   ramped hairline still composites over the board instead of over the film, and
+   restated on :hover because acts.css:77's `background` shorthand is (0,3,0). */
+.cta.ghost {
+  background-image: linear-gradient(180deg, var(--glass) 0%, rgb(0 0 0 / 0) 72%);
+  background-clip: padding-box;
+}
+.cta.ghost:hover {
+  background-image: linear-gradient(180deg, var(--glass) 0%, rgb(0 0 0 / 0) 72%);
+}

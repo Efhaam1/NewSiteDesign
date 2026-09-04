@@ -1,0 +1,237 @@
+/* ============================================================================
+   fb-btn-1.css — APPROACH 1/3: SHEEN-SWEEP
+   A pointer-tracked specular highlight over brushed metal, for every .cta.
+
+   THE ONE IDEA THAT MAKES ONE STACK WORK ON BOTH GROUNDS
+   --fg's two ends are rgb(244 239 228) and rgb(20 20 28) — the exact values
+   already carried by --hair / --hair-strong and --hair-ink. So an alpha of
+   ivory is INVISIBLE on the dark-room plate, and an alpha of ink is INVISIBLE
+   on the paper plate. Every layer below is an alpha of one of those two
+   values, laid in PAIRS. On acts 0-4 and 7 only the ink half of each pair
+   renders; on acts 5-6 only the ivory half. Both halves put the light at the
+   top — so one stack is a polished ivory plate reflecting a dark room AND a
+   dark anodised plate catching a key light, with no body.is-paper switch, no
+   second treatment, and no value that is not already in tokens.css.
+
+   Through the tonal crossover (act 6, t 0.86-0.99) BOTH halves render at once,
+   which is the one moment the shipped button has no shape at all: --fg and
+   --fg-inv meet at rgb(132 130 128) / rgb(130 127 125) and the label measures
+   1.01:1. MEASURED at t 0.925, and the instance that matters is the NAV chip,
+   not the rate one — elementFromPoint says act 7's stage has already slid over
+   `.rate-cta` by t 0.86 (act 7 stage top y=378 at t 0.86, y=202 at t 0.925), so
+   the terms button is behind another act while its tones cross, whereas
+   #nav .cta is fixed at z-index 40 and is never occluded.
+   On that nav chip, shipped samples rgb(132 130 128) at every one of six points
+   — one flat grey rectangle, no edge, no label. This stack samples 151/148/143
+   across the top, 125/121/122 across the middle and bottom, peak 185 on the
+   bevel: a 54-code gradient and a lit top edge where there was none.
+   It does NOT fix the label — nothing that keeps `color: var(--fg-inv)` can —
+   and at that one frame the brush striations cross the dead label, which is
+   marginally worse for reading it than the shipped flat plate. What it buys is
+   that the affordance stays findable while its label dissolves.
+
+   THE POINTER PART NEEDS 8 LINES OF JS (at the foot of this file). Without
+   them --mx/--my keep their fallbacks and the button still has a static key
+   highlight, a hover bloom and a hover sweep: hover-driven transitions, no
+   keyframes, nothing alive off-hover, nothing alive during a pinned scroll.
+
+   PLACE IT after acts.css (end of product.css is the natural home). Every
+   :hover rule here ties acts.css:75-77 on specificity and wins on source
+   order alone.
+   ========================================================================== */
+
+.cta {
+  /* one lever for how loud the metal is; .ghost turns it down */
+  --sheen: 1;
+
+  /* brushed grain. Pitch in em, so .cta-sm's 12.8px box gets a finer grain than
+     the hero's 14.4px one instead of the same 3px corduroy at a smaller size. */
+  --brush: repeating-linear-gradient(180deg,
+    rgb(244 239 228 / calc(0.024 * var(--sheen))) 0,
+    rgb(20 20 28 / calc(0.055 * var(--sheen))) 0.13em,
+    rgb(244 239 228 / calc(0.024 * var(--sheen))) 0.26em);
+  /* body: lit from above. Ivory gloss falls from the top edge, ink shade rises
+     from the bottom. Exactly one of the two is visible on any given act. */
+  --body:
+    linear-gradient(180deg, rgb(244 239 228 / 0.22) 0%,
+      rgb(244 239 228 / 0.04) 44%, rgb(244 239 228 / 0) 62%),
+    linear-gradient(180deg, rgb(20 20 28 / 0) 34%,
+      rgb(20 20 28 / 0.04) 70%, rgb(20 20 28 / 0.09) 100%);
+  /* the short edges fall away, so the plate reads as a rolled chip and not as a
+     rectangle of colour */
+  --ends: linear-gradient(90deg, rgb(20 20 28 / 0.05) 0%, rgb(20 20 28 / 0) 24%,
+    rgb(20 20 28 / 0) 76%, rgb(20 20 28 / 0.05) 100%);
+  --plate: var(--ends), var(--brush), var(--body);
+
+  position: relative;      /* containing block for the two sheen layers */
+  isolation: isolate;      /* so z-index:-1 lands above the plate, under the label */
+  background-color: var(--fg);
+  background-image: var(--plate);
+
+  /* THE BEVEL, in the border that product.css:228 already pays for. Each side is
+     an alpha over the plate, so the ivory sides vanish on ivory and the ink sides
+     vanish on ink: light from the upper left on both grounds, 0 extra boxes. */
+  border-top-color: rgb(244 239 228 / 0.55);
+  border-left-color: rgb(244 239 228 / 0.18);
+  border-right-color: rgb(20 20 28 / 0.14);
+  border-bottom-color: rgb(20 20 28 / 0.28);
+  /* contact shadow: invisible on the dark board, a real lift on the paper acts */
+  box-shadow: 0 1px 0 rgb(20 20 28 / 0.16), 0 5px 16px -6px rgb(20 20 28 / 0.5);
+
+  /* acts.css:73 omits border-color, so the shipped frame snaps while the fill
+     eases. Same three properties plus the frame. */
+  transition: transform 260ms var(--ease), background-color 260ms var(--ease),
+    border-color 200ms var(--ease), color 260ms var(--ease);
+}
+
+/* THE SPECULAR — a bloom that sits where the pointer is. On the ivory plate the
+   ivory half is invisible and the ink half darkens everything AWAY from the
+   pointer; on the dark plate the ink half is invisible and the ivory half
+   brightens the pointer. Opposite mechanics, one percept: the metal is
+   brightest under the cursor. Parked at 34% / -12% until the JS writes --mx. */
+.cta::before,
+.cta::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  pointer-events: none; border-radius: inherit;
+}
+.cta::before {
+  background-image:
+    radial-gradient(38% 132% at var(--mx, 34%) var(--my, -12%),
+      rgb(244 239 228 / calc(0.27 * var(--sheen))) 0%,
+      rgb(244 239 228 / calc(0.09 * var(--sheen))) 44%,
+      rgb(244 239 228 / 0) 72%),
+    radial-gradient(52% 168% at var(--mx, 34%) var(--my, -12%),
+      rgb(20 20 28 / 0) 38%, rgb(20 20 28 / calc(0.085 * var(--sheen))) 100%);
+  /* 0.38 at rest, 1 on hover: the resting plate keeps its peak near flat ivory AND
+     the hover step gets bigger. This is the one number to turn if the ivory plate
+     should read brighter still — 0 is the shipped flat plate. */
+  opacity: 0.38;
+  transition: opacity var(--t-fast) var(--ease);
+}
+.cta:hover::before, .cta:focus-visible::before { opacity: 1; }
+
+/* THE SWEEP — one pass of a narrow gloss band, driven by :hover through
+   background-position. No keyframes, so nothing runs when nobody is pointing at
+   it; 700ms out, 260ms back under a 160ms fade. Interpolating a position needs
+   no @property, so Safari gets the same sweep. */
+.cta::after {
+  background-image:
+    linear-gradient(102deg, rgb(244 239 228 / 0) 34%,
+      rgb(244 239 228 / calc(0.23 * var(--sheen))) 47%,
+      rgb(244 239 228 / calc(0.27 * var(--sheen))) 50%,
+      rgb(244 239 228 / calc(0.23 * var(--sheen))) 53%, rgb(244 239 228 / 0) 66%),
+    linear-gradient(102deg, rgb(20 20 28 / 0) 34%,
+      rgb(20 20 28 / calc(0.15 * var(--sheen))) 47%,
+      rgb(20 20 28 / calc(0.19 * var(--sheen))) 50%,
+      rgb(20 20 28 / calc(0.15 * var(--sheen))) 53%, rgb(20 20 28 / 0) 66%);
+  background-size: 220% 100%; background-repeat: no-repeat;
+  background-position: 128% 0;
+  opacity: 0;
+  transition: background-position 260ms var(--ease), opacity 240ms var(--ease);
+}
+.cta:hover::after {
+  background-position: -28% 0; opacity: 1;
+  transition: background-position 700ms var(--ease), opacity 160ms var(--ease);
+}
+
+/* HOVER — the hue arrives as light ON the metal, not as paint over it.
+   acts.css:75 repaints the whole plate var(--hue) with #fff on top, which is
+   3.06:1 on act 0 and 2.41:1 on acts 6-7. Keeping the plate and the ramped
+   label keeps the filled button at its 15-16:1 token pair, and the act's colour
+   still lands: a hue core in the bloom and a hue lip along the bottom edge. */
+.cta:hover {
+  background-color: var(--fg);
+  background-image: var(--plate);   /* acts.css:75's shorthand kills the image */
+  color: var(--fg-inv);
+  border-top-color: rgb(244 239 228 / 0.72);
+  border-left-color: rgb(244 239 228 / 0.24);
+  border-right-color: rgb(20 20 28 / 0.14);
+  border-bottom-color: var(--hue);
+}
+.cta:hover::before {
+  background-image:
+    radial-gradient(30% 116% at var(--mx, 34%) var(--my, -12%),
+      var(--hue-soft), rgb(0 0 0 / 0) 70%),
+    radial-gradient(38% 132% at var(--mx, 34%) var(--my, -12%),
+      rgb(244 239 228 / calc(0.31 * var(--sheen))) 0%,
+      rgb(244 239 228 / calc(0.11 * var(--sheen))) 44%,
+      rgb(244 239 228 / 0) 72%),
+    radial-gradient(52% 168% at var(--mx, 34%) var(--my, -12%),
+      rgb(20 20 28 / 0) 38%, rgb(20 20 28 / calc(0.085 * var(--sheen))) 100%);
+}
+
+/* PRESS — the chip goes in. The bevel swaps ends, the 2px lift is given back and
+   the sweep is cut, so a press reads as contact and not as a second sweep. Same
+   two values, so it self-selects on both grounds like everything else. Declared
+   after :hover, ties it at (0,2,0), wins on order. */
+.cta:active {
+  transform: translateY(0);
+  border-top-color: rgb(20 20 28 / 0.30);
+  border-bottom-color: rgb(244 239 228 / 0.50);
+  transition-duration: 70ms;
+}
+.cta:active::before { opacity: 0.82; }
+.cta:active::after { opacity: 0; transition: opacity 70ms linear; }
+
+/* ------------------------------------------------------------------- ghost
+   Secondary by construction: no plate, no bevel, half the sheen. What it gets
+   instead is the one INVERTING ramp in the palette — --glass, the token
+   .cell/.pane already use — as a top-weighted film. That is the same smoked
+   surface as the cards, it always contrasts the label (near-black on the dark
+   acts, near-white on paper), and it flattens the 5x-28x luminance spread the
+   shipped ghost inherits from letting the lit board straight through. The lower
+   third still shows the board, so the button is still a window.
+   product.css:229's `border-color: var(--line-2)` is (0,2,0) and outranks the
+   per-side bevel above, so the ghost keeps its ramped hairline untouched. */
+.cta.ghost {
+  --sheen: 0.5;
+  background-color: transparent;
+  background-image: var(--brush),
+    linear-gradient(180deg, var(--glass) 0%, rgb(0 0 0 / 0) 72%);
+  box-shadow: none;
+}
+.cta.ghost:hover {
+  background-color: transparent;
+  background-image: var(--brush),
+    linear-gradient(180deg, var(--hue-soft) 0%, rgb(0 0 0 / 0) 66%),
+    linear-gradient(180deg, var(--glass) 0%, rgb(0 0 0 / 0) 72%);
+  border-color: var(--hue);
+  color: var(--fg);   /* acts.css:77 tints the label var(--hue): ~2.0:1 on paper */
+}
+
+/* ------------------------------------------------- reduced motion
+   Nothing travels and nothing lifts. The sweep band parks across the plate as a
+   static diagonal gloss and hover only deepens it, so the still state is the
+   handsome one rather than the leftover one. */
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: background-color 220ms var(--ease), border-color 220ms var(--ease),
+      color 220ms var(--ease);
+  }
+  .cta:hover { transform: none; }
+  .cta::before, .cta::after { transition: none; }
+  .cta::after { background-position: 44% 0; opacity: 0.5; }
+  .cta:hover::after { background-position: 44% 0; opacity: 0.8; transition: none; }
+}
+
+/* ----------------------------------------------------------------------------
+   THE 8 LINES. Delegated, passive, rect cached on enter so pointermove never
+   forces layout, and the two properties are written to the BUTTON's own inline
+   style — never to <html>, which director.js:308 records as having recalculated
+   535 elements a frame when --lift and --narr were written there.
+
+     let b = null, r = null;
+     addEventListener('pointerover', (e) => {
+       const t = e.target.closest?.('.cta');
+       if (t !== b) { b = t; r = t && t.getBoundingClientRect(); }
+     }, { passive: true });
+     addEventListener('pointermove', (e) => {
+       if (!b || !r) return;
+       b.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+       b.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+     }, { passive: true });
+
+   camera.js:22 already runs a global passive pointermove, so this adds a second
+   listener rather than a new class of work. It writes only while the pointer is
+   over a 168x49 box, and only 2 custom properties on 1 element.
+   -------------------------------------------------------------------------- */

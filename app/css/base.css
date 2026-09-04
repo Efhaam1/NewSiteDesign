@@ -1,0 +1,151 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+html {
+  background: var(--void);
+  -webkit-text-size-adjust: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--on-dark);
+  background: var(--void);
+  overflow-x: clip;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------------------------------------------------------------- gl canvases
+   Two contexts render the same scene through two camera layer masks. The type
+   layer sits between them, so a piece on the FRONT layer occludes a headline
+   and a piece on the BACK layer is occluded by it. That single trick is what
+   stops the page reading as "graphics behind text".                          */
+.gl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  pointer-events: none;
+}
+#gl-back  { z-index: 0; }
+#gl-front { z-index: 30; }
+
+/* The legibility wash and the grain now live in the GL pass (world.js `_scrim`),
+   so there are two fewer full-viewport compositor layers. These rules only apply
+   to the no-WebGL fallback, where there is no pass to fold them into. */
+body.gl-failed #scrim {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; display: block;
+  background:
+    linear-gradient(101deg, rgb(3 3 6 / 0.9) 0%, rgb(3 3 6 / 0.34) 38%, rgb(3 3 6 / 0) 58%),
+    linear-gradient(180deg, rgb(3 3 6 / 0.74) 0%, rgb(3 3 6 / 0.06) 18%,
+      rgb(3 3 6 / 0.06) 64%, rgb(3 3 6 / 0.8) 100%);
+}
+#scrim, #grain { display: none; }
+
+/* The source for the in-scene dust texture. Never painted by the browser — it is
+   sampled by a camera-parented additive quad in world.js. */
+#atmos {
+  position: fixed; left: 0; top: 0; width: 2px; height: 2px;
+  opacity: 0; pointer-events: none; z-index: -1;
+}
+#grain {
+  position: fixed; inset: 0; z-index: 32;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+}
+
+main { position: relative; z-index: 10; }
+
+
+.act { position: relative; }
+.act-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: 1fr;
+  /* minmax(0, 1fr), not the implicit `auto` row. An auto row grows past its
+     container when the content is taller, so `.pad`'s height: 100% was resolving
+     against a 971px row inside a 595px stage — which is what cut the console and
+     the bento in half on short windows, and why nested minmax(0, 1fr) rows inside
+     them resolved to max-content instead of to the space left over. */
+  grid-template-rows: minmax(0, 1fr);
+  contain: layout paint style;
+}
+
+/* Eight pinned full-screen stages with a few hundred elements each are all in the
+   layer tree at once, and opacity 0 still paints. The scroll engine marks the two
+   or three that are actually near the viewport; the rest are taken out of paint
+   entirely, which is the difference between compositing one screen and seven. */
+.act:not(.is-live) .act-stage { visibility: hidden; }
+.act:not(.is-live) .act-stage * { animation-play-state: paused !important; }
+
+/* ------------------------------------------------------------------ typography */
+.display {
+  font-family: var(--display);
+  font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 144;
+  font-weight: 300;
+  letter-spacing: -0.028em;
+  line-height: 0.86;
+  text-wrap: balance;
+  margin: 0;
+}
+.d1 { font-size: clamp(3.2rem, 11.2vw, 12.4rem); }
+.d2 { font-size: clamp(2.6rem, 7.6vw, 8.2rem); }
+.d3 { font-size: clamp(2rem, 4.6vw, 4.6rem); letter-spacing: -0.02em; line-height: 0.94; }
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.lead {
+  font-size: clamp(1.02rem, 1.34vw, 1.32rem);
+  line-height: 1.5;
+  color: var(--on-dark-dim);
+  max-width: 34ch;
+  margin: 0;
+  text-wrap: pretty;
+}
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--hue); outline-offset: 3px; border-radius: 2px; }
+
+.sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* If WebGL never comes up, the story still has to be readable. The acts stop
+   pinning and the document becomes an ordinary stacked page. */
+body.gl-failed .act { height: auto !important; }
+body.gl-failed .act-stage { position: static; height: auto; overflow: visible; }
+body.gl-failed .pad { min-height: 0; padding-block: clamp(48px, 8vh, 96px); }
+body.gl-failed .gl, body.gl-failed #atmos, body.gl-failed #scrim { display: none; }
+body.gl-failed #ladder, body.gl-failed #readout { display: none; }
+body.gl-failed .act > * { opacity: 1 !important; transform: none !important; }
+body.gl-failed .console { height: auto; transform: none; }
+body.gl-failed .bento { height: auto; grid-template-rows: none; grid-auto-rows: minmax(120px, auto); }
+body.gl-failed .stage-panels { position: static; width: auto; }
+body.gl-failed .stage-panel { position: static; opacity: 1; transform: none; margin-bottom: 10px; }
+
+/* ?debug=1 */
+#hud {
+  position: fixed; z-index: 60; left: 50%; bottom: 8px; transform: translateX(-50%);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  color: #9be0c4; background: rgb(0 0 0 / 0.72); padding: 4px 9px;
+  pointer-events: none; white-space: nowrap;
+}
