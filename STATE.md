@@ -59,7 +59,20 @@ node .ref/act4int.cjs [w] [h]                # clicks and keys the console, prin
 
 ## Before and after any change
 
-**There is no git.** `.audit5/snap/` is the only undo.
+**There IS git now, as of 2026-09-04, and it changes this whole section.** The tree is a repo
+on `main` at `https://github.com/Efhaam1/NewSiteDesign` (private, owned by Efhaam1), one commit,
+`e67e98c`. So `git diff`, `git stash` and `git checkout -- <file>` all work, and they are cheaper
+than everything below. Identity is set LOCALLY on this repo only (`Efhaam Ahsan`,
+`112851287+Efhaam1@users.noreply.github.com`) and the global git config is still empty;
+`core.autocrlf` is `false` and `.gitattributes` pins `eol=lf`, because a line-ending flip is on
+the trap list further down.
+
+What git does NOT cover: `.gitignore` excludes `/shots`, `/.bak`, `/.audit5/snap`,
+`/.archive-2026-09-01`, `/research` and the generated output, so the two rollbacks below and the
+paper trail are still local-only and still the only copies that exist. The commit predates
+nothing — the whole history before 2026-09-04 is in those directories, not in git.
+
+`.audit5/snap/` is the other undo.
 
 `.audit5/snap/` currently holds the tree as of **2026-09-03 19:11 — before the whole act-1
 rebuild**. That is the only way back from it. Do not `take` a new snapshot until you have decided
