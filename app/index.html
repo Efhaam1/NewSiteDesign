@@ -28,7 +28,7 @@
 <body>
 
 <!-- The page without JS. It sits FIRST in the body on purpose: every act is `visibility: hidden`
-     until scroll.js marks it live, and the eight acts are 2920vh tall, so at the foot of the
+     until scroll.js marks it live, and the nine acts are 3520vh tall, so at the foot of the
      document this paragraph was ~29 blank screens below the fold. z-index clears the two fixed
      canvases, which paint nothing without a context but still stack above `main`, and the top
      padding plus z-index 60 clear `#nav` — also fixed, also z-index 40, but later in the DOM,
@@ -88,7 +88,9 @@ be read.</p></noscript>
             Sunday night.</p>
           <div class="cta-row">
             <a class="cta" href="/teach">Teach a free session</a>
-            <a class="cta ghost" href="#curriculum">See the ten levels</a>
+            <a class="cta ghost" href="#curriculum"><span class="cta-l">See the ten
+              levels</span><span class="cta-go" aria-hidden="true">See the ten levels<i
+              class="cta-arrow"></i></span></a>
             <span class="mono tiny">no email, no card</span>
           </div>
         </div>
@@ -104,7 +106,64 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 1 -->
+<!-- ============================================================ ACT 1
+     The coach's own week, before any argument about coaches. Act 2 owns three
+     coaches converging onto one FILE; this act owns the other axis, because a
+     file is the curriculum and a RANK is one hour — eight squares, left to
+     right, which is exactly the eight segments S115 is written in. Same session
+     as act 5, deliberately: the reader opens it here and teaches it there.
+
+     Every beat is a band off --t declared on `.sunday` in acts.css. Nothing here
+     is written per frame from JS except the product strip, which is built once
+     from the bundle. -->
+<section class="act act-sunday" data-act="sunday" aria-labelledby="h-sunday">
+  <div class="act-stage">
+    <div class="pad sunday">
+      <p class="kicker mono k-sunday"><span class="dot"></span>Does this sound familiar?</p>
+
+      <div class="sun-beats">
+        <div class="sb sb1">
+          <p class="display d3 sb-h">The lesson starts<br />before the lesson.</p>
+          <p class="lead sb-l">Fifty minutes on Tuesday&rsquo;s timetable. Nothing in them yet.</p>
+          <p class="mono sb-chip">Tue 17:30 &middot; group B &middot; 50 min &middot; <i>empty</i></p>
+        </div>
+        <div class="sb sb2">
+          <p class="display d3 sb-h">Every hour is<br />built from scratch.</p>
+          <p class="lead sb-l">Puzzles found, an opening prepared, an endgame drilled, homework
+            written &mdash; all of it before the room is unlocked.</p>
+        </div>
+        <div class="sb sb3">
+          <p class="display d3 sb-h">And nothing says<br />what comes next.</p>
+          <p class="lead sb-l">Tactics? The opening they keep losing? The endgame from three weeks
+            ago? Every week reopens the same argument.</p>
+        </div>
+        <div class="sb sb4">
+          <p class="display d3 sb-h">The material exists.<br />The system doesn&rsquo;t.</p>
+          <p class="lead sb-l">Folders, chats, screenshots, a drawer of printouts. None of it in
+            one place, and none of it in order.</p>
+        </div>
+        <div class="sb sb5">
+          <p class="display d3 sb-h">Eventually,<br />planning is the job.</p>
+          <p class="lead sb-l">The evening goes on preparing the hour. The hour is the part they
+            trained for.</p>
+        </div>
+      </div>
+
+      <div class="sun-pay">
+        <h2 class="display d2 sun-final" id="h-sunday">What if every lesson was<br />already
+          planned for you?</h2>
+        <!-- built by ui/sunday.js from showcase.json S115 and catalog.json. Eight cells on
+             the page's own 8-file lattice, over eight lit squares of one rank: a rhyme in
+             count, not a pixel registration - the room is in perspective. -->
+        <div class="sun-rail" id="sun-rail"></div>
+      </div>
+
+      <p class="coord mono">rank 4 &middot; one hour</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 2 -->
 <section class="act act-chaos" data-act="chaos" aria-labelledby="h-chaos">
   <div class="act-stage">
     <div class="pad chaos">
@@ -136,7 +195,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 2 -->
+<!-- ============================================================ ACT 3 -->
 <section class="act act-spine" data-act="spine" id="curriculum" aria-labelledby="h-spine">
   <div class="act-stage">
     <div class="pad spine">
@@ -162,7 +221,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 3 -->
+<!-- ============================================================ ACT 4 -->
 <section class="act act-stages" data-act="stages" aria-labelledby="h-stages">
   <div class="act-stage">
     <div class="pad stages">
@@ -178,7 +237,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 4 -->
+<!-- ============================================================ ACT 5 -->
 <section class="act act-session" data-act="session" id="session" aria-labelledby="h-session">
   <div class="act-stage">
     <div class="pad session">
@@ -285,7 +344,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 5 -->
+<!-- ============================================================ ACT 6 -->
 <section class="act act-system" data-act="system" id="system" aria-labelledby="h-system">
   <div class="act-stage">
     <div class="pad system">
@@ -301,7 +360,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 6 -->
+<!-- ============================================================ ACT 7 -->
 <section class="act act-terms" data-act="terms" id="terms" aria-labelledby="h-terms">
   <div class="act-stage">
     <div class="pad terms">
@@ -319,7 +378,7 @@ be read.</p></noscript>
   </div>
 </section>
 
-<!-- ============================================================ ACT 7 -->
+<!-- ============================================================ ACT 8 -->
 <section class="act act-promotion" data-act="promotion" id="end" aria-labelledby="h-end">
   <div class="act-stage">
     <div class="pad promo">

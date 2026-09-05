@@ -189,8 +189,10 @@ const CLOSE = ['Different coaches. Different paths. Different outcomes.',
 
 /** THE ACT'S TIMING, and this file is now the only place it is written. A card is fully
  *  dealt in at its own --bs, and the LAST mark in the whole act has to finish drawing at
- *  t = LAST = 0.40, which is n 1.40 — the exact frame the room finishes sorting its pile
- *  into three heaps (director.js:137). The per-mark stagger is DERIVED from that rather
+ *  t = LAST = 0.40, which is n 2.40 — the exact frame the room finishes sorting its pile
+ *  into three heaps (`debris.settle` in director.js; it was n 1.40 until act 1 `sunday`
+ *  was inserted and moved this act to index 2. LAST is act-local t, so the retiming was
+ *  a comment, not a value). The per-mark stagger is DERIVED from that rather
  *  than typed, so adding or removing a mark re-times its column instead of breaking the
  *  invariant. These three arrays used to be duplicated as `.cv-col:nth-of-type()` rules
  *  in acts.css; they are written onto each card as custom properties instead — one write

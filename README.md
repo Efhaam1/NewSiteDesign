@@ -42,14 +42,51 @@ enormous board, crossing a lit rank gate on every rank as the file fills, and
 the piece standing on the file becomes the next piece up at every graduation.
 At rank eight it promotes.
 
-Eight acts, each pinned for as long as its shot needs:
+Nine acts, each pinned for as long as its shot needs:
 
 | # | Act | What the world does | What the page says |
 |---|-----|--------------------|--------------------|
 | 0 | `threshold` | the board assembles out of the dark; a pawn condenses on the d-file and comes *through* the headline | Same session. Every coach. Every table. |
-| 1 | `chaos` | three kinds of paper settle on three files, converge onto the d-file as one ruled column, then close into the line act 2 lights | Your best coach is a dependency. |
+| 1 | `sunday` | one square lights and fills, then twenty-four; thirty candidate moves fan out of d4; the material leaves the board and the room stops holding still; then all of it files into eight ordered piles on one rank | Does this sound familiar? |
+| 2 | `chaos` | three kinds of paper settle on three files, converge onto the d-file as one ruled column, then close into the line act 3 lights | Your best coach is a dependency. |
 
-Act 1 carries the argument the product actually turns on, so the argument happens
+### Act 1 — the week before the lesson
+
+A file is the curriculum; a **rank** is one hour. That is the whole reason this act can
+stand next to the one after it, which owns the other axis. Eight squares, left to right,
+in order — which is exactly the eight segments S115 is written in.
+
+Six beats, all authored in `n` (= 1 + t here), so the act's height can change without
+moving a frame of the shot:
+
+- **1.02–1.34 · accumulate.** Material rises out of the dark and stacks on ONE square —
+  next Tuesday, fifty minutes, nothing in them — and then on twenty-four. It is a
+  *height*, not an area: the stack pitch is 0.19 against act 2's flat carpet, because a
+  scattered carpet is what act 2 already is. Four kinds of material are mixed on every
+  square (a printed diagram, a page of notes, a phone screenshot, a dark export), and
+  they are deliberately not sorted — "it is all in one place" is what is not true.
+- **1.28–1.48 · fork.** The thirty legal moves from d4, drawn as analysis arrows at room
+  scale, ivory, all the same weight, none of them ranked. Chess has a name for a position
+  with too many candidate moves and no way to order them.
+- **1.43–1.62 · occlude.** The stacks lose their squares. Twenty-two slips ride the FRONT
+  plate, so the clutter crosses the words rather than sitting behind them.
+- **1.34–1.78 · strain.** One scalar drives the tile shear, the camera roll (the only
+  place on the page the horizon is not level), the fog, the dust and the wash together,
+  so overload is one physical state of the room rather than four effects that coincide.
+- **1.76–1.85 · file.** The room straightens up *before* the material lands, and then the
+  lens does not move again: a camera travelling through the snap makes the resolution look
+  like something the camera did. Everything falls into eight ordered piles on rank 4, and
+  those eight squares light a→h in order.
+- **t 0.796–0.892 · the answer.** Conclusion, then evidence: the line lands, then one real
+  session opens under it — S115's eight segments with the minutes the bundle wrote, on the
+  page's own eight-file lattice, registered to the width the lit rank projects to. Then
+  0.065 of the pin passes with nothing moving at all.
+
+Between beat five and the line there are 0.055 of t with no copy on the page. That silence
+is the only one on the page and it is deliberate: it is where the room files, and a line
+printed over it would be read instead of watched.
+
+Act 2 carries the argument the product actually turns on, so the argument happens
 twice on the same frames — once at board scale and once at reading scale — and it
 resolves into the product rather than into a sentence. Four beats:
 
@@ -75,19 +112,19 @@ closes an arithmetic that does not close neatly (42 of 50, because that is what 
 bundle says). It is capped at 348px so it can never become a dashboard.
 
 **The handover.** The five blocks close into one continuous rail up the d-file, the
-file's glow gathers into a wedge at rank 1, and act 2's headline arrives over a
+file's glow gathers into a wedge at rank 1, and act 3's headline arrives over a
 literal line. The product hands the line to the spine instead of dissolving beside it.
 
 Every figure in the product surface comes from `variance.json`. The twelve minute
 shares on the problem side are an apportionment written for the shot, are labelled
 as such in `compare.js`, and are never printed as numbers.
 
-| 2 | `spine` | the d-file lights from rank 1, session notches ignite as the head passes, unit stems branch off | A curriculum is a line, not a library. |
-| 3 | `stages` | five gates. Crossing one relights the room in that stage's colour and the piece graduates | one escalating claim per stage |
-| 4 | `session` | one square lifts out of the board and becomes the teaching console, named from the outside | This is what a coach sees. |
-| 5 | `system` | the room lifts to paper and the board is seen from above as an 8-column lattice | Sixty-four squares. One operating system. |
-| 6 | `terms` | the paper stays up and the price is printed on it as a ruled licence schedule | Every licence is the whole curriculum. |
-| 7 | `promotion` | the rook on rank eight burns off and the queen condenses out of the light | Promotion. |
+| 3 | `spine` | the d-file lights from rank 1, session notches ignite as the head passes, unit stems branch off | A curriculum is a line, not a library. |
+| 4 | `stages` | five gates. Crossing one relights the room in that stage's colour and the piece graduates | one escalating claim per stage |
+| 5 | `session` | one square lifts out of the board and becomes the teaching console, named from the outside | This is what a coach sees. |
+| 6 | `system` | the room lifts to paper and the board is seen from above as an 8-column lattice | Sixty-four squares. One operating system. |
+| 7 | `terms` | the paper stays up and the price is printed on it as four cards and one offer | Every licence is the whole curriculum. |
+| 8 | `promotion` | the rook on rank eight burns off and the queen condenses out of the light | Promotion. |
 
 Two tonal states, and the cut between them means something: **dark is what the
 coach teaches from, light is what the parent and the photocopier get.** `--lift`
@@ -104,7 +141,7 @@ All copy numbers and every product surface come from curriculum bundle 1.1.0
   scrubber and the bento drill.
 - `stages.json` — the five stages with their real age bands, rating bands,
   levels and six units each. Drives the stage panels.
-- `showcase.json` — full lesson JSON for S001 / S042 / S115. Act 4's console renders
+- `showcase.json` — full lesson JSON for S001 / S042 / S115. Act 5's console renders
   **S115 Three-Move Combinations** verbatim, through the same `buildSegments` /teach
   uses: the eight segments and their minutes (60 planned, 42 timed), the `THE PLAN`
   thinking routine, all eight puzzles with their real FENs, prompts, forced lines and
@@ -114,7 +151,9 @@ All copy numbers and every product surface come from curriculum bundle 1.1.0
 - `pricing.json` — the licence schedule: four tiers, the six-week pilot and the
   ledger notes, every figure quoted from `docs/product/05-pricing-and-funnel.md`
   section A. The only derived numbers are the effective monthly prices, which are
-  the annual figure over twelve.
+  the annual figure over twelve. `items` is the tick list each card prints and it
+  adds no claim: every entry is one clause of that band's own `adds` sentence, and
+  the sentence survives beside it as `addsShort` for the windows too short for rows.
 - `variance.json` — S012 *Is My Piece Safe? (THE LOOK)*, the invariant half of the
   act-1 comparison: its real segments, puzzle count, homework minutes and answer.
 
@@ -143,24 +182,26 @@ stage, so the room's light is curriculum data resolved to hex.
 
 ```
 app/
-├── index.html            all eight acts, in the DOM, in order
+├── index.html            all nine acts, in the DOM, in order
 ├── css/
 │   ├── tokens.css        palette, type, the driver variables
 │   ├── base.css          canvases, scrim, grain, atmosphere, sticky acts
 │   ├── acts.css          per-act layout + the chrome (nav, rank ladder)
 │   ├── product.css       bento, paper lift, mobile
-│   ├── terms.css         the licence schedule (act 6)
-│   └── annot.css         act 4 end to end: the copy column, the console, the six callouts
+│   ├── terms.css         the licence schedule, four cards and one offer (act 7)
+│   └── annot.css         act 5 end to end: the copy column, the console, the six callouts
 ├── js/
 │   ├── scroll.js         native scroll, damped animation values
 │   ├── gl/world.js       two renderers, two scenes, lights, bloom, quality tier
 │   ├── gl/board.js       instanced board + glow plates + the table it sits on
 │   ├── gl/spine.js       the d-file groove, 213 notches, 30 unit stems, 9 gates
 │   ├── gl/pieces.js      GLB loading, normal rebuild, the dissolve shader
-│   ├── gl/debris.js      the chaos pile and its snap to the lattice
+│   ├── gl/debris.js      act 2's pile: three kinds of paper, three files, one column
+│   ├── gl/load.js        act 1's: stacks that grow, thirty candidate moves, one rank
 │   ├── gl/camera.js      keyframed rig + portrait framing
 │   ├── gl/director.js    the shot list and every scroll → state mapping
-│   └── ui/*.js           console, stage panels, bento, dial, ladder, board2d
+│   └── ui/*.js           console, stage panels, bento, dial, ladder, board2d, the
+│                          act-1 product strip (sunday.js)
 ├── data/                 the curriculum bundle slices listed above
 └── vendor/               three.js 0.180, chess.js 1.4 (ESM builds)
 ```
@@ -344,7 +385,7 @@ arrives (n≈4.6).
 - No logo work beyond masking the existing `Chess King E Monogram` PNG to
   `currentColor`. It survives at 26 px but it is a raster; it wants tracing.
 - `/lesson`, `/curriculum` and the pilot form are links to nowhere. The console
-  in act 4 is a rendering of a real session, not the playable player.
+  in act 5 is a rendering of a real session, not the playable player.
 - Copy has been audited against `app/data/` and `docs/product/`: the position
   count is unique FENs (1,996, not the 3,062 occurrences), stage counts print
   authored-of-planned, and the two cards that described unbuilt machinery now

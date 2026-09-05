@@ -245,7 +245,8 @@ h3.t-rail-h { font-weight: 500; }
   width: 5px; height: 1px; background: var(--accent); }
 .t-reveal { background: transparent; border: 1px solid var(--accent); color: var(--fg);
   padding: 0.7em 0.8em; font-size: 0.82rem; transition: all 180ms; }
-.t-reveal:hover { background: var(--accent); color: #160d09; }
+/* The hover fill is the growing plate declared with .t-ctl's primaries further
+   down; a `background` shorthand here would reset its layer and fill instantly. */
 .t-reveal kbd { font-family: var(--mono); font-size: 0.62rem; opacity: 0.7;
   border: 1px solid currentColor; padding: 0 0.3em; margin-left: 0.4em; }
 
@@ -269,8 +270,23 @@ h3.t-rail-h { font-weight: 500; }
    unscoped, the primary pair was drawn exactly like Reset, and its hover put --fg on
    the accent at 2.66:1. */
 .t-ctl .t-next, .t-ctl .t-play { border-color: var(--accent); color: var(--fg); }
-.t-ctl .t-next:hover:not(:disabled), .t-ctl .t-play:hover:not(:disabled) {
-  background: var(--accent); color: #160d09; }
+/* The three primaries of this console FILL from their leading edge, the way the
+   landing page's console mock does (annot.css:.con-go) — the two are deliberately
+   one design, so the gesture belongs to both. Endpoint unchanged: accent plate,
+   #160d09 label. The label's flip waits 120ms because #160d09 on an unfilled button
+   is ink on ink. Background layers only; no box moves. */
+.t-ctl .t-next, .t-ctl .t-play, .t-reveal {
+  background-image: linear-gradient(90deg, var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  background-size: 0% 100%;
+  transition: border-color 180ms var(--ease), color 100ms var(--ease),
+              background-size 300ms var(--ease);
+}
+.t-ctl .t-next:hover:not(:disabled), .t-ctl .t-play:hover:not(:disabled), .t-reveal:hover {
+  background-size: 100% 100%; color: #160d09;
+  transition-delay: 0s, 120ms, 0s;
+}
 .t-time { margin: 0; display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
 .t-time b { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.02em; }
 .t-time span { font-family: var(--mono); font-size: 0.58rem; color: var(--fg-faint); }
@@ -412,11 +428,13 @@ h3.t-rail-h { font-weight: 500; }
   .t-ctl { grid-auto-flow: row; }
 }
 
-/* Nothing on this route moves today: these are 160-180ms colour and border changes,
-   not motion. The block exists so that anything animated later lands inside it. */
+/* The three primaries grow a plate on hover now, so this block does have motion to
+   turn off — and it has to out-specify the (0,2,0) rule that declares it. */
 @media (prefers-reduced-motion: reduce) {
   .t-pick button, .t-views button, .t-beats button, .t-copy-btn, .t-flow button,
   .t-plies button, .t-line-btns button, .t-ctl button, .t-reveal { transition: none; }
+  .t-ctl .t-next, .t-ctl .t-play, .t-reveal:hover,
+  .t-ctl .t-next:hover, .t-ctl .t-play:hover { transition: none; transition-delay: 0s; }
   .board2d img { animation: none; }
   .t-flow { scroll-behavior: auto; }
 }

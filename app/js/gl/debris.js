@@ -327,10 +327,12 @@ export class Debris {
       let cg = lerp(p.cg, CAST_G, B);
       let cb = lerp(p.cb, CAST_B, B);
       if (C > 0) {
-        // The last state of the paper is the colour the groove opens on. Act 1
-        // and act 2 always sit in stage one's green (director's idx is 0 for all
-        // n < 3), so the tip toward it is a constant here rather than a hue
-        // plumbed through three objects for two hundred frames.
+        // The last state of the paper is the colour the groove opens on. Acts 1
+        // to 3 always sit in stage one's green (director's idx is 0 for all
+        // n < 4 — it was n < 3 before act 1 `sunday` was inserted, and the gate
+        // anchor at director.js's `gate` moved with it), so the tip toward it is a
+        // constant here rather than a hue plumbed through three objects for two
+        // hundred frames.
         t *= 1 + 0.16 * C;
         cg = lerp(cg, 1.06, C);
         cb = lerp(cb, 1.0, C);

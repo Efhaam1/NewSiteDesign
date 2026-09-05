@@ -1,8 +1,8 @@
 {
-  "_source": "CurriculumWebsite/docs/product/05-pricing-and-funnel.md §A for the tiers, the annual rule, the pilot and the implementation package; 02-auth-security-licensing.md §C for the soft caps and the one-location licence. Every figure is quoted from those files. The only derived numbers are the effective monthly prices, which are the annual price over twelve.",
+  "_source": "CurriculumWebsite/docs/product/05-pricing-and-funnel.md §A for the tiers, the annual rule, the pilot and the implementation package; 02-auth-security-licensing.md §C for the soft caps and the one-location licence. Every figure is quoted from those files. The only derived numbers are the effective monthly prices, which are the annual price over twelve; the cards print those in the yearly billing state and the pilot's is the second half of its credit sentence. `items` invents nothing: each array is the band's own `adds` sentence itemised, clause for clause, so the card list and the short prose carry the same claims.",
   "currency": "USD",
   "billed": "per academy",
-  "annual": { "rule": "ten months, two free", "label": "Yearly · 2 months free" },
+  "annual": { "rule": "ten months, two free", "label": "Yearly", "note": "2 months free" },
   "provenance": "213 sessions · 1,640 puzzles · every puzzle position checked for legality",
   "invariant": {
     "label": "In every licence",
@@ -11,7 +11,6 @@
   },
   "bands": [
     {
-      "i": "01",
       "id": "starter",
       "name": "Starter",
       "fit": "Solo owner-coach · 2 coach seats · up to 50 students",
@@ -20,10 +19,15 @@
       "annual": "$390 a year",
       "effective": "$32.50 a month",
       "adds": "All 213 written sessions, the teaching console and up to five groups. Print packs and parent reports when they ship.",
-      "addsShort": "All 213 sessions, the console, five groups. Packs and reports when they ship."
+      "addsShort": "All 213 sessions, the console, five groups. Packs and reports when they ship.",
+      "items": [
+        "All 213 written sessions",
+        "The teaching console",
+        "Up to five groups",
+        "Print packs and parent reports, when they ship"
+      ]
     },
     {
-      "i": "02",
       "id": "growth",
       "name": "Growth",
       "chip": "What the pilot runs on",
@@ -34,11 +38,17 @@
       "effective": "$82.50 a month",
       "adds": "Everything in Starter, plus the owner dashboard, what coaches flag after a class, your name on the player and the packs, and priority support.",
       "addsShort": "Everything in Starter, plus the owner dashboard, coach flags, your name on the packs, priority support.",
+      "items": [
+        "Everything in Starter",
+        "The owner dashboard, when it ships",
+        "What coaches flag after a class",
+        "Your name on the player and the packs, when they ship",
+        "Priority support"
+      ],
       "aside": "About the price of one coach-hour a week.",
       "recommended": true
     },
     {
-      "i": "03",
       "id": "scale",
       "name": "Scale",
       "fit": "Up to 25 coach seats · up to 1,000 students",
@@ -47,10 +57,15 @@
       "annual": "$2,490 a year",
       "effective": "$207.50 a month",
       "adds": "Everything in Growth, plus branches, exports and an onboarding workshop.",
-      "addsShort": "Everything in Growth, plus branches, exports and an onboarding workshop."
+      "addsShort": "Everything in Growth, plus branches and an onboarding workshop. Exports when they ship.",
+      "items": [
+        "Everything in Growth",
+        "Branches",
+        "Exports, when they ship",
+        "An onboarding workshop"
+      ]
     },
     {
-      "i": "04",
       "id": "enterprise",
       "name": "Enterprise",
       "fit": "Franchises, federations, school networks",
@@ -60,10 +75,14 @@
       "effective": "",
       "adds": "Everything in Scale, on terms we agree with you. SSO and localization are planned, not built.",
       "addsShort": "Custom terms. SSO and localization are planned, not built.",
-      "quiet": true
+      "items": [
+        "Everything in Scale",
+        "On terms we agree with you"
+      ],
+      "aside": "SSO and localization are planned, not built.",
+      "invert": true
     },
     {
-      "i": "pilot",
       "id": "pilot",
       "name": "Six weeks",
       "fit": "Growth features · Pawn and Knight stages · 3 coach seats",
@@ -82,5 +101,5 @@
     "Optional setup is $299, once: we map your existing material onto the curriculum and run a one-hour workshop. Scale includes the workshop.",
     "Most of this market quotes on request. These are the prices; only Enterprise is quoted."
   ],
-  "cta": { "micro": "no email, no card" }
+  "cta": { "label": "Teach a free session", "micro": "no email, no card" }
 }

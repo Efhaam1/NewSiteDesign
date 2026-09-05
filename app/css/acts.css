@@ -242,7 +242,7 @@ html.ready .act-threshold { --b: 1; }
    the live ones were 270 lines from the ones they overrode. There is now exactly
    one .chaos block, at the bottom of this file with the rest of the act. */
 
-/* =========================================================== ACT 2 — spine */
+/* =========================================================== ACT 3 — spine */
 .spine {
   grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.78fr);
   gap: clamp(20px, 3.4vw, 64px); align-content: center; align-items: center;
@@ -277,7 +277,7 @@ html.ready .act-threshold { --b: 1; }
 .scrub-bar i { position: absolute; inset: 0 auto 0 0; background: var(--hue); width: 0%;
   box-shadow: 0 0 12px var(--hue); }
 
-/* ========================================================== ACT 3 — stages */
+/* ========================================================== ACT 4 — stages */
 .stages {
   align-content: start;
   grid-template-rows: auto;
@@ -345,7 +345,7 @@ html.ready .act-threshold { --b: 1; }
 .gates li.done { color: var(--fg-dim); }
 .stages-coord { bottom: clamp(20px, 3.4vh, 40px); }
 
-/* ======================================================== ACT 7 — promotion */
+/* ======================================================== ACT 8 — promotion */
 .promo {
   align-content: center; justify-items: start; max-width: min(62ch, 60vw);
   --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
@@ -425,6 +425,16 @@ html.ready .act-threshold { --b: 1; }
 .act + .act { margin-top: -100vh; }
 
 .act-threshold { height: 260vh; }
+/* 800vh for six beats — the same ~117vh a beat that act 2 spends on four, plus the
+   hold. The act has to EARN the overload, and an overload that arrives in two
+   flicks of a trackpad is a transition, not a feeling.
+   The height is also what buys the payoff its stillness. --h opens at
+   (H - 200vh)/(H - 100vh), which is 0.857 here against 0.833 at 700vh, and every
+   0.001 of t is 7px instead of 6px: the product finishes printing at t 0.879 and
+   the act does not begin to leave until 0.957, so 55vh of scroll passes with the
+   answer complete and motionless on a camera that is holding two near-identical
+   keys. At 700vh that hold was 18vh and the line faded in as it arrived. */
+.act-sunday { height: 800vh; }
 /* 500vh, and the same 500vh on a phone. The handover out begins at
    t = (H - 200vh) / (H - 100vh), which has no viewport term in it, so one act
    height buys one handover fraction at every breakpoint — and the DOM crossover
@@ -448,6 +458,7 @@ html.ready .act-threshold { --b: 1; }
 
 @media (max-width: 900px) {
   .act-threshold { height: 220vh; }
+  .act-sunday { height: 700vh; }
   .act-chaos { height: 500vh; }
   .act-spine { height: 240vh; }
   .act-stages { height: 620vh; }
@@ -595,8 +606,275 @@ p.levels-foot { color: var(--fg-dim); }
   .levels li:nth-child(n+7) { display: none; }
 }
 
-/* ============================ ACT 1 — three coaches, one file, one instrument
-   Four beats on one clock, and the clock is scroll position. n = 1 + t for this
+/* ================================= ACT 1 — the week before the lesson
+   Six beats on one clock, and the clock is scroll position. n = 1 + t for this
+   act (director.js: narrative position is act index + local progress), so every
+   band below is also a frame of the room — the director's act-1 block names the
+   same numbers, and the two must be re-timed together:
+
+     BEAT 1  t 0    → 0.15   one square lights: next Tuesday, fifty minutes, and
+                             nothing in them (setTileGlow at n 1.00-1.09).
+     BEAT 2  t 0.15 → 0.33   material rises and stacks. One square becomes
+                             twenty-four (pile 1.04-1.30, spread 1.12-1.42).
+     BEAT 3  t 0.33 → 0.51   the thirty legal moves from d4, drawn at room scale
+                             and none of them ranked (arrows 1.30-1.56).
+     BEAT 4  t 0.51 → 0.67   the stacks lose their squares. Twenty-six slips ride
+                             the FRONT plate, so the clutter crosses the words
+                             rather than sitting behind them (airborne 1.46-1.72).
+     BEAT 5  t 0.67 → 0.82   the room stops holding still: tile shear, camera
+                             roll, thicker fog, heavier wash — one `strain` term
+                             driving all of them (1.42-1.72 → 1.80-1.93).
+     PAYOFF  t 0.82 → 1      it files. Eight squares light a→h in order and the
+                             same eight segments print above them.
+
+   Beats share one slot and cross-dissolve 0.36/0.64 with a vertical offset, so
+   the eye reads one line REPLACING another rather than two superimposed — the
+   trap the act-2 head-swap note records, avoided by moving instead of cutting.
+   Only the payoff line is a real heading: it is what the act is about. */
+.sunday {
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  align-content: stretch;
+  --in: clamp(0, calc((var(--e) - 0.4) / 0.5), 1);
+  --in2: clamp(0, calc((var(--e) - 0.18) / 0.42), 1);
+  /* --h opens at t = (H - 200vh)/(H - 100vh) = 0.857 here. Two constraints pull this
+     in opposite directions and the window between them is where --out has to sit:
+     an --out driven straight off --h faded the product in and out at the same time,
+     and an --out that waited for 0.70 of the handover left the payoff at 70% while
+     act 2's own --in (`(--e - 0.46)/0.46`, and --h and --e describe the same scroll
+     window) had already printed "The problem." across it — two acts' copy on one
+     screen, measured at n 1.98.
+     0.34 to 0.76 of --h is t 0.906 to 0.966: 0.106 of hold after the foot lands at
+     0.800, then a cross-dissolve where this act is at 26% as act 2 reaches 41%.
+     That is the same handover shape act 2 gives act 3. */
+  --out: clamp(0, calc((var(--h) - 0.34) / 0.42), 1);
+
+  /* Five changes of beat at five crossings, and they are CUTS with a gap rather
+     than cross-fades. Act 2's head-swap note records why: two lines of Fraunces
+     at this size cannot dissolve through each other, they superimpose. A true
+     cross-fade here put "what comes next" as a ghost inside "built from scratch".
+     So the outgoing line is gone 0.004 before the crossing and the incoming
+     starts 0.004 after it — 0.008 of t, 5.6vh, about one frame of a trackpad
+     flick — and the room, which never stops moving, carries the gap.
+     The ramps are 0.016 wide, not 0.030. At 0.030 neither line was above half
+     opacity for 0.034 of t at every crossing — 214px, measured — and five of those
+     is 17% of the act spent on a line you cannot quite read. 0.016 puts the whole
+     illegible window at 0.024, under three frames of the engine's k/120 grid, which
+     reads as a cut and not as a fade. */
+  --o1: clamp(0, calc((0.111 - var(--t)) / 0.016), 1);
+  --i2: clamp(0, calc((var(--t) - 0.119) / 0.016), 1);
+  --o2: clamp(0, calc((0.251 - var(--t)) / 0.016), 1);
+  --i3: clamp(0, calc((var(--t) - 0.259) / 0.016), 1);
+  --o3: clamp(0, calc((0.386 - var(--t)) / 0.016), 1);
+  --i4: clamp(0, calc((var(--t) - 0.394) / 0.016), 1);
+  --o4: clamp(0, calc((0.516 - var(--t)) / 0.016), 1);
+  --i5: clamp(0, calc((var(--t) - 0.524) / 0.016), 1);
+  --o5: clamp(0, calc((0.656 - var(--t)) / 0.016), 1);
+  /* The line lands AFTER the mechanism has resolved — `resolve` finishes at n 1.77,
+     i.e. t 0.77 — and the product prints after the line. That order is the whole
+     point: conclusion, then the evidence for it.
+     Between beat five going out at 0.656 and the line arriving at 0.700 there are
+     0.044 of t, about 275px, with NO copy on the page at all.
+     Everything is printed by 0.800 and --out does not start until 0.906, so 0.106 of
+     the pin - 74vh, 668px at 900 tall - passes with the answer complete and nothing on
+     the page moving at all. That number is the whole reason the five beats sit where
+     they do: they were shifted 0.02 earlier as a set to buy it. That silence is
+     deliberate and it is the only one on the page: it is the stretch where the room
+     straightens up and files, under a camera that has stopped moving, and a line
+     printed over it would be read instead of watched. The snap runs 0.66 to 0.735, so
+     the line completes at 0.750 — after it, not over it.
+     It is also why tools/gate.cjs's `sunday-one-beat-at-a-time` sweep stops at
+     0.72 — past that, dark is the design. */
+  --pay: clamp(0, calc((var(--t) - 0.700) / 0.050), 1);
+  --payh: clamp(0, calc((var(--t) - 0.716) / 0.046), 1);
+}
+.k-sunday { grid-row: 1; opacity: calc(var(--in2) * (1 - var(--out))); }
+
+.sun-beats {
+  grid-row: 2; grid-column: 1;
+  display: grid; align-content: center; justify-items: start;
+  min-height: 0;
+}
+.sb {
+  grid-area: 1 / 1;
+  align-self: center;
+  display: grid; gap: clamp(10px, 1.6vh, 20px);
+  max-width: 40ch;
+  will-change: opacity, transform;
+}
+.sb1 { --kin: 1; --kout: var(--o1); }
+.sb2 { --kin: var(--i2); --kout: var(--o2); }
+.sb3 { --kin: var(--i3); --kout: var(--o3); }
+.sb4 { --kin: var(--i4); --kout: var(--o4); }
+.sb5 { --kin: var(--i5); --kout: var(--o5); }
+/* In from below, out upward. Two separate factors rather than one product,
+   because a single one sends the outgoing line back down through the incoming
+   one and they meet on the same baseline. */
+.sb {
+  --k: calc(var(--kin) * var(--kout));
+  opacity: calc(var(--k) * var(--in) * (1 - var(--out)));
+  /* 16 and 14px, not 30 and 26: over a 0.016 band a 30px travel is a slide, and the
+     beat has to read as a change of subject rather than as a carousel. */
+  transform: translate3d(0,
+    calc((1 - var(--kin)) * 16px - (1 - var(--kout)) * 14px), 0);
+}
+.sb-h { color: var(--fg); max-width: 22ch; }
+.sb-l { max-width: 36ch; }
+/* The empty slot, printed. A bordered chip rather than a card: there is nothing
+   in it yet, and a card with nothing in it looks like a loading state. */
+.sb-chip {
+  justify-self: start; color: var(--fg-dim);
+  padding: 7px 11px; border: var(--rule) solid var(--line-2);
+  letter-spacing: 0.16em;
+}
+.sb-chip i { font-style: normal; color: var(--fg-faint); }
+
+/* ------------------------------------------------------------------- the payoff
+   The strip is eight cells on the page's own eight-file lattice (`--file` is one
+   eighth of the content box, and `.pad`'s content box is exactly 8 of them). The
+   eight lit squares underneath it are a rank in perspective, so this is a RHYME
+   with them, not a pixel registration — the files converge toward the horizon and
+   nothing here pretends otherwise. What carries is the count: eight and eight. */
+/* Both the line and the product go to the TOP of the stage, and the bottom third
+   is left to the room. That order is measured, not composed: at the payoff key
+   rank 4 projects to y 646 of 900 and the pawn standing on the file occupies
+   750-1167, so anything in the lower third is behind a chess piece. Above the
+   rank, the strip also ends up directly over the eight squares it names.
+   Centred, the 109px line and the lit rank shared the same 120px of screen and
+   neither could be read; at the bottom, the strip lost two cells to the pawn. */
+.sun-pay {
+  grid-row: 2; grid-column: 1;
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
+  min-height: 0;
+  pointer-events: none;
+}
+.sun-final {
+  grid-row: 1;
+  color: var(--fg); max-width: 24ch; margin: 0;
+  opacity: calc(var(--pay) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--pay)) * 26px), 0);
+}
+.sun-rail {
+  grid-row: 2; display: grid; gap: clamp(8px, 1.2vh, 14px);
+  margin-top: clamp(18px, 3.2vh, 44px);
+  /* Registered to the board, not to the page. The eight squares of rank 4 project
+     to 1.424 x viewport HEIGHT at the payoff key — measured 1025px at 720 and
+     1282px at 900, both aspect >= 1.6 — because a perspective camera's vertical
+     field is what is fixed. The page's content box scales with WIDTH, so at 1440
+     they coincide and at 1920 the strip was 470px wider than the rank it names.
+     max-width only binds when the content box is the wider of the two; below
+     aspect 1.6 camera.js widens the field, the rank grows to fill the content box
+     on its own, and this does nothing. Live pointer parallax still slides the
+     room +/-74px under it, which is the page's own behaviour everywhere else. */
+  max-width: 142.44vh;
+  margin-inline: auto;
+}
+.sr-head { opacity: calc(var(--payh) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--payh)) * 12px), 0); }
+
+.sr-head { display: grid; gap: 3px; }
+/* All three of these are under 10px, and tokens.css's rule is --fg-dim at minimum
+   below ~10px — --fg-faint measured 2.33-2.92:1 elsewhere on the page at this size. */
+.sr-lede, .sr-meta { color: var(--fg-dim); }
+.sr-lede { margin: 0; letter-spacing: 0.24em; }
+.sr-line { display: flex; align-items: baseline; gap: 0.7em; margin: 0; flex-wrap: wrap; }
+.sr-id { color: var(--hue); font-size: 0.78rem; letter-spacing: 0.1em; }
+.sr-title { font-family: var(--display); font-size: clamp(1.05rem, 1.7vw, 1.55rem); color: var(--fg); }
+.sr-meta { margin: 0; font-size: 0.58rem; letter-spacing: 0.18em; }
+
+.sr-strip {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr));
+  border-top: var(--rule) solid var(--line-2);
+}
+.sr-cell {
+  --c: clamp(0, calc((var(--t) - (0.726 + var(--i) * 0.005)) / 0.038), 1);
+  display: grid; gap: 2px; align-content: start;
+  padding: 9px clamp(5px, 0.7vw, 11px) 11px;
+  border-left: var(--rule) solid var(--line);
+  opacity: calc(var(--c) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--c)) * 10px), 0);
+}
+.sr-cell:first-child { border-left: 0; padding-left: 0; }
+/* The rule above each cell is the segment arriving on its square: it draws in from
+   the left as the cell prints, which is the same left-to-right order the eight
+   squares light in underneath. */
+.sr-cell::before {
+  content: ''; position: absolute; inset: -1px auto auto 0;
+  height: var(--rule); width: 100%;
+  background: var(--hue); opacity: 0.5;
+  transform: scaleX(var(--c)); transform-origin: 0 50%;
+}
+.sr-cell { position: relative; }
+.sr-sq, .sr-no { font-style: normal; letter-spacing: 0.18em; font-size: 0.56rem; }
+.sr-sq { color: var(--hue); }
+.sr-no { color: var(--fg-dim); }
+.sr-name {
+  font-size: clamp(0.72rem, 0.92vw, 0.9rem); line-height: 1.24;
+  color: var(--fg); text-wrap: pretty;
+}
+.sr-min { font-size: 0.66rem; letter-spacing: 0.08em; color: var(--fg); margin-top: 2px; }
+
+.sr-foot {
+  display: flex; justify-content: space-between; gap: 1.4em; flex-wrap: wrap;
+  margin: 0; padding-top: 8px; border-top: var(--rule) solid var(--line);
+  color: var(--fg-dim); font-size: 0.56rem; letter-spacing: 0.16em;
+  opacity: calc(clamp(0, calc((var(--t) - 0.772) / 0.028), 1) * (1 - var(--out)));
+}
+.sr-next { display: flex; align-items: baseline; gap: 0.6em; color: var(--fg-dim); }
+.sr-then { font-style: normal; color: var(--fg-dim); }
+.sr-next b { color: var(--hue); }
+
+@media (max-width: 900px) {
+  .sb { max-width: none; }
+  .sb-h { max-width: 20ch; }
+  /* The one plate in this act, and only here. On a phone camera.js widens the field
+     and shifts the image up 17% and left 15%, which walks the pawn standing on the
+     d-file straight through the middle of the strip - there is no framing that both
+     holds a portrait composition and keeps a 32-unit rank clear of it. So on narrow
+     viewports the product stops being registered to the board and becomes a card in
+     front of it, in the page's own --glass-on--line surface. */
+  .sun-rail {
+    max-width: none; margin-inline: 0;
+    background: var(--glass);
+    border: var(--rule) solid var(--line);
+    padding: clamp(9px, 2.6vw, 15px);
+  }
+  /* Eight cells on a phone is four characters each. The strip becomes two rows of
+     four, which is still the hour in order and still reads as a sequence. */
+  .sr-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sr-cell:nth-child(4n + 1) { border-left: 0; padding-left: 0; }
+  .sr-cell:nth-child(n + 5) { border-top: var(--rule) solid var(--line); }
+  .sr-name { font-size: 0.7rem; }
+  .sr-foot { flex-direction: column; gap: 4px; }
+}
+@media (max-height: 820px) and (min-width: 901px) {
+  .sb { gap: 6px; }
+  /* 109px of Fraunces over two lines is 230px of a 700px window before the strip
+     has printed a row. The line gives up size rather than the product giving up
+     rows: the product is the evidence. */
+  .sun-final { font-size: clamp(1.9rem, 4.4vw, 3.4rem); }
+  .sun-rail { margin-top: clamp(10px, 1.8vh, 22px); }
+  .sr-cell { padding: 6px 8px 7px; }
+  .sr-name { font-size: 0.68rem; }
+}
+
+/* No WebGL: the act un-pins, so every beat and the payoff have to be visible at
+   once. `body.gl-failed .act > *` only reaches `.act-stage`, and all of this is
+   three levels deeper than that. */
+body.gl-failed .sb,
+body.gl-failed .sun-final,
+body.gl-failed .sr-cell,
+body.gl-failed .sr-foot,
+body.gl-failed .k-sunday { opacity: 1 !important; transform: none !important; }
+body.gl-failed .sun-beats { align-content: start; gap: clamp(20px, 4vh, 40px); }
+body.gl-failed .sb { grid-area: auto; }
+body.gl-failed .sun-pay { grid-row: auto; grid-column: auto; margin-top: 6vh; pointer-events: auto; }
+body.gl-failed .sr-cell::before { transform: none; }
+
+/* ============================ ACT 2 — three coaches, one file, one instrument
+   Four beats on one clock, and the clock is scroll position. n = 2 + t for this
    act (director.js: narrative position is act index + local progress), so every
    band below is also a frame of the room:
 

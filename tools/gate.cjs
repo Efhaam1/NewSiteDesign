@@ -21,8 +21,16 @@ async function page(b, w, h, opts = {}) {
   await p.waitForTimeout(2400);
   return p;
 }
-const park = (p, i, f) =>
-  p.evaluate(({ i, f }) => { const a = window.__w.engine.acts[i]; scrollTo({ top: Math.round(a.top + a.len * f) }); }, { i, f });
+// Parks by act NAME, not by index. It used to take an index, and inserting act 1
+// `sunday` silently re-pointed ten assertions at the wrong act - a false PASS, which
+// is worse than a failure. `engine.acts` is registered from director.js's ACTS, so a
+// name is the only identifier that survives the film being re-cut.
+const park = (p, name, f) =>
+  p.evaluate(({ name, f }) => {
+    const a = window.__w.engine.acts.find((x) => x.name === name);
+    if (!a) throw new Error('no act named ' + name);
+    scrollTo({ top: Math.round(a.top + a.len * f) });
+  }, { name, f });
 
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=gl', '--enable-unsafe-swiftshader'] });
@@ -61,7 +69,7 @@ const park = (p, i, f) =>
   // 3 — no bento card cuts its own content; 4 — the console board pane fits its column
   for (const [w, h] of [[1920, 1080], [1440, 900], [1244, 620], [981, 620]]) {
     const p = await page(b, w, h);
-    await park(p, 5, 0.5);
+    await park(p, 'system', 0.5);
     await p.waitForTimeout(600);
     const cells = await p.evaluate(() =>
       [...document.querySelectorAll('.bento .cell')]
@@ -69,7 +77,7 @@ const park = (p, i, f) =>
         .filter((c) => c.over > 2));
     record(`bento-cells-fit@${w}x${h}`, cells.length === 0,
       cells.length ? cells.map((c) => `${c.id} +${c.over}px`).join(', ') : 'every card holds its content');
-    await park(p, 4, 0.5);
+    await park(p, 'session', 0.5);
     await p.waitForTimeout(600);
     const bd = await p.evaluate(() => {
       const e = document.querySelector('.pane-board');
@@ -90,17 +98,25 @@ const park = (p, i, f) =>
   // 6 — the licence sheet explains every band, and keeps its currency and billing controls
   for (const [w, h] of [[1440, 900], [1244, 620], [981, 620]]) {
     const p = await page(b, w, h);
-    await park(p, 6, 0.5);
+    await park(p, 'terms', 0.5);
     await p.waitForTimeout(600);
     const r = await p.evaluate(() => {
       const vis = (e) => e && e.getBoundingClientRect().height > 2 && getComputedStyle(e).display !== 'none';
       return { bands: document.querySelectorAll('.rate-band').length,
         adds: [...document.querySelectorAll('.rate-adds')].filter(vis).length,
         cap: vis(document.querySelector('.rate-cap')),
-        cta: vis(document.querySelector('.rate-cta .cta')) };
+        // TIGHTENED once the card grid shipped. The interim form was `.some(vis)` over
+        // both shapes, which a single surviving button satisfied; the four cards are the
+        // design now, so the clause is a count. The micro line joins it: `no email, no
+        // card` is what those four buttons are owed, and it is the line that went off
+        // the stage first at 390 wide.
+        ctas: [...document.querySelectorAll('.rate-band .rate-go')].filter(vis).length,
+        micro: vis(document.querySelector('.rate-cta .mono.tiny')) };
     });
-    record(`terms-explains-bands@${w}x${h}`, r.adds >= r.bands && r.cap && r.cta,
-      `${r.adds} of ${r.bands} bands explained, currency+billing row ${r.cap ? 'shown' : 'HIDDEN'}, CTA ${r.cta ? 'shown' : 'HIDDEN'}`);
+    const ok6 = r.adds >= r.bands && r.bands === 4 && r.ctas === r.bands && r.cap && r.micro;
+    record(`terms-explains-bands@${w}x${h}`, ok6,
+      `${r.adds} of ${r.bands} cards explained, ${r.ctas} of ${r.bands} carry a CTA, `
+      + `currency+billing row ${r.cap ? 'shown' : 'HIDDEN'}, micro line ${r.micro ? 'shown' : 'HIDDEN'}`);
     await p.close();
   }
 
@@ -125,37 +141,59 @@ const park = (p, i, f) =>
     // 3609 at scrollY 11520 instead of 621 at its parked 15676. The shared park() has the
     // same flaw; converge them when it is fixed and the gate is re-baselined.
     await p.evaluate(() => {
-      const a = window.__w.engine.acts[6];
+      const a = window.__w.engine.acts.find((x) => x.name === 'terms');
       scrollTo({ top: Math.round(a.top + a.len * 0.5), behavior: 'instant' });
     });
     await p.waitForTimeout(600);
     const read = () => p.evaluate(() => {
-      const c = document.querySelector('.rate-cta .cta');
-      const r = c.getBoundingClientRect();
+      // 2026-09-05: the act's filled CTA moved. It was one button in `.rate-cta`
+      // under the sheet; the card row gives every licence its own `.cta.rate-go` and
+      // leaves `.rate-cta` holding only the micro line, so this measures THE LOWEST of
+      // the four, which is what the assertion has always been about. The interim form
+      // also resolved `.rate-cta .cta` and a `.rate-card` that never shipped; both are
+      // gone, because a selector list that matches either shape cannot fail when the
+      // shape changes again — and a stale selector here returns null and takes the whole
+      // gate down with it, seven windows of this block plus every assertion after it.
+      const all = [...document.querySelectorAll('.rate-band .rate-go')]
+        .filter((e) => getComputedStyle(e).display !== 'none');
+      const c = all.sort((a, z) => z.getBoundingClientRect().bottom - a.getBoundingClientRect().bottom)[0];
       const st = document.querySelector('.act-terms .act-stage');
+      if (!c) {
+        return { missing: true, fold: innerHeight, over: st ? st.scrollHeight - st.clientHeight : -1 };
+      }
+      const r = c.getBoundingClientRect();
       // the CTA's box is not the whole row: `no email, no card` sits under it, and at 390 wide
       // it was the thing a 36px addition pushed off the stage while the button itself stayed on
       const m = document.querySelector('.rate-cta .mono.tiny');
-      const rg = document.createRange(); rg.selectNodeContents(m);
-      const rs = [...rg.getClientRects()];
+      let micro = null;
+      if (m && getComputedStyle(m).display !== 'none') {
+        const rg = document.createRange(); rg.selectNodeContents(m);
+        const rs = [...rg.getClientRects()];
+        micro = rs.length ? Math.round(Math.max(...rs.map((x) => x.bottom))) : null;
+      }
       return { bottom: Math.round(r.bottom), top: Math.round(r.top), fold: innerHeight,
         vis: r.height > 2 && getComputedStyle(c).display !== 'none',
-        micro: rs.length ? Math.round(Math.max(...rs.map((x) => x.bottom))) : null,
+        micro, n: all.length,
         over: st.scrollHeight - st.clientHeight };
     });
     const mo = await read();
     const how = await p.evaluate(() => {
       const t = [...document.querySelectorAll('.rate-bill-b')][1];
       if (t && t.getBoundingClientRect().height > 2) { t.click(); return 'clicked'; }
-      document.querySelector('.rate').classList.add('is-annual');
+      const rate = document.querySelector('.rate');
+      if (rate) rate.classList.add('is-annual');
       return 'forced';
     });
     await p.waitForTimeout(500);
     const yr = await read();
-    const ok = (x) => x.vis && x.bottom <= x.fold && x.top >= 0 && x.over <= 2
-      && x.micro !== null && x.micro <= x.fold;
+    // `micro === null` is no longer a failure on its own: the micro line is not in
+    // every layout of the act. When it IS drawn it still has to be above the fold.
+    const ok = (x) => !x.missing && x.vis && x.bottom <= x.fold && x.top >= 0 && x.over <= 2
+      && (x.micro === null || x.micro <= x.fold);
     record(`terms-cta-on-stage@${w}x${h}`, ok(mo) && ok(yr),
-      `monthly CTA ${mo.bottom} micro ${mo.micro} of ${mo.fold}, stage over ${mo.over}px; annual (${how}) CTA ${yr.bottom} micro ${yr.micro} of ${yr.fold}, stage over ${yr.over}px`);
+      mo.missing || yr.missing ? 'NO filled CTA found on the terms stage (.rate-cta .cta / .rate-go)'
+      : `monthly lowest of ${mo.n} CTA ${mo.bottom} micro ${mo.micro} of ${mo.fold}, stage over ${mo.over}px;`
+        + ` annual (${how}) CTA ${yr.bottom} micro ${yr.micro} of ${yr.fold}, stage over ${yr.over}px`);
     await p.close();
   }
 
@@ -175,7 +213,7 @@ const park = (p, i, f) =>
     let worst = { t: 0, v: 1, pair: '-' };
     for (let k = Math.round(0.40 * 120); k <= Math.round(0.62 * 120); k++) {
       const t = k / 120;
-      await park(p, 1, t);
+      await park(p, 'chaos', t);
       await p.waitForTimeout(300);
       const vs = await p.evaluate((pairs) => pairs.map(([name, a, b]) => [name, Math.max(
         Number(getComputedStyle(document.querySelector(a)).opacity),
@@ -196,7 +234,7 @@ const park = (p, i, f) =>
   // columns are 89-110px wide.
   for (const [w, h] of [[1440, 900], [1244, 620], [981, 620], [390, 844], [320, 620]]) {
     const p = await page(b, w, h);
-    await park(p, 1, 0.45);
+    await park(p, 'chaos', 0.45);
     await p.waitForTimeout(1400);
     const r = await p.evaluate(() => {
       const st = document.querySelector('.act-chaos .act-stage');
@@ -235,7 +273,7 @@ const park = (p, i, f) =>
     const p = await page(b, 1440, 900);
     // Walk the act rather than jumping to its end: the fill is damped, so a single
     // park reads lower than a reader scrolling through ever sees.
-    for (const t of [0.2, 0.4, 0.6, 0.8, 0.95]) { await park(p, 2, t); await p.waitForTimeout(420); }
+    for (const t of [0.2, 0.4, 0.6, 0.8, 0.95]) { await park(p, 'spine', t); await p.waitForTimeout(420); }
     await p.waitForTimeout(500);
     const r = await p.evaluate(() => {
       const rows = [...document.querySelectorAll('.levels li')];
@@ -286,7 +324,7 @@ const park = (p, i, f) =>
     for (const f of [0.5, 0.8]) {
       // `behavior: instant` for the reason block 6b gives: the shared park() animates.
       await p.evaluate(({ f }) => {
-        const a = window.__w.engine.acts[4];
+        const a = window.__w.engine.acts.find((x) => x.name === 'session');
         scrollTo({ top: Math.round(a.top + a.len * f), behavior: 'instant' });
       }, { f });
       await p.waitForTimeout(700);
@@ -324,7 +362,7 @@ const park = (p, i, f) =>
     let worst = null;
     for (const f of [0.5, 0.8]) {
       await p.evaluate(({ f }) => {
-        const a = window.__w.engine.acts[4];
+        const a = window.__w.engine.acts.find((x) => x.name === 'session');
         scrollTo({ top: Math.round(a.top + a.len * f), behavior: 'instant' });
       }, { f });
       await p.waitForTimeout(700);
@@ -367,7 +405,7 @@ const park = (p, i, f) =>
   for (const [w, h] of [[390, 780], [390, 844], [412, 800], [390, 700]]) {
     const p = await page(b, w, h);
     await p.evaluate(() => {
-      const a = window.__w.engine.acts[5];
+      const a = window.__w.engine.acts.find((x) => x.name === 'system');
       scrollTo({ top: Math.round(a.top + a.len * 0.5), behavior: 'instant' });
     });
     await p.waitForTimeout(700);
@@ -386,6 +424,103 @@ const park = (p, i, f) =>
     }).filter(Boolean));
     record(`bento-bodies-trim-not-slice@${w}x${h}`, bad.length === 0,
       bad.length ? bad.join(', ') : 'every visible card body ends in its own ellipsis');
+    await p.close();
+  }
+
+  // 16 — act 1 `sunday`. Three defects this act can have that nothing else would
+  // catch: a beat pair superimposing (the trap act 2's head-swap note records), the
+  // eight-cell strip overflowing its cells, and the payoff not actually holding still
+  // long enough to be read. All three are measured on the engine's own k/120 grid.
+  {
+    const p = await page(b, 1440, 900);
+    // 16a — at no scroll position are two beats legible at once. The five lines share
+    // one slot and cut with a 0.008 gap; a cross-fade here reads as one line printed
+    // inside another.
+    let worst = { t: 0, second: 0 };
+    let dark = 0, worstDark = 0, samples = 0;
+    for (let k = 0; k <= 120; k++) {
+      const t = k / 120;
+      // 0.65, not 1: beat five's line is gone at 0.656 and the act is then
+      // deliberately silent until the answer arrives at 0.700, while the room
+      // straightens up and files (see the --pay note in acts.css).
+      if (t > 0.65) break;
+      await park(p, 'sunday', t);
+      // The engine damps at 0.16 a frame. 90ms closed 58% of the gap, so the sweep
+      // was reading positions it had not arrived at and called 32 frames dark.
+      await p.waitForTimeout(320);
+      const o = await p.evaluate(() => [...document.querySelectorAll('.sunday .sb')]
+        .map((e) => Number(getComputedStyle(e).opacity)).sort((a, b) => b - a));
+      samples++;
+      if (o[1] > worst.second) worst = { t, second: o[1] };
+      // A RUN, not a total: five cuts mean five short gaps by design, and what would
+      // be a defect is one long stretch with nothing to read. The cut is 0.008 of t
+      // plus two 0.016 ramps, so the illegible window is 0.024 - under three frames
+      // of the k/120 grid this sweeps on.
+      if (o[0] < 0.5) { dark++; if (dark > worstDark) worstDark = dark; } else dark = 0;
+    }
+    record('sunday-one-beat-at-a-time', worst.second <= 0.5 && worstDark <= 4,
+      `worst second beat ${worst.second.toFixed(3)} at t ${worst.t.toFixed(3)} (<= 0.5);`
+      + ` longest run with no legible beat ${worstDark} frames of ${samples} (<= 4)`);
+    await p.close();
+  }
+  for (const [w, h] of [[1920, 1080], [1440, 900], [1244, 620], [981, 620], [390, 844]]) {
+    const p = await page(b, w, h);
+    await park(p, 'sunday', 0.92);
+    await p.waitForTimeout(900);
+    const r = await p.evaluate(() => {
+      const cells = [...document.querySelectorAll('.sr-cell')];
+      const over = cells.map((c) => ({
+        id: (c.querySelector('.sr-sq') || {}).textContent,
+        x: c.scrollWidth - c.clientWidth, y: c.scrollHeight - c.clientHeight,
+      })).filter((c) => c.x > 1 || c.y > 1);
+      const st = document.querySelector('.act-sunday .act-stage');
+      const sb = st.getBoundingClientRect().bottom;
+      const rail = document.querySelector('.sun-rail').getBoundingClientRect();
+      const head = document.querySelector('.sun-final').getBoundingClientRect();
+      return { n: cells.length, over, offStage: Math.round(rail.bottom - sb),
+        overlap: Math.round(head.bottom - rail.top),
+        railOpacity: Number(getComputedStyle(document.querySelector('.sr-cell')).opacity) };
+    });
+    // 16b — eight cells, none of them cutting its own label, all of them on the stage,
+    // and the payoff line not sitting on the strip.
+    const ok = r.n === 8 && r.over.length === 0 && r.offStage <= 0 && r.overlap <= 0;
+    record(`sunday-strip-fits@${w}x${h}`, ok,
+      ok ? `8 cells, none clipped, ${-r.offStage}px of stage left under it`
+        : `${r.n} cells; clipped ${r.over.map((c) => `${c.id}+${c.x}/${c.y}`).join(', ') || 'none'};`
+          + ` ${r.offStage}px past the stage; head/strip overlap ${r.overlap}px`);
+    await p.close();
+  }
+  {
+    // 16c — the answer holds. From the frame the last cell finishes printing to the
+    // frame the act starts leaving, nothing in the payoff may change opacity.
+    const p = await page(b, 1440, 900);
+    const read = () => p.evaluate(() => ({
+      line: Number(getComputedStyle(document.querySelector('.sun-final')).opacity),
+      cell: Number(getComputedStyle([...document.querySelectorAll('.sr-cell')].pop()).opacity),
+      foot: Number(getComputedStyle(document.querySelector('.sr-foot')).opacity),
+    }));
+    // The longest RUN of consecutive frames with all three fully up. A run, not a
+    // count: the question is whether a reader can stop anywhere in the payoff and
+    // find it complete, and a scattered set of good frames does not answer it.
+    let run = 0, best = 0, from = null, at = null, samples = 0;
+    for (let k = Math.round(0.79 * 120); k <= Math.round(0.93 * 120); k++) {
+      const t = k / 120;
+      await park(p, 'sunday', t);
+      await p.waitForTimeout(340);
+      const v = await read();
+      samples++;
+      if (v.line > 0.98 && v.cell > 0.98 && v.foot > 0.98) {
+        if (!run) at = t;
+        run++;
+        if (run > best) { best = run; from = at; }
+      } else run = 0;
+    }
+    // one k step is 1/120 of a 700vh pin = 52.5px at 900 tall. The answer is printed
+    // by t 0.800 and --out does not start until 0.906, so the run should be about 13.
+    const px = Math.round(best * 700 * 9 / 120);
+    record('sunday-payoff-holds', best >= 9,
+      best ? `${best} of ${samples} consecutive frames complete from t ${from.toFixed(3)} (~${px}px of scroll)`
+        : 'the payoff is never all up at once');
     await p.close();
   }
 

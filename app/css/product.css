@@ -4,7 +4,7 @@
    shows it, a coach can teach it.
    ========================================================================== */
 
-/* ========================================================= ACT 4 — console
+/* ========================================================= ACT 5 — console
    Act 4 is authored in annot.css, which loads after this file: the two-column
    composition, the plate, its three rails, the board face and the six callouts are
    all there, in one place, because every one of them is measured against the other
@@ -15,7 +15,7 @@
    tier that also carries three other acts.
    ======================================================================== */
 
-/* ========================================================== ACT 5 — bento */
+/* ========================================================== ACT 6 — bento */
 .system {
   grid-template-rows: auto minmax(0, 1fr);
   align-content: stretch;
@@ -147,6 +147,29 @@ body {
    GL wash is doing the legibility work. Same list length in every state, so
    rest -> hover -> active interpolate instead of switching. */
 .cta {
+  /* Three declarations, no metric. The plate is now the containing block for its
+     own sheen and its own press ripple, both of which are `z-index: -1` children:
+     `isolation` traps them so they paint ABOVE the face gradient and BELOW the
+     label instead of escaping behind the plate, and `overflow` clips the ripple
+     to the box. None of the three can move a box, which matters because every
+     .cta on the site is measured — #nav's bar height IS this button's 37.17px
+     (acts.css:64), the hero's row is asserted to the pixel and the terms act's
+     copy is asserted against the fold (gate ids hero-fits-at-rest,
+     terms-cta-on-stage). An element's own outline is not clipped by its own
+     overflow, so base.css:125's focus ring is untouched; and every .cta on the
+     page is a FLEX ITEM (#nav and .cta-row are both flex), so it is blockified
+     and `overflow` cannot move an inline baseline here either. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  /* 6px, and it is not a new value: terms.css:405 already draws the licence card's
+     own plate at 6px, from the founder's pricing mock. So every button on the site
+     is now on one radius, taken from the newest mock rather than invented here.
+     `overflow: hidden` above clips to this curve, so the press wave and the
+     secondary's growing pane round themselves off with no second declaration; the
+     four inset bevel hairlines follow it too. STATE.md decision 12 is the open
+     question about radius on the rest of the page — the panels are still square. */
+  border-radius: 6px;
   /* the milled face. The light sits above the box and tracks the pointer; the
      ivory stop lights the ink plate, the void stops chamfer the ivory one. */
   background-image: radial-gradient(150% 210% at var(--mx, 50%) var(--my, -28%),
@@ -154,11 +177,21 @@ body {
       rgb(242 236 224 / 0) 27%,
       rgb(6 6 10 / 0.05) 58%,
       rgb(6 6 10 / 0.15) 100%);
+  /* THE PLATE NOW SITS ON SOMETHING. Four insets, then three outer shadows, and
+     the list is seven long in EVERY state below so rest -> hover -> active still
+     interpolate instead of switching. The last entry is the pair that makes one
+     stack work in both rooms: a void shadow is what an ink plate casts on act
+     6-7's paper, and it is invisible under an ivory plate on the dark board — so
+     the seventh shadow is an ivory BLOOM, off at rest, lit while the plate is
+     held up off the board. Same two tokens, laid in a pair, as the face. */
   box-shadow:
     inset  0  1px 0 0 rgb(242 236 224 / 0.50),
     inset  0 -1px 0 0 rgb(6 6 10 / 0.34),
     inset  1px 0 0 0 rgb(242 236 224 / 0.16),
-    inset -1px 0 0 0 rgb(6 6 10 / 0.16);
+    inset -1px 0 0 0 rgb(6 6 10 / 0.16),
+    0  1px  2px rgb(6 6 10 / 0.30),
+    0  4px 12px rgb(6 6 10 / 0.16),
+    0     0  0 rgb(242 236 224 / 0);
   /* acts.css:73's shorthand set five properties and five durations. background-image
      is listed for the day an engine interpolates it, but MEASURED in Chrome 141 it is
      still discrete: mid-flight the face is already at its hover alphas while
@@ -169,7 +202,14 @@ body {
      rewritten every frame the cursor moves, so the highlight slides continuously
      rather than transitioning between two states. */
   transition-property: transform, background-color, color, border-color, box-shadow,
-                       background-image;
+                       background-image, background-size, background-position;
+  /* The durations were a five-long list on acts.css:107 that product.css's sixth
+     property cycled back into. Two more properties would have gone on cycling and
+     nobody reading either file could say what they resolved to, so the list is
+     written out: the first six are exactly what shipped, and the ghost's fill —
+     background-size and -position — takes 380ms, the box-shadow's own value,
+     because the fill and the bevel are one gesture. */
+  transition-duration: 260ms, 260ms, 260ms, 300ms, 380ms, 260ms, 380ms, 380ms;
 }
 /* the pointer arrives: the plate lifts under the cursor and the chamfer deepens */
 .cta:hover {
@@ -182,7 +222,10 @@ body {
     inset  0  2px 0 0 rgb(242 236 224 / 0.72),
     inset  0 -2px 0 0 rgb(6 6 10 / 0.46),
     inset  1px 0 0 0 rgb(242 236 224 / 0.22),
-    inset -1px 0 0 0 rgb(6 6 10 / 0.22);
+    inset -1px 0 0 0 rgb(6 6 10 / 0.22),
+    0  3px  4px rgb(6 6 10 / 0.26),
+    0 10px 26px rgb(6 6 10 / 0.24),
+    0     0 22px rgb(242 236 224 / 0.10);
 }
 /* pressed: the plate sits back down out of the lift and the bevel inverts —
    chamfer on top, land at the bottom, which is what a pressed plate does. */
@@ -193,7 +236,10 @@ body {
     inset  0  2px 0 0 rgb(6 6 10 / 0.40),
     inset  0 -1px 0 0 rgb(242 236 224 / 0.34),
     inset  1px 0 0 0 rgb(6 6 10 / 0.18),
-    inset -1px 0 0 0 rgb(242 236 224 / 0.14);
+    inset -1px 0 0 0 rgb(242 236 224 / 0.14),
+    0  1px  1px rgb(6 6 10 / 0.34),
+    0  2px  5px rgb(6 6 10 / 0.12),
+    0     0  0 rgb(242 236 224 / 0);
 }
 /* the ghost stays secondary and stays SECOND: no fill of its own, a film instead
    of a plate, and a bevel pulled back to a third of the filled button's. The film
@@ -202,34 +248,207 @@ body {
    its label sat straight on the board. The stop starts off-box so only its tail
    renders; --glass is 0.88 alpha and a full-strength film would read as a fill. */
 .cta.ghost {
+  /* THE DOT IS THE FIRST LAYER, so when it grows it covers the film and the face
+     and the chip becomes a pane. --glass is the site's own pane fill and the
+     director ramps it (director.js:21), so the grown chip is near-black on the
+     board and paper on acts 6-7 while the label stays var(--fg) — the fill is the
+     inverse of its own ink in both rooms, and the label's contrast goes UP on
+     hover rather than down. It is a SQUARE: the page has one radius on it
+     (STATE.md decision 12) and .kicker .dot sets `border-radius: 0` on purpose,
+     so a growing square is this site's version of the reference's growing dot. */
   background-image:
+    linear-gradient(0deg, var(--glass), var(--glass)),
     linear-gradient(180deg, var(--glass) -68%, rgb(0 0 0 / 0) 56%),
     radial-gradient(150% 210% at var(--mx, 50%) var(--my, -28%),
       rgb(242 236 224 / 0.10) 0%,
       rgb(242 236 224 / 0) 34%,
       rgb(6 6 10 / 0) 100%);
+  background-repeat: no-repeat;
+  background-size: 9px 9px, 100% 100%, 100% 100%;
+  background-position: 17% 42%, 0 0, 0 0;
   box-shadow:
     inset  0  1px 0 0 rgb(242 236 224 / 0.20),
     inset  0 -1px 0 0 rgb(6 6 10 / 0.14),
     inset  1px 0 0 0 rgb(242 236 224 / 0.08),
-    inset -1px 0 0 0 rgb(6 6 10 / 0.08);
+    inset -1px 0 0 0 rgb(6 6 10 / 0.08),
+    0  1px 2px rgb(6 6 10 / 0.16),
+    0  2px 8px rgb(6 6 10 / 0.10),
+    0     0 0 rgb(242 236 224 / 0);
 }
 .cta.ghost:hover {
   background-image:
+    linear-gradient(0deg, var(--glass), var(--glass)),
     linear-gradient(180deg, var(--glass) -52%, rgb(0 0 0 / 0) 62%),
     radial-gradient(150% 210% at var(--mx, 50%) var(--my, -28%),
       rgb(242 236 224 / 0.18) 0%,
       rgb(242 236 224 / 0) 38%,
       rgb(6 6 10 / 0) 100%);
+  background-size: 140% 140%, 100% 100%, 100% 100%;
+  background-position: 50% 50%, 0 0, 0 0;
   box-shadow:
     inset  0  2px 0 0 rgb(242 236 224 / 0.34),
     inset  0 -1px 0 0 rgb(6 6 10 / 0.20),
     inset  1px 0 0 0 rgb(242 236 224 / 0.12),
-    inset -1px 0 0 0 rgb(6 6 10 / 0.12);
+    inset -1px 0 0 0 rgb(6 6 10 / 0.12),
+    0  3px  4px rgb(6 6 10 / 0.22),
+    0  9px 22px rgb(6 6 10 / 0.20),
+    0     0 18px rgb(242 236 224 / 0.07);
 }
 /* base.css:125's 2px --hue outline is untouched and not duplicated: the edge
    simply lights the way it does under a pointer. */
 .cta:focus-visible { border-color: var(--hue); }
+
+/* ==================================================== the plate is never still
+   The pointer-lit face above answers "is this material?" only while a cursor is
+   inside the button. Away from the cursor the plate was a still rectangle, which
+   is the one surface on the page with no life of its own — the room breathes, the
+   pieces move, the bands ramp, and the thing a buyer is meant to press did not.
+
+   THIS IS THE SAME LIGHT, PANNING. Not a second treatment: `--mx` is the face
+   gradient's own horizontal light position, the one the pointer writes, and at
+   rest it now drifts 34% -> 66% -> 34% on an 11s cycle. So the plate's highlight
+   slides and its chamfer shading deepens on the far side, exactly as it does under
+   a cursor, because it IS the cursor's mechanism with the room driving it instead.
+   No new gradient, no new colour, no mask, and nothing to reconcile between the
+   ivory plate of acts 0-4 and the ink plate of acts 5-7 — the paired stops that
+   already work in both rooms are the ones moving.
+
+   FOUR THINGS THAT WERE TRIED AND MEASURED FIRST, since they look obvious:
+    - A travelling band across the whole face. On the ivory plate the only lobe
+      that reads is the DARK one, and darkening the paper under dark ink took the
+      label's rendered p10 from 4.68:1 to 4.04:1 with tools/contrast.cjs — under
+      SC 1.4.3 for 14.4px type.
+    - The same band masked to the chamfer, away from the glyphs. Contrast came back
+      (4.57:1) but at 4x the dark lobe on cream reads as a thumbprint, not a light.
+    - Ivory-only, so the polarity is always "light arriving". Sings on the ink
+      plate, invisible on the ivory one — ivory over ivory is nothing.
+    - Two lights, a drifting layer under the pointer's. Correct, and it needs a
+      fourth background layer in five rules that must stay list-length-matched to
+      interpolate. This does the same thing with none.
+
+   Cost: one background-position's worth of repaint on the same ~168x49 box the
+   pointer already repaints — product.css:139's measured and accepted cost, now
+   also running at rest. base.css:91 pauses every animation inside an act that is
+   not live, so the plates cost nothing until their act is on screen; #nav's is the
+   only one that always runs and it is 141x37.
+
+   `@property` is what makes it a MOTION rather than two jumps: an unregistered
+   custom property animates discretely. Where it is unsupported the highlight steps
+   between three positions on an 11s cycle instead of sliding, which is a
+   degradation and not a break.
+
+   The pointer wins by REMOVING the animation, not by pausing it: a paused
+   animation still supplies its own value, and animations outrank the inline style
+   chrome.js writes. On the way out the highlight snaps to the cycle's phase — the
+   shipped build already snapped it back to 50% there, so it is the same class of
+   artifact at a different destination. */
+@property --mx {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+.cta { animation: cta-pan 13s ease-in-out infinite; }
+.cta:hover, .cta:active { animation: none; }
+/* Edge to edge, and measured to be edge to edge for a reason: the face is a
+   150% x 210% ellipse centred above the box, so its falloff is broad and sliding
+   its centre a third of the way across moves almost nothing. Profiled on the hero
+   plate as rendered pixels, 34%->66% swings a column mean by +/-5.8 and 6%->94%
+   swings it by +/-14.7. The second is a slow tilt a reader can see; the first is a
+   rumour. 6 and 94 rather than 0 and 100 because chrome.js's own pointer range is
+   the width of the box and the light should stay inside the plate it is lighting. */
+@keyframes cta-pan {
+  0% { --mx: 6%; }
+  50% { --mx: 94%; }
+  100% { --mx: 6%; }
+}
+
+/* THE PRESS. chrome.js appends one of these at the point that was actually
+   pressed and removes it when it is done. The ink is `currentColor` — on a .cta
+   that is var(--fg-inv), the label's own colour, which is by definition the
+   opposite of the plate it is sitting on, so the same rule is a dark bloom on the
+   ivory plate and a light one on the ink plate with no second declaration. */
+.cta-rip {
+  position: absolute; z-index: -1; pointer-events: none;
+  left: var(--rx, 50%); top: var(--ry, 50%);
+  width: 22px; height: 22px; margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  /* A WAVE, not a bloom. A filled disc of ink at 0.30 on the cream plate reads as a
+     thumbprint — parked at its own peak frame and looked at, it was a smudge. The
+     stops make it a soft ring instead, and because the ring is scaled rather than
+     redrawn its width grows with it, which is what a wave crossing a surface does.
+     Compositor-only either way: one transform and one opacity. */
+  background-image: radial-gradient(circle,
+      rgb(0 0 0 / 0) 0%, currentColor 54%, rgb(0 0 0 / 0) 80%);
+  /* Linear, and shaped in the keyframes instead. --ease is a front-loaded ease-out,
+     and driving BOTH scale and opacity through it spent the whole fade in the first
+     third: measured on the ivory plate, the disc was already 150px wide at 0.05
+     alpha by 200ms and nothing could be seen at any frame. So the impulse rises to
+     its own peak in the first 130ms and spends the remaining 490ms opening and
+     fading, which is the shape of a press being absorbed. */
+  animation: cta-rip 620ms linear forwards;
+}
+@keyframes cta-rip {
+  0% { transform: scale(0.2); opacity: 0.06; }
+  22% { transform: scale(2.3); opacity: 0.24; }
+  100% { transform: scale(7); opacity: 0; }
+}
+
+/* ==================================================== the secondary TRAVELS
+   The filled plate and the ghost were separated by fill-versus-outline, and the
+   note above records how weak that turned out to be. They are now separated by
+   what happens when a pointer arrives, which is a difference nobody can miss:
+   the PRIMARY is a plate you press — it lifts, it catches the light, it takes a
+   ripple where you pressed it. The SECONDARY is a link you follow — the label
+   steps aside and an arrow arrives in its place, over a pane that grows out of
+   the dot at its left edge.
+
+   That is the reference component's gesture with its geometry inverted: it slid a
+   duplicate label in from the right of a 128px pill, and this box is 125.05px
+   with 27.6px of slack around a 97.45px label, so the arriving layer is
+   absolutely positioned across the WHOLE box — padding included — and centres
+   itself there. Out of flow, so the flex box still sizes to .cta-l alone and the
+   chip is the same 125.05x37.17 it was measured at.
+
+   The arrow is the page's own glyph, built the way .ses-arrow's head is built
+   (annot.css:161) and without its box, because at 12.8px the box is 19.2px of a
+   27.6px allowance and the pair reads crammed. */
+.cta-l {
+  display: block;
+  /* The two labels are the SAME WORDS, so a crossfade puts two copies of "See the
+     ten levels" on the chip at once and reads as a double exposure — measured at
+     70ms into the gesture, both were legible. So it is a HANDOVER, not a
+     crossfade: this one is gone in 150ms while it is still travelling, the
+     arriving layer starts fully outside the box and is held back 70ms, and the
+     pane has already arrived under both of them. */
+  transition: transform 420ms var(--ease-io), opacity 150ms linear;
+}
+.cta-go {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.35em; padding-inline: 0.2em;
+  /* The label is one flex item and the arrow another, and without this the label
+     wraps to two lines the moment the pair is a pixel wider than the box: 97.45 +
+     4.48 + 11.78 + 5.12 = 118.83 of the chip's 125.05 at 1440x900, which is 6.2px
+     of slack. Nowrap spends that slack on clipping instead of reflowing, so a font
+     fallback with wider metrics shortens the duplicate rather than stacking it. */
+  white-space: nowrap;
+  opacity: 0; transform: translateX(100%);
+  transition: transform 420ms var(--ease-io), opacity 200ms linear;
+}
+.cta:hover .cta-l { transform: translateX(30%); opacity: 0; }
+.cta:hover .cta-go { transform: none; opacity: 1; transition-delay: 70ms; }
+.cta-arrow {
+  position: relative; width: 0.92em; height: 0.8em; flex: none;
+}
+.cta-arrow::before, .cta-arrow::after { content: ''; position: absolute; }
+.cta-arrow::before {
+  left: 0; right: 12%; top: calc(50% - 0.5px); height: 1px; background: currentColor;
+}
+.cta-arrow::after {
+  right: 6%; top: 50%; width: 4.5px; height: 4.5px;
+  border-right: 1px solid currentColor; border-top: 1px solid currentColor;
+  transform: translateY(-50%) rotate(45deg); transform-origin: 100% 0;
+}
 
 /* bento cell furniture. This block lived at the end of the file, after every media
    query, so the short-window tiers below could not hide the lists it declares — the
@@ -686,6 +905,15 @@ body {
      and loses the 2px travel and the eased crossfade between them. */
   .cta { transition: none; }
   .cta:hover, .cta:active { transform: none; }
+  /* The panning light and the press wave are motion with no still state to keep,
+     so they go entirely — the highlight parks at 50%, where it shipped. The
+     secondary keeps the SWAP — the arrow is information, and the label is still
+     replaced by it — and loses the travel: both layers sit where they land, so a
+     pointer changes the chip in one step instead of sliding it. */
+  .cta { animation: none; }
+  .cta-rip { display: none; }
+  .cta-l, .cta-go { transition: none; transform: none; }
+  .cta:hover .cta-l { transform: none; }
 }
 
 /* real ink on real paper, in the card that claims the product prints */

@@ -116,6 +116,17 @@ export class Board {
     /** 0 lights the whole file flat; 1 gathers that light down to rank 1, which
         is where the spine's fill starts. See setFileGlow. */
     this.fileGather = 0;
+    /** Per-square glow, rank-major like `tiles`. Ranks light as a gate is crossed
+        and a file lights when the curriculum takes over; a SQUARE lights when the
+        story is about one hour. Act 1 (`sunday`) lights one square to start with
+        and eight in a row to finish. */
+    this.tileGlow = new Float32Array(this.count);
+    this._tileLit = false;
+    /** How far the board has stopped holding still. Every tile drifts on its own
+        phase, so this is desync rather than noise: at 1 nothing in the frame
+        agrees with anything, which is what an overloaded composition feels like
+        before it looks like a bug. Deliberately small — it is felt, not seen. */
+    this.unrest = 0;
     this.hueColor = new THREE.Color(0x3fa57a);
     this._wasFocus = false;
     this._lastLight = -1;
@@ -144,13 +155,31 @@ export class Board {
     this.fileGather = gather;
   }
 
+  /** Light one square. `rank` may be any rank the board draws; out of range is
+      ignored so a caller can sweep without bounds-checking. */
+  setTileGlow(file, rank, v) {
+    if (file < 0 || file >= FILE_N) return;
+    const i = (rank - RANK_MIN) * FILE_N + file;
+    if (i < 0 || i >= this.count) return;
+    this.tileGlow[i] = v;
+    if (v > 0.002) this._tileLit = true;
+  }
+
+  clearTileGlow() {
+    if (!this._tileLit) return;
+    this.tileGlow.fill(0);
+    this._tileLit = false;
+  }
+
   update(dt, t) {
     const a = this.assembly;
     // Once the board has locked and nothing is lifting, the tile transforms and
     // albedo are constant. Writing 216 matrices and 216 colours per frame for a
     // static board is pure CPU tax, so the geometry pass runs only when it moves.
     const moving = a < 0.999 || !!this.focus || this._wasFocus
+      || this.unrest > 0.002 || this._wasUnrest
       || Math.abs(this.lightness - this._lastLight) > 0.002;
+    this._wasUnrest = this.unrest > 0.002;
     this._wasFocus = !!this.focus;
     this._lastLight = this.lightness;
     let glowing = false;
@@ -162,6 +191,14 @@ export class Board {
     // fileGlowTop rather than by RANK_MAX so the tail past rank 8 stays culled.
     for (let i = 0; i < FILE_N; i++) {
       if (this.fileGlow[i] > 0.002) { glowing = true; hiRank = Math.max(hiRank, this.fileGlowTop); }
+    }
+    if (this._tileLit) {
+      for (let i = 0; i < this.count; i++) {
+        if (this.tileGlow[i] > 0.002) {
+          glowing = true;
+          hiRank = Math.max(hiRank, RANK_MIN + Math.floor(i / FILE_N));
+        }
+      }
     }
     if (this.focus) hiRank = Math.max(hiRank, this.focus.r);
     if (!moving && !glowing && !this._wasGlowing) return;
@@ -192,7 +229,16 @@ export class Board {
       }
       p.y = y + lift;
 
-      this._e.set(rot * 0.6, rot, rot * 0.4);
+      let sway = 0;
+      if (this.unrest > 0.002) {
+        // one phase per tile, three incommensurate rates: no two tiles are ever
+        // at the same point in the cycle, so the board shears rather than pulses
+        const w = t * 0.62 + i * 0.41;
+        p.y += Math.sin(w) * this.unrest * 0.16;
+        sway = Math.sin(w * 1.27 + 1.1) * this.unrest * 0.022;
+      }
+
+      this._e.set(rot * 0.6 + sway, rot, rot * 0.4 - sway);
       this._q.setFromEuler(this._e);
       this._v.set(p.x, p.y, p.z);
       const sc = lerp(0.86, 1, local);
@@ -218,7 +264,8 @@ export class Board {
         ? (this.fileGlow[p.f] || 0) * (1 - fgk * (p.r - 1))
         : 0;
       const spineBoost = p.f === SPINE_FILE ? 0.55 : 0;
-      let g = p.g + rg * (0.5 + spineBoost) + fg + (local < 1 ? (1 - local) * 0.12 : 0);
+      const tg = this._tileLit ? this.tileGlow[i] : 0;
+      let g = p.g + tg + rg * (0.5 + spineBoost) + fg + (local < 1 ? (1 - local) * 0.12 : 0);
       if (this.focus && p.f === this.focus.f && p.r === this.focus.r) g += this.focus.amount * 0.42;
       g *= 1 - this.lightness * 0.75;
       this._c.copy(this.hueColor).multiplyScalar(g);

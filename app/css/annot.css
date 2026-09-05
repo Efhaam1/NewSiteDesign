@@ -350,8 +350,26 @@
     background 180ms var(--ease);
 }
 .con-b:hover { border-color: var(--hue); color: var(--fg); }
-.con-b.con-go { border-color: var(--hue); color: var(--fg); }
-.con-b.con-go:hover { background: var(--hue); color: var(--ebony); }
+/* The primary of a pair now FILLS from its leading edge instead of switching to a
+   flat hue on hover, which is the same gesture the hero's secondary makes and the
+   same one the reference component's dot makes — a surface arriving, not a colour
+   swapping. Endpoint unchanged: hue plate, ebony label, the contrast that was
+   measured. The label's own flip is held back 120ms because ebony ink on an
+   unfilled console button is ebony on ebony; by the time it flips the plate is
+   ~70% arrived. No box changes: the fill is a background layer. */
+.con-b.con-go {
+  border-color: var(--hue); color: var(--fg);
+  background-image: linear-gradient(90deg, var(--hue), var(--hue));
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  background-size: 0% 100%;
+  transition: border-color 180ms var(--ease), color 100ms var(--ease),
+              background-size 300ms var(--ease);
+}
+.con-b.con-go:hover {
+  background-size: 100% 100%; color: var(--ebony);
+  transition-delay: 0s, 120ms, 0s;
+}
 .con-b.ok { border-color: var(--hue); color: var(--hue); }
 .con-b[disabled] { opacity: 0.45; cursor: default; }
 .con-brow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; }
@@ -799,5 +817,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .con-b, .prep-x, .ses-more { transition: none; }
+  /* (0,2,0), because .con-go's own transition above is (0,2,0) and a single-class
+     rule in here would lose to it. The delay goes too, so the fill and the label
+     land together instead of the ink flipping 120ms into nothing. */
+  .con-b.con-go { transition: none; transition-delay: 0s; }
   .console { transform: none; }
 }

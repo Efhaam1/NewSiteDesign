@@ -3,6 +3,7 @@ import { Board } from './gl/board.js';
 import { Spine } from './gl/spine.js';
 import { Pieces } from './gl/pieces.js';
 import { Debris } from './gl/debris.js';
+import { Load } from './gl/load.js';
 import { Director, ACTS } from './gl/director.js';
 import { ScrollEngine } from './scroll.js';
 import { buildConsole } from './ui/console.js';
@@ -10,6 +11,7 @@ import { buildStages } from './ui/stages.js';
 import { buildBento } from './ui/bento.js';
 import { buildLadder, buildScrub, buildProof, buildReadout, buildLevels, bindPlates } from './ui/chrome.js';
 import { buildCompare } from './ui/compare.js';
+import { buildSunday } from './ui/sunday.js';
 import { buildRate } from './ui/rate.js';
 import { clamp } from './util.js';
 
@@ -42,6 +44,7 @@ async function boot() {
     { active: () => !!(sessionAct && sessionAct.active) });
   const updateBento = buildBento(document.getElementById('bento'), stages, catalog);
   buildCompare(document.getElementById('compare'), variance, catalog, stages);
+  const sunSegs = buildSunday(document.getElementById('sun-rail'), showcase.data.S115, catalog);
   buildRate(document.getElementById('rate'), pricing);
   const updateLadder = buildLadder(document.getElementById('ladder'), engine);
   const updateScrub = buildScrub(document.getElementById('scrub'), catalog);
@@ -61,8 +64,13 @@ async function boot() {
   const board = new Board(world);
   const spine = new Spine(world, catalog, stages, q);
   const debris = new Debris(world, q.debris, variance);
+  // Act 1's own material. Scaled off the same quality knob the paper uses, so the
+  // two acts give up instances together rather than one starving the other.
+  const load = new Load(world, Math.min(1, q.debris / 88));
+  // one pile per segment: the 3D and the strip must agree about how many there are
+  load.setSegments(sunSegs);
   const pieces = await new Pieces(world).load(3.9);
-  const director = new Director({ world, board, spine, pieces, debris });
+  const director = new Director({ world, board, spine, pieces, debris, load });
   // Warm the things whose first touch is expensive: the spine's four instanced
   // buffers (252 instances) and the console's board (64 cells and up to 32 SVG
   // decodes). Both showed up as 100-150ms hitches the first time the reader
@@ -134,7 +142,7 @@ async function boot() {
     // "pawn stage", and at act 2 the rail said "d3 · pawn stage" while the scrub card beside
     // it said "stage 3 Bishop". Suppressed until act 3, where the panels name stages.
     updateReadout(n, aSession?.active ? 'bishop stage'
-      : n > 4.7 || n < 3 ? '' : STAGE_NAMES[director.stageIndex]);
+      : n > 5.7 || n < 4 ? '' : STAGE_NAMES[director.stageIndex]);
     // D4 — the ladder walks the file, so it runs off the ACT's own progress, not off the
     // director's fill. `spine.fill` is the 3D light head's position and director.js:155 only ever
     // sweeps it 0.03 → 0.13 inside act 2 (the 0.13 → 0.97 sweep belongs to act 3, where this

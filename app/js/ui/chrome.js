@@ -1,12 +1,20 @@
 import { el } from './console.js';
 import { clamp } from '../util.js';
-import { ACTS } from '../gl/director.js';
 
 const HUE = { 1: '#3fa57a', 2: '#4a8bd0', 3: '#9070ce', 4: '#d2604b', 5: '#c9a227' };
 
-/** What each rung actually goes to, in the nav's own words. r=1 is act 0. */
-const RANK = ['', 'the top', 'three coaches, one session', 'the curriculum', 'five stages',
-  'inside a session', 'what’s included', 'what it costs', 'promotion'];
+/**
+ * What each rung actually goes to, in the nav's own words.
+ *
+ * There are nine acts and a chessboard has eight ranks, so the map is authored
+ * rather than proportional — `((r-1)/7) * ACTS.length` made rung 5 land on act 5
+ * and left act 4, the five stages, with no rung at all. `promotion` is the one
+ * act with no rung of its own, which is correct: promotion is what happens PAST
+ * rank eight, and the ladder's own last rung is the price you promote from.
+ */
+const RUNG_ACT = [0, 0, 1, 2, 3, 4, 5, 6, 7];
+const RANK = ['', 'the top', 'the week before the lesson', 'three coaches, one session',
+  'the curriculum', 'five stages', 'inside a session', 'what’s included', 'what it costs'];
 
 
 /**
@@ -29,19 +37,18 @@ export function buildLadder(root, engine) {
     b.title = RANK[r];
     b.setAttribute('aria-label', 'Go to ' + RANK[r]);
     b.addEventListener('click', () => {
-      // rank 1..8 maps onto the whole narrative, which maps onto the act list
-      const nar = ((r - 1) / 7) * ACTS.length;
-      const i = Math.min(engine.acts.length - 1, Math.floor(nar));
+      // one rung, one act: see RUNG_ACT
+      const i = Math.min(engine.acts.length - 1, RUNG_ACT[r]);
       const a = engine.acts[i];
-      if (a) scrollTo({ top: Math.round(a.top + (nar - i) * a.len), behavior: 'smooth' });
+      if (a) scrollTo({ top: Math.round(a.top + 0.06 * a.len), behavior: 'smooth' });
     });
     li.appendChild(b);
     rungs.push(li);
   }
   let shown = -1;
   return function update(n) {
-    // the whole narrative maps onto ranks 1..8
-    const i = Math.round(clamp(n / ACTS.length) * 7 + 1);
+    // act index -> rung, the inverse of RUNG_ACT. The last two acts share rank 8.
+    const i = Math.max(1, Math.min(8, Math.floor(n) + 1));
     if (i === shown) return;
     shown = i;
     for (const li of rungs) {
@@ -129,7 +136,7 @@ export function buildReadout(root) {
   const span = root.querySelector('span');
   let last = '';
   return function update(n, stageName) {
-    const rank = Math.round(clamp(n / ACTS.length) * 7 + 1);
+    const rank = Math.max(1, Math.min(8, Math.floor(n) + 1));
     // The bundle version used to close this line. It was internal metadata used as
     // furniture - on the pricing screen the rail's entire content was a coordinate and a
     // semver - and at 8.96px it measured 1.97:1, so it was not even legible provenance.
@@ -166,6 +173,7 @@ export function buildReadout(root) {
 export function bindPlates(root = document) {
   // A coarse pointer has no hover state to track, and no cursor to follow.
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // At most one plate is ever lit. `pointerleave` does not always fire when the
   // element leaves the POINTER — an act scrolling out from under the cursor takes
@@ -221,5 +229,32 @@ export function bindPlates(root = document) {
 
     btn.addEventListener('pointerleave', off);
     btn.addEventListener('pointercancel', off);
+
+    /**
+     * The press, at the point it was actually pressed.
+     *
+     * product.css:.cta-rip is a 22px disc of the label's own ink that scales out
+     * and fades; all this does is put it where the finger went down. Same three
+     * cost rules as the light above: one absolutely positioned child, so no
+     * layout; `currentColor`, so no second declaration for the ink plate; and it
+     * removes itself.
+     *
+     * The removal is a timer rather than `animationend`, deliberately. base.css:91
+     * pauses every animation inside an act that stops being live, so a plate
+     * pressed on the way out of an act would keep a paused disc forever and
+     * `animationend` would never arrive.
+     */
+    btn.addEventListener('pointerdown', (e) => {
+      if (still || e.button !== 0) return;
+      const r = btn.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const rip = document.createElement('span');
+      rip.className = 'cta-rip';
+      rip.setAttribute('aria-hidden', 'true');
+      rip.style.setProperty('--rx', (e.clientX - r.left).toFixed(1) + 'px');
+      rip.style.setProperty('--ry', (e.clientY - r.top).toFixed(1) + 'px');
+      btn.appendChild(rip);
+      setTimeout(() => rip.remove(), 700);
+    });
   }
 }

@@ -37,3 +37,6 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# scratch instruments for the 2026-09-05 act-1 build (shootn/payoff/bands/boot/reduced)
+/.tmpwork/

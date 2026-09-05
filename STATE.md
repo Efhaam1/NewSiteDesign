@@ -1,11 +1,95 @@
 # STATE — read this first
 
+## 2026-09-05: an act was inserted. Every act index below this note is the OLD one.
+
+`sunday` is now act 1, between `threshold` and `chaos`, on the founder's explicit
+instruction. That overrides the "no act added, removed or reordered" rule further down —
+the rule stands for everything else, and this is the one exception, recorded here rather
+than quietly edited away.
+
+`n` is act index + local progress, so inserting at index 1 moved the whole film one unit
+up the narrative axis. **Everything in this file written before 2026-09-05 uses the old
+numbering.** The map, once:
+
+| old | new | act |
+|-----|-----|-----|
+| 0 | 0 | `threshold` |
+| — | 1 | `sunday` &nbsp;*(new)* |
+| 1 | 2 | `chaos` |
+| 2 | 3 | `spine` |
+| 3 | 4 | `stages` |
+| 4 | 5 | `session` |
+| 5 | 6 | `system` |
+| 6 | 7 | `terms` |
+| 7 | 8 | `promotion` |
+
+What moved with it, all verified by `node tools/gate.cjs` reading 61/61:
+
+- `ACTS` in `director.js`, and the DOM order in `index.html` — these two MUST agree or
+  `narrative()` returns a non-monotonic `n` and the camera snaps backwards. Nothing
+  asserts it.
+- Every `at` in `SHOTS` at or above 1.00, plus eight new keys for 1.00–1.94.
+- 23 `band()` / `window_()` / comparison thresholds in `director.update()`. Not a
+  find-replace: 148 numeric literals in that function are ≥ 1 and only 71 are in `n`
+  space. Two were partial — `debris.presence` and the first `atmos` window rise in act 0
+  and fall after the new act, and `debris.presence` was moved to 1.90–2.04 rather than
+  shifted, so act 2's paper does not arrive on top of act 1's overload.
+- `main.js`'s readout suppression (`n > 5.7 || n < 4`).
+- **`chrome.js`'s rank ladder, which was the silent one.** It mapped `n / ACTS.length` onto
+  eight rungs; with nine acts that still produced a valid `d1`–`d8` with no error, but rung
+  5 landed on `session` and act 4 `stages` had no rung at all. It is an authored map now
+  (`RUNG_ACT`), and `promotion` has no rung of its own — correct, because promotion is what
+  happens *past* rank eight.
+- **`tools/gate.cjs` parks by act NAME now, not by index.** Ten assertions were pointing at
+  the act next door, which is a false PASS and worse than a failure.
+- Stale comments that named an act index: `debris.js`'s "idx is 0 for all n < 3" (now 4)
+  and `compare.js`'s "t = LAST = 0.40, which is n 1.40" (now 2.40; the value is act-local
+  `t`, so that one was only ever a comment).
+- The `.audit5/` act-1 instruments still take an act INDEX on argv, so the recorded
+  invocations further down this file now point one act early. They were not rewritten.
+
+New files: `app/js/gl/load.js` (the act's material, its stacks and its thirty candidate
+moves), `app/js/ui/sunday.js` (the product strip, built from `showcase.json` S115 and
+`catalog.json`). New CSS lives in the `ACT 1 — the week before the lesson` block of
+`acts.css`. `board.js` gained `setTileGlow`/`clearTileGlow` and `unrest`.
+
+Its own instruments live in `.tmpwork/` (gitignored, like `/shots`):
+
+```sh
+node .tmpwork/shootn.cjs <tag> <w> <h> "1.04,1.30,1.58,1.74,1.90"   # shoot by narrative n
+node .tmpwork/bands.cjs 1200        # what --t actually is after a park, and every band there
+node .tmpwork/payoff.cjs <w> <h> '[null]'   # pawn / lit rank / strip screen positions
+node .tmpwork/reduced.cjs           # the act under prefers-reduced-motion
+node .tmpwork/boot.cjs              # act geometry, the strip's real text, console errors
+```
+
+`bands.cjs` is the one that matters. Parking and reading a computed style 90ms later measures
+a position the damped engine has not arrived at yet: it reported 32 of 92 frames with no
+legible beat where the truth was 3, and the gate assertion built on it was wrong twice before
+it was right. Nothing about a reveal band is true until `bands.cjs` prints it with a settle of
+at least 300ms.
+
+Three things about the act worth knowing before touching it:
+
+- **It owns the RANK; act 2 owns the FILE.** A file is the curriculum, a rank is one hour —
+  eight squares, which is exactly the eight segments S115 is written in. Do not converge
+  anything onto the d-file here: act 2's ignition depends on that file being empty until
+  its own `converge`.
+- **The camera stops before the material lands.** Keys 1.76 and 1.90 are a near-held pair,
+  and `resolve` runs 1.76–1.83 underneath them. A lens moving through the snap makes the
+  resolution read as something the camera did.
+- **The beats CUT, they do not dissolve.** Ramps are 0.016 wide with a 0.008 gap, for the
+  reason the act-2 head-swap note gives: two lines of Fraunces at this size superimpose.
+  At 0.030 neither line was above half opacity for 0.034 of t at every crossing — 214px,
+  measured, five times.
+
+
 **The site is as-is from 2026-09-01. No more audits, no more review loops, no more build orders.**
 Changes are made one at a time, on request: "change X to Y". Nothing on this page needs a plan.
 
 This file replaces `FIXPLAN.md`, `HANDOFF.md`, `PITCH.md`, `RESUME.md`, `PASS2.md`, `findings.md`
 and 236 other planning, review and log files. They are all in `.archive-2026-09-01/` if a decision
-ever needs its paper trail. `README.md` still holds the architecture: the eight acts, the scroll
+ever needs its paper trail. `README.md` still holds the architecture: the nine acts, the scroll
 engine, the data files, how to run it.
 
 ## Run it
@@ -122,9 +206,10 @@ Before/after in ONE page load, which is how you get an honest comparison with no
   `showcase.json`, `variance.json`. `app/data/pricing.json` is the one authored exception.
 - **Never link** `/pilot`, `/lesson`, `/curriculum` or a privacy page. They do not exist.
 - **Never widen** the shared `@media (max-height: 820px) and (min-width: 901px)` tier. It appears
-  three times and re-lays-out all eight acts.
-- Design is settled: no act added, removed or reordered, no new palette VALUE, no typeface or type
-  scale change. The 3D, the piece transformation, the camera path, the pinning and the reveals stay.
+  three times and re-lays-out all nine acts.
+- Design is settled: no new palette VALUE, no typeface or type scale change. "No act added,
+  removed or reordered" held until 2026-09-05, when the founder asked for act 1 `sunday`; see the
+  note at the top of this file. It is not a standing licence to add a tenth. The 3D, the piece transformation, the camera path, the pinning and the reveals stay.
 
 ## What changed on 2026-08-31 / 09-01, and why it matters if you edit near it
 
@@ -335,6 +420,114 @@ the caption gains a clause at t 0.8.
   predicate and `board-pane-fits` is the file's only conditional `record`, so nine assertions
   vanish and the run prints "45/45 pass" and exits 0. Nothing asserts `results.length`.
 
+## Act 7, rebuilt 2026-09-05 — read this before touching `.rate-*`
+
+It was a ruled ledger: five bands, cheapest first, hairlines, one prose column per band. A
+founder reference replaced it with a card grid ("redo the pricing section use this reference img
+i want nice and traditional card based pricing"), and the standing instruction applies — copy it.
+`rate.js` and `terms.css` were rewritten; `pricing.json` gained one field.
+
+**What came from the mock.** A centred head. A pill billing control with the live segment on a
+raised chip and the discount as a note in the same track. Four equal cards in one row. The
+recommended card lifted out of the row on both edges, tinted, on a coloured edge, with a badge on
+the plan name's line. The last card inverted to an ink plate with a light button. A tick list per
+card. A full-width plate at the bottom of every card. A radius — 10px on the cards, 6px on the
+plates — on the precedent decision 12 records: when the founder's reference draws a rounded plate,
+the plate is rounded.
+
+**What did not, and why.**
+
+- **Five bands, four cards.** The six-week pilot is an offer, not a tier. It keeps the ruled-off
+  strip under the row that it has always had, and it still has no button, because `/pilot` has no
+  route (README, "links to nowhere"). It is also the one price the control does not touch, so it
+  carries no yearly figure and the P5/P24 exception it needed for one is gone with it.
+- **The badge says what we know.** The mock's says "Most Popular". Growth keeps the chip it
+  already had — "What the pilot runs on" — in the badge's position.
+- **The buttons say what they do.** The mock's say "Get started". There is no signup, so all four
+  carry the site's one CTA to `/teach`, each with an `aria-label` naming its own licence, and the
+  `no email, no card` line sits centred under the row they share.
+- **The tick rows invent nothing.** `items` in `pricing.json` is each band's own `adds` sentence
+  itemised, clause for clause. The sentence survives as `addsShort` and takes the column back
+  below 732px of height, so no window ever loses a claim — it reads it as prose instead of as rows.
+- **The control swaps a pair, not an emphasis.** Monthly reads `$39 a month` over
+  `$390 a year`; yearly reads `$390 a year` over `$32.50 a month`, which is `effective` in
+  `pricing.json` and the figure a buyer compares. Printing the monthly PLAN price under the
+  yearly one as well — which is what the ruled ledger did — put two different `a month`
+  figures in one card. Two lines in both states, so the card does not change height when
+  the control is pressed, and the default state still carries the whole schedule.
+- **Nothing gets a tick that is not built.** Ledger note 2 lists what is not built yet, and
+  a ticked row reads as shipped in a way a prose sentence does not: Growth's owner dashboard
+  and academy naming and Scale's exports now carry Starter's own qualifier, "when it/they
+  ships". Enterprise's `SSO and localization are planned, not built` came OUT of `items` —
+  a checkmark beside a negation contradicts itself — and is the card's `aside` instead,
+  which is the same slot Growth's ROI line uses and carries no mark. `addsShort`, which the
+  short windows print instead of the rows, was rewritten to carry every claim the rows do.
+- **Ink still comes from the ramp.** Every colour resolves from `--fg`, `--fg-dim`, `--fg-faint`,
+  `--line`, `--glass` and `--hue`, so the sheet turns with the room. The inverted card is the
+  room's own inverse rather than a hardcoded black: it sets `background: var(--fg)` and re-points
+  six `--c-*` tokens at the other end of the ramp, which is why no rule inside a card is written
+  twice. `--fg` itself is deliberately NOT overridden there — overriding it would make that
+  element's own `background: var(--fg)` resolve to the ivory end.
+
+**The height ladder is new and it is measured.** `node tools/tsweep.cjs [wide|phone]` reads the
+stage's own overflow and the sheet's lowest ink against the fold in both billing states. Act 7 is
+a pinned 100vh stage and the card row is the tallest thing on it, so before the ladder every
+window under about 935px of height overflowed: +16 at 901x891, +70 at 821, +120 at 1001x721, +208
+at 901x620, +241 at 1920x580 — and the overflow is a function of HEIGHT, not width (+72 at
+1920x821 against +70 at 901x821). Five height blocks at 901px and up, cheapest first: spacing,
+then the head's lead and the sheet's provenance, then a step on the headline and the invariant's
+second sentence, then the tick rows become `addsShort` and the footnotes go, then the spacing
+floor and Growth's ROI line. 28/28 wide windows and 13/13 phone windows clean.
+
+**A phone keeps the cards and scrolls them sideways.** Four cards will not stand side by side
+under 901px and four stacked is 1,100px on an 844px stage, so `.rate-list` becomes an inline-axis
+scroller with `overscroll-behavior-x: contain`. Two sizing traps came with it, both now fixed in
+`terms.css` and both worth knowing about before adding another scroller to a pinned act:
+`grid-auto-columns: 66%` is circular during intrinsic sizing and falls back to the items'
+max-content; and `overflow-x: auto` gives a box an automatic MINIMUM size of zero but does not
+change what it CONTRIBUTES to an ancestor's intrinsic width. Between them, `.pad` measured 1,189px
+on a 390px viewport and the stage carried 799px of horizontal overflow. The fixes are a `vw`
+track and `minmax(0, 1fr)` on the stage column and on `.pad`'s own implicit column, scoped to
+`.act-terms`.
+
+**Its own instruments**, both zero-install like the rest of `tools/`:
+
+```sh
+node tools/terms.cjs <tag> <w> <h> [t] [annual]   # park act 7, shoot it, print every card box
+node tools/tsweep.cjs [wide|phone|all] [t]        # the ladder: overflow and lowest ink, both states
+```
+
+`interact.cjs` gained the billing pill: it presses it and checks that the promoted figure changes,
+that neither figure leaves the page, that `aria-pressed` follows, that the card row does not change
+height under the reader, and that the inverted card keeps its own figure promoted. It also stopped
+parking act 2 by INDEX — `acts[1]` has been `sunday` since the insertion, so its dial read threw on
+a null and took steps 3 to 5 with it. That dial block is stale in a second way and is now guarded
+rather than fixed: `.improv-cost`, `.dial-card` and `.beats .beat` are not in the DOM at all any
+more, and re-pointing it at act 2's current instrument is a separate job.
+
+**Three cascade traps this act found, all of them the same shape — a later or more specific
+rule in this file quietly beating product.css or itself.** Worth reading before adding a rule
+to `terms.css`:
+
+- **`background` on a `.cta` deletes the plate.** product.css:166 puts the milled face on
+  `background-image` (the radial gradient whose light source is `--mx`/`--my`), so
+  `background: var(--c-plate)` on the card button reset it to `none` and the four plates were
+  flat fills at rest — the face came back only on `:hover`, where product.css re-declares the
+  image. `background-color` is the only safe way to refill a `.cta`.
+- **A card's own resting shadow ties with `:hover`.** `.rate-band.is-fit` and
+  `.rate-band.is-invert` are (0,2,0), the same as `.rate-band:hover`, and they are declared
+  later — so the two MARKED cards were the only two whose shadow did not open under the
+  pointer. Both now have (0,3,0) hover rules.
+- **`.mono` reaches inside a card and undoes its ramp.** product.css:107 colours `.mono` with
+  the PAGE's `--fg-faint`, which beats anything inherited from a parent: the caption line
+  under the pill kept rendering at 2.12:1 after `.rate-cap` was set to `--fg-dim`, and the
+  units beside the demoted figure rendered in an ink-side grey on the inverted card's plate.
+  Any `.mono` element inside this act needs its colour declared on its own selector.
+
+**Two gate assertions were retargeted, not relaxed.** `terms-explains-bands` counted one CTA and
+now counts four plus the micro line; `terms-cta-on-stage` measured one button and now measures the
+lowest of the four. Both read PASS at 61/61.
+
 ## Traps that have cost real time here
 
 - **A text-mode python write flips the whole file LF→CRLF.** Pass `newline=''` both ways and assert
@@ -448,3 +641,17 @@ the caption gains a clause at t 0.8.
    callout labels and nothing else. Same precedent as `--gold-hi` and `--fg-rung`, and the reasoning
    is in `tokens.css` beside it. If decision 13 is resolved geometrically instead, this can go back
    to `--bishop` and the token can be deleted.
+17. **Act 7 spends gold on marks, not on words.** Gold on ivory is 2.31:1 nominal before the GL
+   wash is counted, so every string the card grid needed a reader to READ came off the hue and onto
+   ink: the badge label (measured 1.77:1 rendered at 8px), Growth's ROI line, the pilot's figure and
+   its credit sentence. What keeps the hue is what a reader does not have to read to get the claim —
+   the rotated-square marks, the pilot strip's left edge, the recommended card's edge and wash, and
+   two short mono lead-ins (`IN EVERY LICENCE`, `PILOT`) whose sentences restate them immediately.
+   Those two are the residual, and they are the act's, not the grid's.
+18. **The sheet's own small print cannot reach AA where the composition puts it.** `.rate-cap-l` is
+   8-9px of mono on the BOARD rather than on a plate: `--fg-faint` measured 2.09:1 rendered against
+   a nominal 2.66:1, and the one-token swap to `--fg-dim` that STATE's under-10px rule prescribes
+   lands near 3:1, not 4.5:1. Only `--fg` clears 4.5 unplated in this act — measured 4.69:1 on
+   `.rate-inv-c` and 4.94:1 on the headline — and full ink on a 9px tracked caption reads as a spec
+   line, not a caption. Same accepted-residual class as decision 13, and the lever is the same one:
+   a plate under the line, or the wash.
