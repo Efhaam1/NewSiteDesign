@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Efhaam — one chess curriculum, every coach, every table</title>
+<meta name="description" content="Efhaam is the complete written curriculum for chess academies, ages 5–14: five stages, 213 sessions, 1,640 puzzles — so every coach teaches the same lesson." />
+<meta name="theme-color" content="#06060a" />
+<meta property="og:title" content="Efhaam — one chess curriculum, every coach, every table" />
+<meta property="og:description" content="213 sessions in order, five stages, ages 5–14 — so a coach in their second month teaches the lesson your best coach would." />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="og:site_name" content="Efhaam" />
+<link rel="icon" href="/NewSiteDesign/assets/monogram.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..800,0,0&family=Inter+Tight:wght@300..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/NewSiteDesign/css/tokens.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/base.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/acts.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/product.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/terms.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/annot.css" />
+<script type="importmap">
+{ "imports": { "three": "/NewSiteDesign/vendor/three/build/three.module.js", "three/addons/": "/NewSiteDesign/vendor/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+
+<!-- The page without JS. It sits FIRST in the body on purpose: every act is `visibility: hidden`
+     until scroll.js marks it live, and the nine acts are 3520vh tall, so at the foot of the
+     document this paragraph was ~29 blank screens below the fold. z-index clears the two fixed
+     canvases, which paint nothing without a context but still stack above `main`, and the top
+     padding plus z-index 60 clear `#nav` — also fixed, also z-index 40, but later in the DOM,
+     and its ::before is 240% of its own height of near-opaque gradient (acts.css:34-45). -->
+<noscript><p style="padding:max(96px,6vw) 6vw 6vw;max-width:60ch;position:relative;z-index:60">Efhaam is a written chess curriculum for
+academies: five stages, ten levels, 213 sessions, 1,640 puzzles, every puzzle position
+checked for legality. This page uses motion to explain that structure, so it needs JavaScript to
+be read.</p></noscript>
+
+<canvas id="gl-back" class="gl" aria-hidden="true"></canvas>
+<canvas id="gl-front" class="gl" aria-hidden="true"></canvas>
+<video id="atmos" aria-hidden="true" muted loop playsinline preload="auto"
+  src="/NewSiteDesign/assets/video/dust-shaft.mp4"></video>
+<div id="scrim" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
+
+<!-- ============================================================ chrome -->
+<header id="nav">
+  <a class="brand" href="#top" aria-label="Efhaam, back to top">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="word">Efhaam</span>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#curriculum">Curriculum</a>
+    <a href="#session">Inside a session</a>
+    <a href="#system">What’s included</a>
+    <a href="#terms">What it costs</a>
+  </nav>
+  <a class="cta cta-sm" href="/NewSiteDesign/teach/">Teach a free session</a>
+</header>
+
+<!-- the file: scroll progress rendered as a rank ladder on the d-file -->
+<aside id="ladder" aria-hidden="true">
+  <span class="ladder-label mono">d</span>
+  <ol class="rungs"></ol>
+  <span class="ladder-now mono">d1</span>
+</aside>
+
+<div id="readout" class="mono" aria-hidden="true"><span></span></div>
+
+<main id="top">
+
+<!-- ============================================================ ACT 0 -->
+<section class="act act-threshold" data-act="threshold" aria-labelledby="h-hero">
+  <div class="act-stage">
+    <div class="pad hero">
+      <p class="kicker mono"><span class="dot"></span><b>Efhaam</b> &middot; the written chess curriculum for academies</p>
+      <h1 class="display d1" id="h-hero">
+        <span class="ln"><i>Your standard.</i></span>
+        <span class="ln"><i>Every coach.</i></span>
+        <span class="ln"><i>Every class.</i></span>
+      </h1>
+      <div class="hero-base">
+      <div class="hero-foot">
+          <p class="lead">The complete five-stage curriculum for ages 5–14 — from naming the
+            squares to tournament preparation, and nothing left for a coach to invent on
+            Sunday night.</p>
+          <div class="cta-row">
+            <a class="cta" href="/NewSiteDesign/teach/">Teach a free session</a>
+            <a class="cta ghost" href="#curriculum"><span class="cta-l">See the ten
+              levels</span><span class="cta-go" aria-hidden="true">See the ten levels<i
+              class="cta-arrow"></i></span></a>
+            <span class="mono tiny">no email, no card</span>
+          </div>
+        </div>
+        <ul class="ticker" aria-label="The curriculum in numbers">
+          <li><b class="num">213</b><span class="mono">sessions, all written</span></li>
+          <li><b class="num">1,640</b><span class="mono">puzzles already chosen</span></li>
+          <li><b class="num">210</b><span class="mono">hours of class</span></li>
+          <li><b class="num">0</b><span class="mono">chess errors in 4,702 checks</span></li>
+        </ul>
+      </div>
+      <p class="hero-rule mono"><span>a1 &middot; origin</span><span>scroll &mdash; three coaches, one hour</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 1
+     The coach's own week, before any argument about coaches. Act 2 owns three
+     coaches converging onto one FILE; this act owns the other axis, because a
+     file is the curriculum and a RANK is one hour — eight squares, left to
+     right, which is exactly the eight segments S115 is written in. Same session
+     as act 5, deliberately: the reader opens it here and teaches it there.
+
+     Every beat is a band off --t declared on `.sunday` in acts.css. Nothing here
+     is written per frame from JS except the product strip, which is built once
+     from the bundle. -->
+<section class="act act-sunday" data-act="sunday" aria-labelledby="h-sunday">
+  <div class="act-stage">
+    <div class="pad sunday">
+      <p class="kicker mono k-sunday"><span class="dot"></span>Does this sound familiar?</p>
+
+      <div class="sun-beats">
+        <div class="sb sb1">
+          <p class="display d3 sb-h">The lesson starts<br />before the lesson.</p>
+          <p class="lead sb-l">Fifty minutes on Tuesday&rsquo;s timetable. Nothing in them yet.</p>
+          <p class="mono sb-chip">Tue 17:30 &middot; group B &middot; 50 min &middot; <i>empty</i></p>
+        </div>
+        <div class="sb sb2">
+          <p class="display d3 sb-h">Every hour is<br />built from scratch.</p>
+          <p class="lead sb-l">Puzzles found, an opening prepared, an endgame drilled, homework
+            written &mdash; all of it before the room is unlocked.</p>
+        </div>
+        <div class="sb sb3">
+          <p class="display d3 sb-h">And nothing says<br />what comes next.</p>
+          <p class="lead sb-l">Tactics? The opening they keep losing? The endgame from three weeks
+            ago? Every week reopens the same argument.</p>
+        </div>
+        <div class="sb sb4">
+          <p class="display d3 sb-h">The material exists.<br />The system doesn&rsquo;t.</p>
+          <p class="lead sb-l">Folders, chats, screenshots, a drawer of printouts. None of it in
+            one place, and none of it in order.</p>
+        </div>
+        <div class="sb sb5">
+          <p class="display d3 sb-h">Eventually,<br />planning is the job.</p>
+          <p class="lead sb-l">The evening goes on preparing the hour. The hour is the part they
+            trained for.</p>
+        </div>
+      </div>
+
+      <div class="sun-pay">
+        <h2 class="display d2 sun-final" id="h-sunday">What if every lesson was<br />already
+          planned for you?</h2>
+        <!-- built by ui/sunday.js from showcase.json S115 and catalog.json. Eight cells on
+             the page's own 8-file lattice, over eight lit squares of one rank: a rhyme in
+             count, not a pixel registration - the room is in perspective. -->
+        <div class="sun-rail" id="sun-rail"></div>
+      </div>
+
+      <p class="coord mono">rank 4 &middot; one hour</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 2 -->
+<section class="act act-chaos" data-act="chaos" aria-labelledby="h-chaos">
+  <div class="act-stage">
+    <div class="pad chaos">
+      <div class="chaos-head">
+        <!-- written by compare.js from variance.json, so the act’s first line carries a real
+             session id rather than a retyped one (ADR-0011 §5). Ships empty on purpose. -->
+        <p class="kicker mono" id="k-chaos"><span class="dot"></span></p>
+        <!-- Two headlines in one slot, because this act is two frames: the three coaches
+             ARE the problem, and the card that resolves in their place is the answer. It is a
+             CUT, not the lead pair's dissolve - 0.008 of --t, deliberately under the 1/120
+             step the engine quantises to, so exactly one rendered frame lands inside it. Two
+             lines of 66px Fraunces that both begin "The " cannot dissolve: they superimpose.
+             The bands are --ha / --hb in acts.css; read the note there before retiming either,
+             and retime the lead pair with it or the two slots contradict each other. -->
+        <h2 class="display d2 swap head-swap" id="h-chaos">
+          <span class="sw sw-p">The problem.</span>
+          <span class="sw sw-s">The solution.</span>
+        </h2>
+        <div class="swap lead-swap">
+          <p class="lead sw sw-a">Same 50-minute session. Three different hours. The outcome
+            depends on who teaches it, not what&rsquo;s taught.</p>
+          <p class="lead sw sw-b">A coach leaves on Friday and Tuesday still runs: whoever
+            covers the group opens this session and teaches it.</p>
+        </div>
+      </div>
+      <div class="converge" id="compare"></div>
+      <p class="coord mono">file d &middot; convergence</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 3 -->
+<section class="act act-spine" data-act="spine" id="curriculum" aria-labelledby="h-spine">
+  <div class="act-stage">
+    <div class="pad spine">
+      <div class="col-left">
+        <p class="kicker mono"><span class="dot"></span>Ten levels &middot; nothing skipped</p>
+        <h2 class="display d2" id="h-spine">A curriculum is a line,<br />not a library.</h2>
+        <p class="lead">Session 42 does not re-teach the fork: 34, 35 and 38 come first. Every
+          session is written knowing what came before it.</p>
+        <ol class="levels" id="levels" aria-label="The ten levels, in order"></ol>
+        <p class="levels-foot mono">sessions&nbsp;in&nbsp;each&nbsp;level &middot; every&nbsp;level&nbsp;ends&nbsp;in&nbsp;a&nbsp;checkpoint</p>
+      </div>
+      <div class="col-right">
+        <div class="scrub" id="scrub" aria-hidden="true">
+          <p class="mono scrub-label">one session, as written</p>
+          <p class="scrub-id num"></p>
+          <p class="scrub-title"></p>
+          <p class="scrub-meta mono"></p>
+          <div class="scrub-bar"><i></i></div>
+        </div>
+      </div>
+      <p class="coord mono">d1 &rarr; d8</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 4 -->
+<section class="act act-stages" data-act="stages" aria-labelledby="h-stages">
+  <div class="act-stage">
+    <div class="pad stages">
+      <div class="stages-head">
+        <p class="kicker mono"><span class="dot"></span>Five stages &middot; the piece a child becomes</p>
+        <h2 class="display d3 stage-line" id="h-stages">They learn the board, and finish a game.</h2>
+        <p class="stage-sub"></p>
+      </div>
+      <div class="stage-panels" id="stage-panels"></div>
+      <ol class="gates" id="gates" aria-hidden="true"></ol>
+      <p class="coord mono stages-coord">d2 &rarr; d8</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 5 -->
+<section class="act act-session" data-act="session" id="session" aria-labelledby="h-session">
+  <div class="act-stage">
+    <div class="pad session">
+
+      <div class="ses-copy">
+        <p class="kicker mono"><span class="dot"></span>What you get</p>
+        <h2 class="display ses-h" id="h-session">This is what<br />a&nbsp;coach&nbsp;sees.</h2>
+        <p class="lead ses-lead">A step-by-step learning experience built for coaches and
+          students.</p>
+        <ul class="ses-feat">
+          <li class="ses-f f-curric">
+            <span class="ses-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0
+              0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0
+              0-3 3 3 3 0 0 0-3-3z" /></svg></span>
+            <h3 class="ses-ft">Structured Curriculum</h3>
+            <p class="ses-fd">Stage-wise progression from basics to advanced mastery.</p>
+          </li>
+          <li class="ses-f f-flow">
+            <span class="ses-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"><path d="M10.1 4.3a1.9 1.9 0
+              1 1 3.8 0c0 .5-.2 1-.5 1.4h3.9v3.9c.4-.3.9-.5 1.4-.5a1.9 1.9 0 1 1 0 3.8c-.5
+              0-1-.2-1.4-.5v3.9h-3.9c.3.4.5.9.5 1.4a1.9 1.9 0 1 1-3.8 0c0-.5.2-1 .5-1.4H6.7v-3.9c-.4
+              .3-.9.5-1.4.5a1.9 1.9 0 1 1 0-3.8c.5 0 1 .2 1.4.5V5.7h3.9c-.3-.4-.5-.9-.5-1.4Z" /></svg></span>
+            <h3 class="ses-ft">Guided Learning Flow</h3>
+            <p class="ses-fd">Every session follows a clear structure: learn, practice, apply.</p>
+          </li>
+          <li class="ses-f f-puzzles">
+            <span class="ses-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12"
+              r="4.6" /><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"
+              /></svg></span>
+            <h3 class="ses-ft">Interactive Puzzles</h3>
+            <p class="ses-fd">Position-based learning with hints, solutions, and explanations.</p>
+          </li>
+          <li class="ses-f f-control">
+            <span class="ses-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"><path d="M4 20h16" /><path d="M7.4 20v-5.4" /><path
+              d="M12 20V7.6" /><path d="M16.6 20v-8.4" /></svg></span>
+            <h3 class="ses-ft">Coach Control</h3>
+            <p class="ses-fd">Plan the hour, assign the homework, and know what comes next.</p>
+          </li>
+          <li class="ses-f f-time">
+            <span class="ses-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7.2v5.2l3.6
+              2.1" /></svg></span>
+            <h3 class="ses-ft">Time Smart</h3>
+            <p class="ses-fd">50 to 75 minutes a session. Every minute has a purpose.</p>
+          </li>
+        </ul>
+        <a class="ses-more" href="#curriculum">Explore the curriculum<span class="ses-arrow"
+          aria-hidden="true"></span></a>
+      </div>
+
+      <div class="ses-fig">
+        <div class="ca-band ca-top">
+          <div class="ca ca1">
+            <p class="ca-l">Session context</p>
+            <p class="ca-n">Instantly know where you are in the curriculum.</p>
+            <i class="ca-r" aria-hidden="true"></i>
+          </div>
+          <div class="ca ca2">
+            <p class="ca-l">Puzzle navigation</p>
+            <p class="ca-n">Jump between puzzles in the session with ease.</p>
+            <i class="ca-r" aria-hidden="true"></i>
+          </div>
+          <div class="ca ca3">
+            <p class="ca-l">Action modes</p>
+            <p class="ca-n">Teach or prepare &mdash; the same session, both ways.</p>
+            <i class="ca-r" aria-hidden="true"></i>
+          </div>
+        </div>
+
+        <div class="console" id="console"></div>
+
+        <div class="ca-band ca-bot">
+          <div class="ca ca4">
+            <i class="ca-r" aria-hidden="true"></i>
+            <p class="ca-l">Lesson flow</p>
+            <p class="ca-n">A repeating structure that builds understanding, not just
+              knowledge.</p>
+          </div>
+          <div class="ca ca5">
+            <i class="ca-r" aria-hidden="true"></i>
+            <p class="ca-l">Position info</p>
+            <p class="ca-n">FEN, move context, and everything you need &mdash; one click
+              away.</p>
+          </div>
+          <div class="ca ca6">
+            <i class="ca-r" aria-hidden="true"></i>
+            <p class="ca-l">Smart tools</p>
+            <p class="ca-n">Reveal answers, step through positions, and manage time.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="coord mono">d8 &middot; session</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 6 -->
+<section class="act act-system" data-act="system" id="system" aria-labelledby="h-system">
+  <div class="act-stage">
+    <div class="pad system">
+      <div class="system-head">
+        <p class="kicker mono"><span class="dot"></span>The board, from above</p>
+        <h2 class="display d3" id="h-system">Sixty-four squares.<br />One system.</h2>
+        <p class="lead">Everything below comes out of one written curriculum &mdash; the session a
+          coach teaches from, and the pages a parent and a photocopier get.</p>
+      </div>
+      <div class="bento" id="bento"></div>
+      <p class="coord mono">a1 &rarr; h8</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 7 -->
+<section class="act act-terms" data-act="terms" id="terms" aria-labelledby="h-terms">
+  <div class="act-stage">
+    <div class="pad terms">
+      <div class="terms-head">
+        <p class="kicker mono"><span class="dot"></span>What an academy pays</p>
+        <h2 class="display d3" id="h-terms">Every licence is the whole curriculum.<br />You pay for
+          the size of the academy.</h2>
+        <p class="lead">Priced per academy, not per child. A seat is a coach. <span class="lead-more">Two
+          numbers move the price &mdash; how many coaches teach, and how many children are on the
+          roster.</span> Annual is ten months: two are free.</p>
+      </div>
+      <div class="rate" id="rate"></div>
+      <p class="coord mono">h8 &middot; terms</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 8 -->
+<section class="act act-promotion" data-act="promotion" id="end" aria-labelledby="h-end">
+  <div class="act-stage">
+    <div class="pad promo">
+      <p class="kicker mono"><span class="dot"></span>Where to start</p>
+      <h2 class="display d1" id="h-end"><span class="ln"><i>Promotion.</i></span></h2>
+      <p class="lead promo-lead">All five stages are written, and the last session is a graduation.
+        Three of the 213 sessions are free to teach right now &mdash; no email, no signup.</p>
+      <div class="cta-row promo-cta">
+        <a class="cta" href="/NewSiteDesign/teach/">Teach a free session</a>
+      </div>
+      <ul class="proof" id="proof" aria-label="The curriculum in numbers"></ul>
+      <footer class="foot">
+        <div class="foot-brand"><span class="mark" aria-hidden="true"></span><span class="word">Efhaam</span></div>
+        <p class="mono">said ef-HAAM &middot; curriculum bundle 1.1.0 &middot; no child accounts,
+          no child emails, ever &middot; chess piece geometry: &ldquo;A Beautiful Game&rdquo;
+          &copy; 2020 MaterialX Project / ASWF and &copy; 2022 Ed Mackey, CC BY 4.0, modified
+          &middot; piece artwork: cburnett, CC BY-SA 3.0</p>
+      </footer>
+      <p class="coord mono">d8 &middot; promotion</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<script type="module" src="/NewSiteDesign/js/main.js"></script>
+<script type="module" src="/NewSiteDesign/js/agentation.js"></script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+/* ============================================================================
+   EFHAAM — design tokens
+   The palette is the chess set: ivory and ebony. The five hues are not chosen
+   here — indexes/stage_index.json declares a colour per stage, so stage colour
+   is curriculum data resolved to hex. Gold is reserved for promotion.
+   ========================================================================== */
+:root {
+  /* ---------------------------------------------------------------- grounds */
+  --void: #06060a;
+  --ebony: #0d0c11;
+  --ebony-2: #14131a;
+  --ebony-3: #1c1a24;
+  --ivory: #f2ece0;
+  --ivory-2: #e7dfce;
+  --ink: #12121a;
+  --ink-2: #2a2a36;
+
+  /* ------------------------------------------------------------------- type */
+  --on-dark: #f4efe4;
+  --on-dark-dim: #b8ae9d;
+  --on-dark-faint: #7b7387;
+  --on-light: #14141c;
+  --on-light-dim: #4e4c58;
+  --on-light-faint: #86828f;
+
+  /* ---------------------------------------------- stage hues (curriculum data) */
+  --pawn: #3fa57a;
+  --knight: #4a8bd0;
+  --bishop: #9070ce;
+  --rook: #d2604b;
+  --queen: #c9a227;
+  --gold: #c9a227;
+  --gold-hi: #f0d878;
+  /* One step lighter than --bishop, for act 4's six callout labels only. Those labels
+     are the only type on the page that sits straight on the 3D room with no plate
+     under it, and --bishop cannot reach 4.5:1 there: measured with tools/contrast.cjs
+     at act 4, t=0.5, it lands at 1.6:1 rendered inside `#nav::before`'s scrim and
+     3.9:1 clear of it. This is 0.50 relative luminance against --bishop's 0.22, which
+     takes the three labels below the plate to 4.6-7.1:1 and the three inside the nav
+     scrim to 3.6:1 — the scrim's own ceiling there is about 4.9:1 for pure white, so
+     that band cannot be fixed with ink alone (see STATE.md). Same precedent as
+     --gold-hi and --fg-rung: a legibility tint of an existing hue, not a new hue.
+     Deliberately NOT in the director's RAMPS list: the callouts now retract on
+     --t 0.70-0.805, before the room's bright frames, so there is no paper end. */
+  --bishop-hi: #c9b3ec;
+
+  /* live act colour — the director writes this every frame */
+  --hue: var(--pawn);
+  --hue-soft: rgb(63 165 122 / 0.14);
+
+  /* ------------------------------------------------------------------ metric */
+  --rule: 1px;
+  --hair: rgb(244 239 228 / 0.11);
+  --hair-strong: rgb(244 239 228 / 0.24);
+  --hair-ink: rgb(20 20 28 / 0.14);
+
+  /* the 8-file lattice everything sits on */
+  --file: calc((100vw - 2 * var(--gut)) / 8);
+  --gut: clamp(20px, 4.4vw, 92px);
+
+  /* ------------------------------------------------------------------- type */
+  --display: "Fraunces", "Playfair Display", Georgia, serif;
+  --sans: "Inter Tight", Inter, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --scrim: 1;
+
+  /* Resolved by the director in JS, not mixed at style time. Defaults are the
+     dark-room end of each ramp so the page is correct before the first frame. */
+  --fg: #f4efe4;
+  --fg-dim: #b8ae9d;
+  --fg-faint: #7b7387;
+  /* One step brighter than --fg-faint, for the act-2 level ladder only. That ladder sets
+     9.9-13.2px type straight onto the lit board, and --fg-faint physically cannot reach
+     4.5:1 there: its luminance is 0.18222, so even over pure black it tops out at 4.644:1
+     and in practice it landed at 4.31-4.55 with a wash behind it. This is 0.19330, which
+     clears 4.5:1 on every row at every window and fraction measured, and it stays 1.97:1
+     below --fg-dim and 4.5:1 below --fg so the reached/unreached hierarchy holds.
+     Deliberately NOT in the director's RAMPS list: act 2 is dark-room for its whole life
+     (lift is 0 until n~4.62), so there is no paper end to resolve. If this is ever used in
+     acts 5-7, give it a ramp entry beside --fg-faint's first. */
+  --fg-rung: #7f768b;
+  --fg-inv: #12121a;
+  --line: rgb(244 239 228 / 0.11);
+  --line-2: rgb(244 239 228 / 0.24);
+  --glass: rgb(7 7 10 / 0.88);
+
+  --lift: 0;
+  --narr: 0;
+
+  /* per-act drivers, written by the scroll engine */
+  --t: 0;
+  --e: 1;
+  --h: 0;
+  --in: 1;
+  --in2: 1;
+  --out: 0;
+
+  --t-fast: 220ms;
+  --t-med: 520ms;
+  --ease: cubic-bezier(0.16, 0.84, 0.24, 1);
+  --ease-io: cubic-bezier(0.62, 0.02, 0.24, 1);
+}

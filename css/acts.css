@@ -1,0 +1,1818 @@
+/* ============================================================================
+   Acts. Every reveal is a function of --t (that act's local scroll progress),
+   which the scroll engine writes once per frame. Nothing here uses a duration:
+   scroll position IS the timeline, so a reader who scrolls back sees the shot
+   run backwards exactly as it ran forward.
+   ========================================================================== */
+
+.pad {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: clamp(84px, 9vh, 132px) var(--gut) clamp(28px, 5vh, 64px);
+  display: grid;
+  align-content: start;
+}
+
+.kicker {
+  display: flex; align-items: center; gap: 0.7em;
+  color: var(--fg-faint);
+  margin: 0 0 clamp(18px, 2.6vh, 34px);
+}
+.kicker .dot {
+  width: 6px; height: 6px; background: var(--hue); border-radius: 0;
+  box-shadow: 0 0 14px var(--hue);
+  transform: rotate(45deg);
+}
+.coord {
+  position: absolute; right: var(--gut); bottom: clamp(20px, 3.4vh, 40px);
+  color: var(--fg-faint);
+  opacity: calc(0.72 * var(--in2) * (1 - var(--out))); margin: 0; letter-spacing: 0.26em;
+}
+.tiny { font-size: 0.58rem; }
+/* --fg-faint measured 2.92:1 on 9.28px type in the hero and 2.33:1 on act 6's paper: both
+   SC 1.4.3 failures, on the most persuasive line of the CTA row. STATE.md's own rule is
+   --fg-dim at minimum below ~10px. It has to be `.mono.tiny` (0,2,0) rather than `.tiny`,
+   because both instances are `class="mono tiny"` and product.css:223's `.mono` list is a
+   single class in a later file - the exact cascade tie the trap list records. Both
+   instances of .tiny are CTA micro-copy, so the selector is precisely scoped. */
+.mono.tiny { color: var(--fg-dim); }
+
+/* ------------------------------------------------------------------ chrome */
+#nav::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 240%;
+  background: linear-gradient(180deg, rgb(4 4 8 / 0.86), rgb(4 4 8 / 0));
+  pointer-events: none; z-index: -1;
+}
+body.is-paper #nav::before {
+  background: linear-gradient(180deg, rgb(246 242 233 / 0.9), rgb(246 242 233 / 0));
+}
+#nav {
+  position: fixed; z-index: 40; inset: 0 0 auto 0;
+  display: flex; align-items: center; gap: clamp(16px, 3vw, 48px);
+  padding: clamp(14px, 2.2vh, 26px) var(--gut);
+  mix-blend-mode: normal;
+}
+.brand { display: flex; align-items: center; gap: 0.58em; }
+/* The box was never the logo. monogram.png is 1254x1254 and 100% opaque, and its
+   LUMINANCE ink bbox is 577x615 at (341,298) — 46% x 49% of the canvas — so
+   `center/contain` spends 51% of each axis on margin baked into the artwork and a
+   26px box rendered 11.5 x 12.5 CSS px of king. That is 0.89x the cap height of the
+   word beside it, which is the whole of "logo too small": a mark shorter than its own
+   wordmark's capital reads as subordinate to it.
+   Two changes, and neither moves a pixel of layout. 36px is the measured free box:
+   #nav is a centred flex row whose height is its tallest child, and that is the CTA
+   at 37.17px (rem/em only, so 37.17 at every width >= 901), so the bar stays
+   65.17 / 76.77 / 84.67px at 1198x546 / 1440x900 / 1920x1080. And mask-size 124%
+   takes back some of the dead margin inside that box: ink 16.7x17.7 -> 20.3x22.0
+   CSS px, 1393 -> 2155 lit device px at DPR 3, with ~14px of the box still spare so
+   nothing clips. Scoped to #nav because `.mark` is also act 7's footer brand, whose
+   word is 1rem, not 1.26rem. */
+#nav .mark {
+  width: 36px; height: 36px;
+  -webkit-mask-size: 124%; mask-size: 124%;
+  -webkit-mask-position: 50% 48%; mask-position: 50% 48%;
+}
+.mark {
+  width: 26px; height: 26px; display: block;
+  background: var(--fg);
+  -webkit-mask: url('/NewSiteDesign/assets/monogram.png') center/contain no-repeat;
+  mask: url('/NewSiteDesign/assets/monogram.png') center/contain no-repeat;
+  mask-mode: luminance; -webkit-mask-mode: luminance;
+}
+.brand .word {
+  font-family: var(--display); font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0;
+  font-weight: 500; font-size: 1.18rem; letter-spacing: 0.005em;
+}
+/* The word grows with the mark, and only in the bar: line box 31.23px against the
+   CTA's 37.17px, so it is not the bar's tallest child either. Act 7's footer word
+   stays 1rem (acts.css:333) beside its unchanged 26px mark. */
+#nav .brand .word { font-size: 1.26rem; }
+.nav-links { margin-left: auto; display: flex; gap: clamp(14px, 2.2vw, 34px); }
+.nav-links a {
+  font-size: 0.86rem; color: var(--fg-dim);
+  padding-bottom: 3px; border-bottom: 1px solid transparent;
+  background-image: linear-gradient(90deg, var(--hue), var(--hue));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: color var(--t-fast) var(--ease), background-size 280ms var(--ease);
+}
+.nav-links a:hover { color: var(--fg); background-size: 100% 1px; }
+
+.cta {
+  display: inline-flex; align-items: center; gap: 0.6em;
+  padding: 0.86em 1.35em;
+  font-size: 0.9rem; font-weight: 500; letter-spacing: -0.005em;
+  transition: transform 260ms var(--ease), background-color 260ms var(--ease),
+              color 260ms var(--ease), border-color 300ms var(--ease),
+              box-shadow 380ms var(--ease);
+}
+.cta:hover { transform: translateY(-2px); border-color: var(--hue); }
+.cta.ghost { background-color: transparent; border-color: var(--line-2);
+  /* The one declaration that separated primary from secondary was fill-vs-outline,
+     which on the lit board is a 0.24-alpha hairline: measured 168.61x49.08 against
+     164.55x49.08 at 1440x900 - same padding, same 14.4px type, same height. That is
+     why the pair read as two rectangles. This borrows .cta-sm's own metric below, so
+     no new value enters the system, and takes the ghost to 137.52x37.17: one plate
+     plus one chip. The primary cannot grow instead - at 1244x620 the hero's lowest
+     ink lands 14.87px above the fold. */
+  padding: 0.6em 1em; font-size: 0.8rem; }
+.cta.ghost:hover { border-color: var(--hue); }
+.cta-sm { padding: 0.6em 1em; font-size: 0.8rem; }
+.cta-row { display: flex; align-items: center; gap: clamp(10px, 1.2vw, 18px); flex-wrap: wrap; }
+
+/* --------------------------------------------------------- the rank ladder */
+#ladder {
+  position: fixed; z-index: 38; left: calc(var(--gut) * 0.42); top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: var(--fg-faint);
+}
+#ladder .rungs { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+#ladder .rungs li {
+  width: 11px; height: 11px;
+  border: 1px solid var(--line-2);
+  position: relative;
+}
+#ladder .rungs li.on { background: var(--hue); border-color: var(--hue); box-shadow: 0 0 12px var(--hue-soft); }
+#ladder .rungs li.past { background: var(--line-2); border-color: transparent; }
+.ladder-label, .ladder-now { font-size: 0.55rem; letter-spacing: 0.2em; }
+
+#readout {
+  position: fixed; z-index: 38; right: var(--gut); top: 50%; transform: translateY(-50%);
+  writing-mode: vertical-rl; color: var(--fg-faint);
+  font-size: 0.56rem; letter-spacing: 0.3em; opacity: 0.75;
+  transition: opacity 400ms linear;
+}
+/* One column, always. The line is vertical, so `top: 50%` gives it half the window to
+   run in and nothing else bounds it: when the string outran that, it broke into a
+   second column and printed `1.1.0` beside `Efhaam bundle` instead of after it.
+   This declaration is the fix: with nowrap, min-content equals max-content, so that
+   half-window cap stops binding and the box keeps its natural 314.50px, centred by
+   translateY(-50%). chrome.js only guards windows shorter than the line itself. */
+#readout span { white-space: nowrap; }
+
+/* ============================================================ ACT 0 — hero */
+/* --b is one interpolated driver for the opening: a @property number that
+   transitions from 0 to 1 once the world is up, so the hero arrives on its own
+   before scroll takes over. Nothing here waits on a scroll event to be legible. */
+@property --b { syntax: '<number>'; inherits: true; initial-value: 0; }
+/* The transition lives on the hero act, not on <html>. Transitioning an inherited
+   custom property on the root element recalculates style for the entire document
+   on every frame of the transition — and this one runs during the opening, which
+   is the worst possible moment to be spending 12ms a frame on style. */
+.act-threshold { --b: 0; transition: --b 2600ms cubic-bezier(0.22, 0.72, 0.16, 1); }
+html.ready .act-threshold { --b: 1; }
+
+.hero {
+  grid-template-rows: auto 1fr auto auto;
+  --r0: clamp(0, calc((var(--b) - 0.04) / 0.2), 1);
+  --r1: clamp(0, calc((var(--b) - 0.16) / 0.24), 1);
+  --r2: clamp(0, calc((var(--b) - 0.3) / 0.24), 1);
+  --r3: clamp(0, calc((var(--b) - 0.52) / 0.3), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+}
+.hero .kicker {
+  opacity: calc(var(--r0) * (1 - var(--out)));
+  font-size: 0.86rem; letter-spacing: 0.15em; color: var(--fg-dim);
+}
+.hero .kicker b { font-weight: 500; color: var(--fg); }
+.hero .kicker .dot { width: 7px; height: 7px; }
+.hero { align-content: space-between; }
+.hero .d1 { margin: 0; max-width: 15ch; font-size: min(clamp(3rem, 9.9vw, 11rem), 17vh); }
+.hero .d1 em {
+  font-family: var(--mono); font-style: normal; font-weight: 500;
+  font-size: 0.5em; letter-spacing: -0.01em; vertical-align: 0.16em;
+  color: var(--hue);
+}
+.hero-base {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: end; gap: clamp(20px, 4vw, 72px);
+}
+/* 0.2em, not 0.06: `.ln` is the reveal's clip mask and its box was line-height (0.86em)
+   plus 0.06em, which is shorter than Fraunces' descender at this size - so the tail of
+   the y in "Every" was cut at every window (measured 10px at 1203x564, 17px at
+   1440x900, 22px at 1920x1080). 0.2em measures clip = 0 everywhere, and the incoming
+   line still starts below the mask because `i` is translated a full 1.02em. */
+.hero .ln { display: block; overflow: clip; padding-bottom: 0.2em; }
+.hero .ln i {
+  display: block; font-style: normal;
+  transform: translateY(calc((1 - var(--rl)) * 1.02em));
+  opacity: var(--rl);
+}
+.hero .ln:nth-child(1) i { --rl: var(--r1); }
+.hero .ln:nth-child(2) i { --rl: var(--r2); }
+.hero .ln:nth-child(3) i { --rl: var(--r3); }
+.hero .d1 { transform: translateY(calc(var(--out) * -14vh)); opacity: calc(1 - var(--out) * 1.1); }
+
+.hero-foot {
+  align-self: end;
+  display: grid; gap: clamp(18px, 2.6vh, 30px);
+  max-width: 46ch;
+  opacity: calc(var(--r3) * (1 - var(--out)));
+  transform: translateY(calc((1 - var(--r3)) * 22px));
+}
+.ticker {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: clamp(10px, 1.4vh, 18px) clamp(18px, 3vw, 46px);
+  border-top: 1px solid var(--line); padding-top: clamp(10px, 1.6vh, 18px);
+  opacity: calc(var(--r3) * (1 - var(--out)));
+  text-align: right;
+}
+.ticker li { justify-items: end; }
+.ticker li { display: grid; gap: 2px; }
+.ticker b { font-size: clamp(1.15rem, 1.9vw, 1.8rem); font-weight: 400; letter-spacing: -0.02em; }
+.ticker span { color: var(--fg-faint); font-size: 0.56rem; }
+.hero-rule {
+  margin: clamp(12px, 1.8vh, 22px) 0 0; padding-top: clamp(9px, 1.3vh, 14px);
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: 20px;
+  color: var(--fg-faint); letter-spacing: 0.24em;
+  opacity: calc(var(--r3) * (1 - var(--out)));
+}
+.hero-rule span:last-child::after {
+  content: ''; display: inline-block; width: 30px; height: 1px; margin-left: 10px;
+  vertical-align: 3px; background: linear-gradient(90deg, var(--hue), transparent);
+}
+
+/* Act 1 used to be declared twice — a layout block here and a second one below
+   that shadowed it at equal specificity, so half of these rules were dead and
+   the live ones were 270 lines from the ones they overrode. There is now exactly
+   one .chaos block, at the bottom of this file with the rest of the act. */
+
+/* =========================================================== ACT 3 — spine */
+.spine {
+  grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.78fr);
+  gap: clamp(20px, 3.4vw, 64px); align-content: center; align-items: center;
+  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+}
+.spine > * { opacity: calc(var(--in) * (1 - var(--out))); }
+.spine .d2 { font-size: clamp(2.2rem, 6.2vw, 6.2rem); }
+.spine .col-left { display: grid; gap: clamp(8px, 1.2vh, 15px); align-content: center; min-height: 0; }
+.spine .col-right { display: grid; align-content: end; min-height: 0; }
+.facts { margin: clamp(8px, 1.4vh, 16px) 0 0; padding: 0; display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 22px); max-width: 30ch; }
+.facts > div { border-top: 1px solid var(--line); padding-top: 8px; }
+.facts dt { color: var(--fg-faint); font-size: 0.54rem; }
+.facts dd { margin: 2px 0 0; font-size: clamp(1.1rem, 1.7vw, 1.6rem); }
+
+.scrub {
+  border: 1px solid var(--line); border-left: 2px solid var(--hue);
+  background: var(--glass);
+  padding: clamp(14px, 1.5vw, 20px);
+  display: grid; gap: 4px; align-self: end; justify-self: end;
+  width: min(40ch, 100%);
+}
+.scrub-label { color: var(--fg-faint); margin: 0; font-size: 0.54rem; }
+.scrub-id { margin: 2px 0 0; font-size: 0.78rem; color: var(--hue); letter-spacing: 0.14em; }
+.scrub-title { margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.3rem, 2.3vw, 2.1rem); line-height: 1.06; letter-spacing: -0.018em;
+  font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0; }
+.scrub-meta { margin: 4px 0 0; color: var(--fg-dim); font-size: 0.55rem; letter-spacing: 0.1em; }
+.scrub-bar { margin-top: 12px; height: 2px; background: var(--line); position: relative; }
+.scrub-bar i { position: absolute; inset: 0 auto 0 0; background: var(--hue); width: 0%;
+  box-shadow: 0 0 12px var(--hue); }
+
+/* ========================================================== ACT 4 — stages */
+.stages {
+  align-content: start;
+  grid-template-rows: auto;
+  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+}
+.stages-head { opacity: calc(var(--in2) * (1 - var(--out))); max-width: 44ch; }
+.stages-head .d3 { font-size: clamp(1.6rem, 3.1vw, 3.05rem); }
+/* The panels and the gate rail were the only act children not bound to the act's
+   own fade, so during the handover into the session they stayed at full opacity
+   on top of the incoming console. The panel's `.on` class animates opacity inside
+   this container, which is why the fade goes on the container. */
+.stage-panels, .gates { opacity: calc(var(--in2) * (1 - var(--out))); }
+.stage-panels { position: absolute; inset: auto var(--gut) clamp(56px, 9vh, 104px) auto;
+  width: min(38ch, 40vw); }
+.stage-panel {
+  position: absolute; right: 0; bottom: 0; width: 100%;
+  border: 1px solid var(--line); border-left: 2px solid var(--sc, var(--hue));
+  background: var(--glass);
+  padding: clamp(16px, 1.7vw, 24px);
+  display: grid; gap: 12px;
+  opacity: 0; transform: translateY(26px);
+  pointer-events: none;
+}
+.stage-panel.on { opacity: 1; transform: none; pointer-events: auto; }
+.stage-panel { transition: opacity 620ms var(--ease), transform 720ms var(--ease); }
+.sp-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.sp-n { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.22em; color: var(--sc); }
+.sp-status { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.16em;
+  color: var(--fg-faint); border: 1px solid var(--line-2); padding: 0.28em 0.5em; }
+.sp-name { margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(2rem, 3.4vw, 3.1rem); line-height: 0.94; letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 96, 'SOFT' 0, 'WONK' 0; }
+.sp-theme { margin: 0; color: var(--fg-dim); font-size: 0.94rem; line-height: 1.42; }
+.sp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 10px 0; }
+.sp-grid div { display: grid; gap: 1px; }
+.sp-grid dt, .sp-grid .k { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-faint); }
+.sp-grid .v { font-family: var(--mono); font-size: 0.86rem; color: var(--fg); }
+.sp-levels { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.sp-levels li { display: grid; grid-template-columns: 2.4em 1fr; gap: 8px; align-items: baseline;
+  font-size: 0.84rem; color: var(--fg-dim); }
+.sp-levels code { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
+  color: var(--sc); }
+.sp-units { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px; }
+.sp-units li { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--fg-faint);
+  border: 1px solid var(--line); padding: 0.3em 0.46em; }
+.sp-gate { margin: 0; font-size: 0.84rem; color: var(--fg-dim);
+  border-left: 1px solid var(--sc); padding-left: 10px; }
+.sp-gate b { color: var(--fg); font-weight: 500; }
+
+.gates { position: absolute; left: var(--gut); top: clamp(270px, 38vh, 400px);
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.gates li { display: grid; grid-template-columns: 2.6em 1fr; align-items: center; gap: 10px;
+  padding: 0.52em 0; border-top: 1px solid var(--line); min-width: 15ch;
+  font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--fg-faint); transition: color 300ms var(--ease); }
+.gates li:last-child { border-bottom: 1px solid var(--line); }
+.gates li .g-n { color: inherit; }
+.gates li.on { color: var(--fg); }
+.gates li.on .g-n { color: var(--hue); }
+.gates li.done { color: var(--fg-dim); }
+.stages-coord { bottom: clamp(20px, 3.4vh, 40px); }
+
+/* ======================================================== ACT 8 — promotion */
+.promo {
+  align-content: center; justify-items: start; max-width: min(62ch, 60vw);
+  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --p2: clamp(0, calc((var(--t) - 0.04) / 0.12), 1);
+  --p3: clamp(0, calc((var(--t) - 0.14) / 0.14), 1);
+}
+.promo .kicker { opacity: var(--in2); }
+.promo .d1 { max-width: 14ch; font-size: clamp(3rem, 8.4vw, 8.6rem); }
+.promo .ln { display: block; overflow: clip; padding-bottom: 0.06em; }
+.promo .ln i { display: block; font-style: normal;
+  transform: translateY(calc((1 - var(--in)) * 1.02em)); opacity: var(--in); }
+.promo-lead { margin-top: clamp(16px, 2.4vh, 28px); max-width: 44ch;
+  opacity: var(--p2); transform: translateY(calc((1 - var(--p2)) * 16px)); }
+.promo-cta { margin-top: clamp(18px, 2.6vh, 30px);
+  opacity: var(--p2); transform: translateY(calc((1 - var(--p2)) * 16px)); }
+.proof { list-style: none; margin: clamp(26px, 4vh, 46px) 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, max-content));
+  gap: clamp(16px, 3vw, 54px); border-top: 1px solid var(--line); padding-top: 14px;
+  opacity: var(--p3); }
+/* P20 - `align-content` was left at `normal`, which for grid is stretch: the ul's single row
+   stretches every li to the tallest one (83.58px at 1920) and the leftover - exactly one caption
+   line, 13.14px - is split between the li's two auto rows, so the two-line captions start 6.57px
+   below their neighbours. `start` packs both rows at the top instead. findings.md:617-625. */
+.proof li { display: grid; gap: 2px; align-content: start; }
+.proof b { font-family: var(--mono); font-size: clamp(1.1rem, 1.8vw, 1.7rem); font-weight: 500;
+  letter-spacing: -0.01em; }
+/* --fg-dim, not --fg-faint: `findings.md`'s own prescription for this line, and the same
+   one-token swap B11 made to the footer forty pixels below. #7b7387 at full opacity measures
+   4.64:1 over absolute black and 4.47:1 over --void, so the token cannot reach AA for 8.48px
+   type before the board's light is counted - and this strip crosses the wash's diagonal, so its
+   right-hand captions land on lit squares (backdrop L up to 0.095 at 1244x620). Measured before,
+   at 1244x620: medians 1.52 to 2.20:1 across the four captions. Colour only; no metric moves. */
+.proof span { font-family: var(--mono); font-size: 0.53rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-dim); }
+.foot { margin-top: clamp(20px, 3.4vh, 40px); display: flex; align-items: center; gap: 18px;
+  flex-wrap: wrap; opacity: calc(var(--p3) * 0.9); }
+.foot-brand { display: flex; align-items: center; gap: 0.5em; }
+.foot-brand .word { font-family: var(--display); font-size: 1rem;
+  font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0; }
+/* This block carries the pronunciation, the bundle version and both CC-BY attributions -
+   which the licences require to be perceivable - and it sits over the lit board at 0.9
+   group opacity (.foot above). At --fg-faint that composite has a measured ceiling of
+   3.91:1, so the block could not reach AA at any window before the board was even
+   considered. --fg-dim is the token every `.lead` on the site already uses; no token
+   value changed, only which existing one this block reads. */
+.foot p { margin: 0; font-size: 0.56rem; letter-spacing: 0.1em; color: var(--fg-dim); }
+
+/* Short windows: the acts thin themselves rather than being cut off. Act 2's
+   ten rows and act 7's two blocks are where the height actually is. */
+@media (max-height: 820px) and (min-width: 901px) {
+  /* 84px of top padding is 15% of a 569px window. The nav is ~56px, so 64 clears
+     it and every act gets the difference back. */
+  .pad { padding-top: clamp(64px, 8vh, 100px); padding-bottom: clamp(16px, 2.6vh, 40px); }
+  .spine .d2 { font-size: clamp(1.75rem, 3.9vw, 3rem); }
+  .spine .col-left { gap: 4px; }
+  .spine .lead { font-size: 0.86rem; line-height: 1.42; }
+  .levels { margin-top: 4px; }
+  .levels li { padding: 0; }
+  .levels .lv-name { font-size: 0.7rem; }
+  .levels code { font-size: 0.52rem; }
+  .levels-foot { margin-top: 5px; font-size: 0.5rem; }
+  .proof { margin-top: clamp(12px, 2vh, 22px); padding-top: 9px; }
+  .proof b { font-size: clamp(0.95rem, 1.4vw, 1.3rem); }
+  .foot { margin-top: clamp(10px, 1.6vh, 20px); }
+  .promo-lead { margin-top: clamp(8px, 1.4vh, 16px); }
+  .promo-cta { margin-top: clamp(10px, 1.6vh, 20px); }
+}
+
+/* ============================================================ act lengths
+   Each act is as long as its shot needs. The stages act is the longest because
+   it contains five gates and five relightings; the hero is short because a
+   held shot that goes nowhere is the fastest way to lose someone. */
+/* Consecutive acts overlap by one viewport so a stage unpins at the exact
+   moment the next one pins. Without this there is a screen of dead scroll
+   between every scene. */
+.act + .act { margin-top: -100vh; }
+
+.act-threshold { height: 260vh; }
+/* 800vh for six beats — the same ~117vh a beat that act 2 spends on four, plus the
+   hold. The act has to EARN the overload, and an overload that arrives in two
+   flicks of a trackpad is a transition, not a feeling.
+   The height is also what buys the payoff its stillness. --h opens at
+   (H - 200vh)/(H - 100vh), which is 0.857 here against 0.833 at 700vh, and every
+   0.001 of t is 7px instead of 6px: the product finishes printing at t 0.879 and
+   the act does not begin to leave until 0.957, so 55vh of scroll passes with the
+   answer complete and motionless on a camera that is holding two near-identical
+   keys. At 700vh that hold was 18vh and the line faded in as it arrived. */
+.act-sunday { height: 800vh; }
+/* 500vh, and the same 500vh on a phone. The handover out begins at
+   t = (H - 200vh) / (H - 100vh), which has no viewport term in it, so one act
+   height buys one handover fraction at every breakpoint — and the DOM crossover
+   can therefore sit on the same t as the room's merge everywhere instead of
+   being re-timed per breakpoint and desyncing from the paper.
+   500vh is the height that makes that fraction exactly 300/400 = 0.75, and the
+   act now needs the room: it carries four beats, not two, and the fourth of them
+   is a product surface that has to be COMPLETE AND STILL for a readable frame
+   before the handover starts. At 460vh the surface would have been finished at
+   0.70 and held for 0.0222 of a 3240px pin — 72px, a flick of a trackpad. At
+   500vh the pin is 400vh (3600px at 900) and the same 0.70 holds it for 0.05 of
+   it, 180px, plus the 227px it spends complete and motionless inside its own
+   fade. Cost: +40vh, about +360px of scroll on desktop and +337px on a phone. */
+.act-chaos { height: 500vh; }
+.act-spine { height: 300vh; }
+.act-stages { height: 760vh; }
+.act-session { height: 540vh; }
+.act-system { height: 460vh; }
+.act-terms { height: 400vh; }
+.act-promotion { height: 400vh; }
+
+@media (max-width: 900px) {
+  .act-threshold { height: 220vh; }
+  .act-sunday { height: 700vh; }
+  .act-chaos { height: 500vh; }
+  .act-spine { height: 240vh; }
+  .act-stages { height: 620vh; }
+  .act-session { height: 460vh; }
+  .act-system { height: 420vh; }
+  .act-terms { height: 340vh; }
+  .act-promotion { height: 340vh; }
+}
+
+/* the stage claim: one sentence per gate, five screens, escalating */
+.stage-line { min-height: 2.1em; max-width: 26ch; }
+.stage-sub {
+  margin: 10px 0 0; max-width: 40ch; color: var(--fg-dim);
+  font-size: clamp(0.86rem, 1.02vw, 1rem); line-height: 1.45;
+}
+.swap-in { animation: claim 760ms var(--ease) both; }
+@keyframes claim {
+  from { opacity: 0; transform: translateY(0.42em); }
+  to { opacity: 1; transform: none; }
+}
+.stages-head { display: grid; }
+
+/* the ladder's hit area — the rungs are 11px, fingers are not */
+.rung-hit {
+  position: absolute; inset: -5px -9px; padding: 0; margin: 0;
+  background: none; border: 0; cursor: pointer; appearance: none;
+}
+.rung-hit:hover { background: var(--hue-soft); }
+#ladder .rungs li { transition: background 200ms var(--ease), border-color 200ms var(--ease); }
+
+/* the ten levels — what the glowing rank gates in the world actually are */
+.levels {
+  list-style: none; margin: clamp(4px, 0.8vh, 10px) 0 0; padding: 0;
+  display: grid; gap: 0; max-width: 42ch;
+  /* `isolation: isolate` for the same reason `.cv-one` carries it (acts.css:668): the ground
+     below is a negative-z pseudo, and without an isolated stacking context it depends on an
+     ancestor happening to make one - here `.act-stage`'s `contain: content`, three levels up. */
+  position: relative; isolation: isolate;
+}
+/* The ledger is the one component in this act that sets small type straight onto the live
+   board: `.scrub` and `.stage-panel` beside it both carry `background: var(--glass)`
+   (acts.css:204, :239). Measured, that costs nine of the ten rows their legibility - the
+   session counts sit on the right, where the head-of-fill light crosses, and read 1.7:1 to
+   2.2:1 nominal against a backdrop of L 0.056-0.094, against 4.1:1 where the same rows are
+   over dark board. So the fix is a ground, and it has to be a wash rather than a panel: the
+   item rules out a box or a card behind the list, and rules out the palette and the type
+   scale, and the GL scrim cannot help because `side` carries no per-act input and `uAmt` is
+   applied after its clamp - widening it there would darken the copy side of all eight acts
+   and saturate the top and bottom chrome bands (findings.md:227). Soft on all four edges: a
+   vertical gradient for the background, a horizontal one as the mask, so it has no edge to
+   show against the board. It is a child of the list, so it fades in and out with the act. */
+.levels::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  inset: -12px -20px -10px -16px;
+  background: linear-gradient(180deg, rgb(4 4 8 / 0), rgb(4 4 8 / 0.74) 9%,
+    rgb(4 4 8 / 0.74) 91%, rgb(4 4 8 / 0));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+}
+.levels li {
+  display: grid; grid-template-columns: 2.4em 1fr auto; gap: 9px; align-items: baseline;
+  padding: 0.24em 0; border-top: 1px solid var(--line);
+  /* --fg-rung, not --fg-faint: this is the one component on the page that sets small type
+     straight onto the lit board, and --fg-faint cannot reach 4.5:1 there at any backdrop.
+     Founder-authorised 2026-08-30 as the fix for B12. See tokens.css. */
+  color: var(--fg-rung);
+  transition: color 320ms var(--ease), border-color 320ms var(--ease);
+}
+.levels li:last-child { border-bottom: 1px solid var(--line); }
+.levels code { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.14em; }
+.lv-name { font-size: clamp(0.76rem, 0.92vw, 0.9rem); }
+.lv-n { font-size: 0.62rem; letter-spacing: 0.1em; }
+.levels li.past { color: var(--fg-dim); }
+.levels li.past code { color: var(--lc); }
+.levels li.on {
+  color: var(--fg); border-top-color: var(--lc);
+  box-shadow: inset 2px 0 0 var(--lc);
+  padding-left: 8px; margin-left: -8px;
+}
+.levels li.on code { color: var(--lc); }
+/* DORMANT in bundle 1.1.0 - every one of the ten levels is written, so this class renders on no
+   row today (measured 0 at every fraction). It is fixed anyway because it is a latent 2.07:1:
+   --fg-faint at 0.55 opacity is the faintest ink the page can produce, and a row in that state
+   would be less legible than the board behind it. --fg-rung at full opacity puts it level with an
+   unreached rung - 4.67:1 on the nominal reading over that row's own backdrop, which is the number
+   to quote here; the rendered median on these rows is 3.27-3.30, and both readings bracket the
+   answer (see `tools/contrast.cjs`'s header) - and the state stays distinguishable the way the
+   design already marks it, by the italic, TIGHTER-tracked numeral on the line below (0.04em against
+   the rows' own 0.1em, measured 0.992px -> 0.3968px), rather than by being too faint to read. */
+.levels li.unwritten { color: var(--fg-rung); }
+.levels li.unwritten .lv-n { font-style: italic; letter-spacing: 0.04em; }
+
+/* --fg-dim, for the same reason as the proof strip and the footer: this is 8px type sitting on
+   the lit board OUTSIDE the ladder's own wash (`.levels::before` covers the rows, not the line
+   under them), and --fg-faint measured 2.79:1 median / 2.40 p10 rendered at 1440x900 against rows
+   that now read 4.7. It is a summary line rather than a rung, so it takes the site's ordinary
+   secondary ink and not --fg-rung, which exists for the rungs' own hierarchy.
+   THE COLOUR NEEDS ITS OWN RULE, AND ONLY THE COLOUR. This line is
+   `<p class="levels-foot mono">`, and `product.css:224` sets a colour on `.mono` in a sheet that
+   loads after this one, so a plain `.levels-foot { color }` loses the same-specificity tie and
+   computes --fg-faint - measured, 2.79:1 unchanged after the swap. Raising the whole block to
+   `p.levels-foot` fixed that and broke something else: at (0,1,1) it also outranks
+   `@media (max-width: 900px) { .levels-foot { font-size: 0.44rem } }` below, which took the line
+   from 7.04px to 8px and its box from 177.4x32.8 to 201.6x37.2 at every window 900 wide and under
+   - a type-scale change by cascade accident, which is what the reviewer failed the first attempt
+   for. So the block keeps its (0,1,0) selector and the colour gets one rule of its own. */
+.levels-foot {
+  /* the metrics stay at (0,1,0) so `acts.css`'s own `(max-width: 900px)` tier below can still
+     reach them - 0.44rem there, 7.04px measured. The `(max-height: 820px)` tier's copy of this
+     line loses to this block on source order and always did, which is a P12 note, not a live
+     override. */
+  margin: clamp(4px, 0.7vh, 9px) 0 0;
+  font-size: 0.5rem; letter-spacing: 0.14em;
+  /* P7 — `max-width: none`, not `42ch`. `findings.md:255-266`: 42ch is the same declared value as
+     `.levels { max-width: 42ch }` above, which is strong evidence the intent was the ledger's own
+     measure — but `ch` resolves against each element's own font, and this line is 8px JetBrains
+     Mono (1ch = 4.8px -> 201.6px) under a ledger in 17px Inter Tight (1ch = 9.83px -> 412.8px).
+     Same number, 49% of the width. The string needs ~480px at 8px, so the cap forced THREE lines
+     and both figures broke away from their units ("213 of" / "213 sessions written · 1,996" /
+     "unique positions"). Written `none` rather than deleted for self-documentation only: the
+     reviewer enumerated every rule in every sheet matching `p.levels-foot.mono` and this is the one
+     `max-width` declaration on the element, so deleting it would compute `none` too. (The
+     fall-through hazard is real but it is `.hero .lead`'s, where B2 measured `42ch` falling to
+     `base.css`'s narrower `34ch`.)
+     It closes P7: three lines to one takes 12.39px out of `.spine .col-left`, and
+     `.act-spine .act-stage` (`overflow: clip`) was over by 5px at 1189x560, 6px at 1244/1440x560,
+     15px at 1189x540 and 25px at 1189x520 - a band across every width from 1189 to 1920, not the
+     single window the checklist named. After: clean at 560 and 580 at all four widths, 3px at 540
+     and 13px at 520 (PASS2's P26). The line's own overhang is deliberate and measured: one line is
+     473.61px of ink against the ledger's 412.78px, and the 60.83px difference is this line's own
+     `letter-spacing: 0.14em` - 89.6px of tracking on 80 characters, where the glyphs alone are
+     384.01px and would sit inside the ledger. Every way to get one line at the ledger's measure
+     cuts the tracking or the type size. */
+  max-width: none;
+}
+p.levels-foot { color: var(--fg-dim); }
+@media (max-width: 900px) {
+  .lv-name { font-size: 0.74rem; }
+  .levels-foot { font-size: 0.44rem; }
+}
+/* All ten rows fit a tall phone and the label above them says "the ten levels", so
+   they only get cut where the column genuinely has no room — a short phone, where
+   the foot line still prints how many there are. */
+@media (max-width: 900px) and (max-height: 760px) {
+  .levels li:nth-child(n+7) { display: none; }
+}
+
+/* ================================= ACT 1 — the week before the lesson
+   Six beats on one clock, and the clock is scroll position. n = 1 + t for this
+   act (director.js: narrative position is act index + local progress), so every
+   band below is also a frame of the room — the director's act-1 block names the
+   same numbers, and the two must be re-timed together:
+
+     BEAT 1  t 0    → 0.15   one square lights: next Tuesday, fifty minutes, and
+                             nothing in them (setTileGlow at n 1.00-1.09).
+     BEAT 2  t 0.15 → 0.33   material rises and stacks. One square becomes
+                             twenty-four (pile 1.04-1.30, spread 1.12-1.42).
+     BEAT 3  t 0.33 → 0.51   the thirty legal moves from d4, drawn at room scale
+                             and none of them ranked (arrows 1.30-1.56).
+     BEAT 4  t 0.51 → 0.67   the stacks lose their squares. Twenty-six slips ride
+                             the FRONT plate, so the clutter crosses the words
+                             rather than sitting behind them (airborne 1.46-1.72).
+     BEAT 5  t 0.67 → 0.82   the room stops holding still: tile shear, camera
+                             roll, thicker fog, heavier wash — one `strain` term
+                             driving all of them (1.42-1.72 → 1.80-1.93).
+     PAYOFF  t 0.82 → 1      it files. Eight squares light a→h in order and the
+                             same eight segments print above them.
+
+   Beats share one slot and cross-dissolve 0.36/0.64 with a vertical offset, so
+   the eye reads one line REPLACING another rather than two superimposed — the
+   trap the act-2 head-swap note records, avoided by moving instead of cutting.
+   Only the payoff line is a real heading: it is what the act is about. */
+.sunday {
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  align-content: stretch;
+  --in: clamp(0, calc((var(--e) - 0.4) / 0.5), 1);
+  --in2: clamp(0, calc((var(--e) - 0.18) / 0.42), 1);
+  /* --h opens at t = (H - 200vh)/(H - 100vh) = 0.857 here. Two constraints pull this
+     in opposite directions and the window between them is where --out has to sit:
+     an --out driven straight off --h faded the product in and out at the same time,
+     and an --out that waited for 0.70 of the handover left the payoff at 70% while
+     act 2's own --in (`(--e - 0.46)/0.46`, and --h and --e describe the same scroll
+     window) had already printed "The problem." across it — two acts' copy on one
+     screen, measured at n 1.98.
+     0.34 to 0.76 of --h is t 0.906 to 0.966: 0.106 of hold after the foot lands at
+     0.800, then a cross-dissolve where this act is at 26% as act 2 reaches 41%.
+     That is the same handover shape act 2 gives act 3. */
+  --out: clamp(0, calc((var(--h) - 0.34) / 0.42), 1);
+
+  /* Five changes of beat at five crossings, and they are CUTS with a gap rather
+     than cross-fades. Act 2's head-swap note records why: two lines of Fraunces
+     at this size cannot dissolve through each other, they superimpose. A true
+     cross-fade here put "what comes next" as a ghost inside "built from scratch".
+     So the outgoing line is gone 0.004 before the crossing and the incoming
+     starts 0.004 after it — 0.008 of t, 5.6vh, about one frame of a trackpad
+     flick — and the room, which never stops moving, carries the gap.
+     The ramps are 0.016 wide, not 0.030. At 0.030 neither line was above half
+     opacity for 0.034 of t at every crossing — 214px, measured — and five of those
+     is 17% of the act spent on a line you cannot quite read. 0.016 puts the whole
+     illegible window at 0.024, under three frames of the engine's k/120 grid, which
+     reads as a cut and not as a fade. */
+  --o1: clamp(0, calc((0.111 - var(--t)) / 0.016), 1);
+  --i2: clamp(0, calc((var(--t) - 0.119) / 0.016), 1);
+  --o2: clamp(0, calc((0.251 - var(--t)) / 0.016), 1);
+  --i3: clamp(0, calc((var(--t) - 0.259) / 0.016), 1);
+  --o3: clamp(0, calc((0.386 - var(--t)) / 0.016), 1);
+  --i4: clamp(0, calc((var(--t) - 0.394) / 0.016), 1);
+  --o4: clamp(0, calc((0.516 - var(--t)) / 0.016), 1);
+  --i5: clamp(0, calc((var(--t) - 0.524) / 0.016), 1);
+  --o5: clamp(0, calc((0.656 - var(--t)) / 0.016), 1);
+  /* The line lands AFTER the mechanism has resolved — `resolve` finishes at n 1.77,
+     i.e. t 0.77 — and the product prints after the line. That order is the whole
+     point: conclusion, then the evidence for it.
+     Between beat five going out at 0.656 and the line arriving at 0.700 there are
+     0.044 of t, about 275px, with NO copy on the page at all.
+     Everything is printed by 0.800 and --out does not start until 0.906, so 0.106 of
+     the pin - 74vh, 668px at 900 tall - passes with the answer complete and nothing on
+     the page moving at all. That number is the whole reason the five beats sit where
+     they do: they were shifted 0.02 earlier as a set to buy it. That silence is
+     deliberate and it is the only one on the page: it is the stretch where the room
+     straightens up and files, under a camera that has stopped moving, and a line
+     printed over it would be read instead of watched. The snap runs 0.66 to 0.735, so
+     the line completes at 0.750 — after it, not over it.
+     It is also why tools/gate.cjs's `sunday-one-beat-at-a-time` sweep stops at
+     0.72 — past that, dark is the design. */
+  --pay: clamp(0, calc((var(--t) - 0.700) / 0.050), 1);
+  --payh: clamp(0, calc((var(--t) - 0.716) / 0.046), 1);
+}
+.k-sunday { grid-row: 1; opacity: calc(var(--in2) * (1 - var(--out))); }
+
+.sun-beats {
+  grid-row: 2; grid-column: 1;
+  display: grid; align-content: center; justify-items: start;
+  min-height: 0;
+}
+.sb {
+  grid-area: 1 / 1;
+  align-self: center;
+  display: grid; gap: clamp(10px, 1.6vh, 20px);
+  max-width: 40ch;
+  will-change: opacity, transform;
+}
+.sb1 { --kin: 1; --kout: var(--o1); }
+.sb2 { --kin: var(--i2); --kout: var(--o2); }
+.sb3 { --kin: var(--i3); --kout: var(--o3); }
+.sb4 { --kin: var(--i4); --kout: var(--o4); }
+.sb5 { --kin: var(--i5); --kout: var(--o5); }
+/* In from below, out upward. Two separate factors rather than one product,
+   because a single one sends the outgoing line back down through the incoming
+   one and they meet on the same baseline. */
+.sb {
+  --k: calc(var(--kin) * var(--kout));
+  opacity: calc(var(--k) * var(--in) * (1 - var(--out)));
+  /* 16 and 14px, not 30 and 26: over a 0.016 band a 30px travel is a slide, and the
+     beat has to read as a change of subject rather than as a carousel. */
+  transform: translate3d(0,
+    calc((1 - var(--kin)) * 16px - (1 - var(--kout)) * 14px), 0);
+}
+.sb-h { color: var(--fg); max-width: 22ch; }
+.sb-l { max-width: 36ch; }
+/* The empty slot, printed. A bordered chip rather than a card: there is nothing
+   in it yet, and a card with nothing in it looks like a loading state. */
+.sb-chip {
+  justify-self: start; color: var(--fg-dim);
+  padding: 7px 11px; border: var(--rule) solid var(--line-2);
+  letter-spacing: 0.16em;
+}
+.sb-chip i { font-style: normal; color: var(--fg-faint); }
+
+/* ------------------------------------------------------------------- the payoff
+   The strip is eight cells on the page's own eight-file lattice (`--file` is one
+   eighth of the content box, and `.pad`'s content box is exactly 8 of them). The
+   eight lit squares underneath it are a rank in perspective, so this is a RHYME
+   with them, not a pixel registration — the files converge toward the horizon and
+   nothing here pretends otherwise. What carries is the count: eight and eight. */
+/* Both the line and the product go to the TOP of the stage, and the bottom third
+   is left to the room. That order is measured, not composed: at the payoff key
+   rank 4 projects to y 646 of 900 and the pawn standing on the file occupies
+   750-1167, so anything in the lower third is behind a chess piece. Above the
+   rank, the strip also ends up directly over the eight squares it names.
+   Centred, the 109px line and the lit rank shared the same 120px of screen and
+   neither could be read; at the bottom, the strip lost two cells to the pawn. */
+.sun-pay {
+  grid-row: 2; grid-column: 1;
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
+  min-height: 0;
+  pointer-events: none;
+}
+.sun-final {
+  grid-row: 1;
+  color: var(--fg); max-width: 24ch; margin: 0;
+  opacity: calc(var(--pay) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--pay)) * 26px), 0);
+}
+.sun-rail {
+  grid-row: 2; display: grid; gap: clamp(8px, 1.2vh, 14px);
+  margin-top: clamp(18px, 3.2vh, 44px);
+  /* Registered to the board, not to the page. The eight squares of rank 4 project
+     to 1.424 x viewport HEIGHT at the payoff key — measured 1025px at 720 and
+     1282px at 900, both aspect >= 1.6 — because a perspective camera's vertical
+     field is what is fixed. The page's content box scales with WIDTH, so at 1440
+     they coincide and at 1920 the strip was 470px wider than the rank it names.
+     max-width only binds when the content box is the wider of the two; below
+     aspect 1.6 camera.js widens the field, the rank grows to fill the content box
+     on its own, and this does nothing. Live pointer parallax still slides the
+     room +/-74px under it, which is the page's own behaviour everywhere else. */
+  max-width: 142.44vh;
+  margin-inline: auto;
+}
+.sr-head { opacity: calc(var(--payh) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--payh)) * 12px), 0); }
+
+.sr-head { display: grid; gap: 3px; }
+/* All three of these are under 10px, and tokens.css's rule is --fg-dim at minimum
+   below ~10px — --fg-faint measured 2.33-2.92:1 elsewhere on the page at this size. */
+.sr-lede, .sr-meta { color: var(--fg-dim); }
+.sr-lede { margin: 0; letter-spacing: 0.24em; }
+.sr-line { display: flex; align-items: baseline; gap: 0.7em; margin: 0; flex-wrap: wrap; }
+.sr-id { color: var(--hue); font-size: 0.78rem; letter-spacing: 0.1em; }
+.sr-title { font-family: var(--display); font-size: clamp(1.05rem, 1.7vw, 1.55rem); color: var(--fg); }
+.sr-meta { margin: 0; font-size: 0.58rem; letter-spacing: 0.18em; }
+
+.sr-strip {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr));
+  border-top: var(--rule) solid var(--line-2);
+}
+.sr-cell {
+  --c: clamp(0, calc((var(--t) - (0.726 + var(--i) * 0.005)) / 0.038), 1);
+  display: grid; gap: 2px; align-content: start;
+  padding: 9px clamp(5px, 0.7vw, 11px) 11px;
+  border-left: var(--rule) solid var(--line);
+  opacity: calc(var(--c) * (1 - var(--out)));
+  transform: translate3d(0, calc((1 - var(--c)) * 10px), 0);
+}
+.sr-cell:first-child { border-left: 0; padding-left: 0; }
+/* The rule above each cell is the segment arriving on its square: it draws in from
+   the left as the cell prints, which is the same left-to-right order the eight
+   squares light in underneath. */
+.sr-cell::before {
+  content: ''; position: absolute; inset: -1px auto auto 0;
+  height: var(--rule); width: 100%;
+  background: var(--hue); opacity: 0.5;
+  transform: scaleX(var(--c)); transform-origin: 0 50%;
+}
+.sr-cell { position: relative; }
+.sr-sq, .sr-no { font-style: normal; letter-spacing: 0.18em; font-size: 0.56rem; }
+.sr-sq { color: var(--hue); }
+.sr-no { color: var(--fg-dim); }
+.sr-name {
+  font-size: clamp(0.72rem, 0.92vw, 0.9rem); line-height: 1.24;
+  color: var(--fg); text-wrap: pretty;
+}
+.sr-min { font-size: 0.66rem; letter-spacing: 0.08em; color: var(--fg); margin-top: 2px; }
+
+.sr-foot {
+  display: flex; justify-content: space-between; gap: 1.4em; flex-wrap: wrap;
+  margin: 0; padding-top: 8px; border-top: var(--rule) solid var(--line);
+  color: var(--fg-dim); font-size: 0.56rem; letter-spacing: 0.16em;
+  opacity: calc(clamp(0, calc((var(--t) - 0.772) / 0.028), 1) * (1 - var(--out)));
+}
+.sr-next { display: flex; align-items: baseline; gap: 0.6em; color: var(--fg-dim); }
+.sr-then { font-style: normal; color: var(--fg-dim); }
+.sr-next b { color: var(--hue); }
+
+@media (max-width: 900px) {
+  .sb { max-width: none; }
+  .sb-h { max-width: 20ch; }
+  /* The one plate in this act, and only here. On a phone camera.js widens the field
+     and shifts the image up 17% and left 15%, which walks the pawn standing on the
+     d-file straight through the middle of the strip - there is no framing that both
+     holds a portrait composition and keeps a 32-unit rank clear of it. So on narrow
+     viewports the product stops being registered to the board and becomes a card in
+     front of it, in the page's own --glass-on--line surface. */
+  .sun-rail {
+    max-width: none; margin-inline: 0;
+    background: var(--glass);
+    border: var(--rule) solid var(--line);
+    padding: clamp(9px, 2.6vw, 15px);
+  }
+  /* Eight cells on a phone is four characters each. The strip becomes two rows of
+     four, which is still the hour in order and still reads as a sequence. */
+  .sr-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sr-cell:nth-child(4n + 1) { border-left: 0; padding-left: 0; }
+  .sr-cell:nth-child(n + 5) { border-top: var(--rule) solid var(--line); }
+  .sr-name { font-size: 0.7rem; }
+  .sr-foot { flex-direction: column; gap: 4px; }
+}
+@media (max-height: 820px) and (min-width: 901px) {
+  .sb { gap: 6px; }
+  /* 109px of Fraunces over two lines is 230px of a 700px window before the strip
+     has printed a row. The line gives up size rather than the product giving up
+     rows: the product is the evidence. */
+  .sun-final { font-size: clamp(1.9rem, 4.4vw, 3.4rem); }
+  .sun-rail { margin-top: clamp(10px, 1.8vh, 22px); }
+  .sr-cell { padding: 6px 8px 7px; }
+  .sr-name { font-size: 0.68rem; }
+}
+
+/* No WebGL: the act un-pins, so every beat and the payoff have to be visible at
+   once. `body.gl-failed .act > *` only reaches `.act-stage`, and all of this is
+   three levels deeper than that. */
+body.gl-failed .sb,
+body.gl-failed .sun-final,
+body.gl-failed .sr-cell,
+body.gl-failed .sr-foot,
+body.gl-failed .k-sunday { opacity: 1 !important; transform: none !important; }
+body.gl-failed .sun-beats { align-content: start; gap: clamp(20px, 4vh, 40px); }
+body.gl-failed .sb { grid-area: auto; }
+body.gl-failed .sun-pay { grid-row: auto; grid-column: auto; margin-top: 6vh; pointer-events: auto; }
+body.gl-failed .sr-cell::before { transform: none; }
+
+/* ============================ ACT 2 — three coaches, one file, one instrument
+   Four beats on one clock, and the clock is scroll position. n = 2 + t for this
+   act (director.js: narrative position is act index + local progress), so every
+   band below is also a frame of the room:
+
+     BEAT 1  t 0    → 0.44   three ragged columns, and under every beat a rule as
+                             long as that beat's share of the fifty minutes. In
+                             the room, the pile sorts into three heaps of three
+                             different KINDS of material (band(n, 1.06, 1.40)).
+     BEAT 2  t 0.44 → 0.62   the middle column leaves in place, the outer two walk
+                             into its track, and every sheet lerps onto the d-file
+                             (band(n, 1.44, 1.62)). The lead crossfades at 0.52.
+     BEAT 3  t 0.55 → 0.70   what they land as resolves into S012's flow rail —
+                             a fragment of the console act 4 opens full size —
+                             and then HOLDS, complete and motionless, to 0.75.
+     BEAT 4  t 0.75 → 1      handover. Everything the surface says leaves ahead of
+                             the rule it says it on, so the last thing standing is
+                             one lit vertical line; the paper goes at n 1.86 and
+                             the groove under it lights at n 1.94.
+
+   The act's surfaces are type, hairlines and exactly one panel — the one frame
+   that has to say "product" rather than "essay". Everything else is a rule on a
+   token colour, because the frames this act is sold on are the ones that must
+   survive being glanced at. */
+.chaos {
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: 1fr;
+  align-content: stretch;
+  gap: clamp(14px, 3vh, 40px);
+  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+  /* the column gutter, and the type's offset from its own rule. Three things
+     measure off them: .converge's gap, the one-track slide, and the sixteen rules,
+     which start ON the rule rather than beside the word. */
+  --cg: clamp(10px, 2vw, 34px);
+  --cvp: clamp(9px, 0.9vw, 15px);
+  /* The crossover IS the convergence, and nothing in it may be re-timed per
+     breakpoint or the DOM desyncs from the paper: at 500vh the handover out
+     begins at t = (500 - 200) / (500 - 100) = 0.75 at every width. */
+  --sa: clamp(0, calc((0.605 - var(--t)) / 0.08), 1);
+  /* The two bands used to meet at a point - both 0 at t = 0.52 - so the claim slot went
+     blank for 0.075 of the pin (270px at 1440x900, 186px at 1244x620) with neither
+     sentence over 0.48. Only `--sb`'s start moved then, and only far enough that the
+     crossfade never dips: the two cross with both at 0.625, and on the 1/120 quantised --t
+     the faintest frame is 0.667. Both fades keep their 0.08 width, so the gesture is the same
+     one, and neither line is ever at full opacity while the other is.
+     PHASE, 2026-09-04: both endpoints moved +0.085, from 0.52/0.42 to 0.605/0.505, and it is
+     a pure phase shift — the widths, the crossing value and the 0.667 floor are all untouched.
+     It had to move because the h2 became two states: the lead's answer sentence used to arrive
+     at t 0.42 while the headline still said "The problem." until 0.556, so for six consecutive
+     frames (0.06 of the pin, ~216px at 1440x900) the act's loudest line and the paragraph
+     72px to its right disagreed. The lead now turns with the headline, at the merge, which is
+     also when the middle coach card has gone. Move this pair and the h2's --ha/--hb together
+     or the contradiction comes straight back. */
+  --sb: clamp(0, calc((var(--t) - 0.505) / 0.08), 1);
+  /* THE HEADLINE IS ALSO TWO STATES: the act shows the problem while the three coaches are on
+     screen and the answer once the card has replaced them, so the h2 cannot say one thing for
+     both. It switches at t = 0.56, inside the merge — the middle card is gone at 0.50 and the
+     outer two by 0.58.
+     IT IS A CUT, NOT THE LEAD'S DISSOLVE, and that is measured rather than preferred. The
+     first build gave it the lead pair's 0.09-wide crossfade, and at 66px of Fraunces two
+     display lines that both begin "The " superimpose into "The pooblbtlem." for ~360px of
+     scroll — soup, on the loudest thing in the frame. The lead can dissolve because it is
+     15px sans in two long paragraphs; a headline cannot.
+     So it is a 0.008-wide switch centred on t = 0.560, and 0.008 is deliberately just UNDER
+     the 1/120 step --t is quantised to (scroll.js:82), so exactly one rendered frame lands
+     inside the window. The 12px of opposite travel below is what makes that frame read as a
+     replacement rather than as a double exposure. STATE.md's open decision 2 lists this trade
+     for the lead pair; this is it, taken for the h2, where 66px of Fraunces makes a dissolve
+     unreadable.
+     THE ENDPOINTS ARE 1.4x THE WIDTH APART, NOT EXACTLY THE WIDTH, and that is the difference
+     between a floor and a coincidence. Complementary bands (A - B = w) sum to 1 inside the
+     window, which sounds safe but puts max(ha, hb) at exactly 0.5 at the crossing — a tenth
+     under the 0.6 the act holds its other crossfade to — and the only reason no reader saw it
+     was that no k/120 frame landed within 0.0008 of t = 0.560. Widening the gap to 1.4w lifts
+     the continuous crossing maximum to 0.7 and makes the one reachable frame read 0.91/0.49.
+     The window grows 28.8px to 40.3px at 1440x900 and still holds exactly one frame, so the
+     cut survives. */
+  --ha: clamp(0, calc((0.5656 - var(--t)) / 0.008), 1);
+  --hb: clamp(0, calc((var(--t) - 0.5544) / 0.008), 1);
+  /* The three columns leave in two separate motions, deliberately out of step:
+     the middle one is gone by t 0.50 and the outer two keep travelling to 0.58,
+     so the eye sees three columns walk inward and never sees two words in one
+     place. What they are all handed starts landing at 0.55, inside the paper's
+     own convergence. */
+  --fm: clamp(0, calc((0.5 - var(--t)) / 0.05), 1);
+  --fa: clamp(0, calc((0.58 - var(--t)) / 0.07), 1);
+  --sl: clamp(0, calc((var(--t) - 0.51) / 0.07), 1);
+  --one: clamp(0, calc((var(--t) - 0.55) / 0.06), 1);
+  /* beat 3, in the order an instrument assembles: the frame and its empty tracks
+     close around the five names, the session is named, the budgets fill row by
+     row (per-fix bands are on .cv-fx), and the foot closes the arithmetic.
+     Everything is done by 0.70 and 0.05 of a 400vh pin — 180px at 900 — passes
+     with nothing moving at all. */
+  --pn: clamp(0, calc((var(--t) - 0.595) / 0.05), 1);
+  --pt: clamp(0, calc((var(--t) - 0.615) / 0.045), 1);
+  --pf: clamp(0, calc((var(--t) - 0.665) / 0.035), 1);
+  /* beat 4. --out fades the whole act over the first 42% of the handover; --px
+     strips the surface at 1.9x that, so between t 0.805 and 0.855 the only thing
+     left in the frame is the hue rule the rows hung off, stretching. The paper
+     hands the file to the light; the panel hands it the line. */
+  --px: clamp(0, calc(1 - var(--out) * 1.9), 1);
+  /* ONE CARD'S WIDTH, and the row is three of them. The board is square, so what limits
+     a card is the window's HEIGHT — hence 34vh plus the card's own padding and border.
+     `.converge` below caps itself at three of these plus two gutters, so the row is
+     exactly as wide as it needs to be and the leftover width becomes symmetric margin
+     instead of an empty right-hand half. Measured card widths: 399px at 1920x1080,
+     333 at 1440x900, 295 at 1600x821, and in the two-column band below, 255 at 1244x620
+     and 248 at 1219x543. */
+  /* Two terms, because the relation is not linear. 34vh is the card a tall window can
+     carry; below roughly 700px of height the FIXED costs — the act's head, the card's own
+     chrome, the closing row — stop leaving 34vh's worth of room, and a board that cannot
+     shrink (it is square by aspect-ratio) paints over the verdict instead of overflowing
+     measurably. `52vh - 140px` is the measured slope through that band: 142px of board at
+     one column — the band below 1150px wide, and 721-840px tall at any width. Measured:
+     264px of board at 821 tall and 159 at 620, and above ~840 it stops binding and 34vh
+     takes over. */
+  --cw: calc(min(34vh, 52vh - 163px) + 2 * clamp(10px, 0.9vw, 15px) + 2px);
+}
+.chaos > * { opacity: calc(var(--in) * (1 - var(--out))); }
+.chaos-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px clamp(24px, 5vw, 80px); align-items: end;
+}
+.chaos-head .kicker { grid-column: 1 / -1; margin-bottom: 2px; }
+.chaos .d2 { font-size: clamp(1.9rem, 4.6vw, 4.4rem); }
+.chaos .lead-swap { min-height: 3.2em; align-content: start; align-self: end; max-width: 34ch; }
+
+/* two states of the same block occupy one grid cell, so the copy changes
+   underneath the reader instead of the page growing a second paragraph */
+.sw { display: block; transition: none; }
+.sw-a { opacity: var(--sa); }
+.sw-b { opacity: var(--sb); }
+/* the outgoing line lifts away and the incoming one rises into place, 10px each, so the two
+   or three frames where both are on screen read as a replacement and not as a double
+   exposure. Nothing here is a duration: both are functions of the same --t. */
+.sw-p { opacity: var(--ha); transform: translateY(calc((1 - var(--ha)) * -12px)); }
+.sw-s { opacity: var(--hb); transform: translateY(calc((1 - var(--hb)) * 12px)); }
+/* the h2 is a `.swap` now, so both lines share one grid cell. `align-content: start` keeps
+   the pair on the same top edge whichever is taller. */
+.head-swap { align-content: start; }
+.swap { display: grid; }
+.swap > * { grid-area: 1 / 1; margin: 0; }
+
+/* -------------------------------------------------------------- the one object
+   Two states, three shared grid tracks, one row. The three coaches deal in one
+   column at a time and draw their hours; then they slide inward by exactly one
+   track pitch as they fade, and what they are all handed resolves in the middle
+   track — the track the outer two just walked into.
+
+   THE ROW IS THE MIDDLE ONE OF THREE, and rows 1 and 3 are empty `1fr`. That is
+   what centres the whole composition in a tall stage without stretching a card:
+   before 2026-09-03 the cards spanned 1 / -1 and a card at 1920x1080 was 747px
+   tall around a 201px board, so ~300px of air sat inside a plated box. Now the
+   card is as tall as its own content, the slack is split above and below it, and
+   `.cv-one` — also row 2, also centred — resolves on the same line the cards
+   stood on. */
+.converge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+  gap: 0 var(--cg);
+  /* THE THREE CARDS SPAN THE SCREEN. They used to take 56vw and sat in the left half of
+     a wide frame with the board empty beside them — the founder's note was "they feel
+     jumbled on the left properly align them across the screen".
+     It is centred, and the row is no wider than its own three cards (`--cw` above), so the
+     width the cards cannot use becomes symmetric margin rather than an empty right half.
+     `.cv-one` is not bound by this either: it takes the whole row, because it IS the row's
+     replacement — the fourth card, three cards wide. The d-file clearance that used to
+     govern its width is gone as a constraint (see `.cv-one`), so the row's width and the
+     payoff are independent. Re-measure with .audit5/cvfit2.cjs after any change here. */
+  width: min(58vw, 1500px, calc(3 * var(--cw) + 2 * var(--cg)));
+  justify-self: center;
+  min-height: 0;
+}
+@media (min-width: 1200px) {
+  .converge { width: min(77vw, 1500px, calc(3 * var(--cw) + 2 * var(--cg))); }
+}
+
+/* ------------------------------------------------------------------ one card
+   a coach. Three rows of its own — WHO, THE HOUR, THE VERDICT — so the three
+   heads sit on one baseline, the three boards on one line, and the three verdicts
+   on one baseline at the foot. The plate is the page's own card language —
+   `--glass` on `--line`, the same pair `.cell`, `.pane`, `.cmp-card` and
+   `.stage-panel` use (product.css:226) — not a new component and not a new token,
+   and over the lit board it is also the only reason the card's 8px mono clears
+   4.5:1 at all.
+   The per-column reveal band lives here: one element a column, with --ci / --dir
+   / --bs / --cc / --kw inherited by everything inside it. */
+.cv-col {
+  grid-row: 2;
+  /* `minmax(0, 1fr)`, not the implicit `auto` column. An auto grid column takes the
+     largest min-content contribution of its children, and at 320px wide the column is
+     89px while an unbreakable Fraunces word at 15px can be 84-100px — so the track
+     stretched and all three columns overflowed by 9-15px horizontally. `min-width: 0`
+     on the column does not help: the overflow is inside it. Measured at 320x620 and
+     390x844 with .audit5/cvbudget.cjs. */
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  /* `align-content: start`, and it is what puts the three boards on one line. The three
+     columns are grid items in one `auto` row, so they are all as tall as the tallest —
+     and with the default `normal` (which behaves as `stretch` for auto rows) a shorter
+     column spreads its slack BETWEEN its own rows. Measured at 390x844: column B's
+     consequence wraps to two lines where A's and C's wrap to three, so B had ~10px of
+     slack and grid pushed 5px of it into its identity row and 2.5px into its claim,
+     which hung B's board 7px below its neighbours'. With `start` the slack collects at
+     the foot of the short column, where there is no border and nothing to see. */
+  align-content: start;
+  gap: clamp(7px, 1vh, 13px);
+  min-height: 0; min-width: 0;
+  /* THE CARD IS AS WIDE AS ITS BOARD CAN BE TALL, and it is CENTRED in its track. That
+     is what lets the row span the screen without either a stretched card or a small board
+     rattling around in a wide one. The board is square and the axis that runs out is the
+     window's height, so the card's ceiling is 34vh plus its own padding and border; the
+     track is wider than that on a short window, and the difference becomes air between
+     the three cards instead of dead space inside them. Measured: at 1211x569 — the window
+     the founder's note came from — the track is 294px and the card 216px, so the three
+     cards sit at even centres across 932px where before the whole row occupied the left
+     678px of it. At 1440x900 the card is 300px in a 350px track, so 25px of air a side.
+     30vh, not 34: the row below the cards costs ~100px (`.cv-end` plus its rule and
+     margin), and at 1600x821 — the pocket just above the 820-height tier, which the gate
+     watches for exactly this reason — a 34vh board put `.cv-seq` 29px past its own box.
+     Measured at 30vh: 324px board at 1080 tall, 270 at 900, 246 at 821, 186 at 620. */
+  width: min(100%, var(--cw));
+  justify-self: center;
+  /* The card is its own query container, so the identity row reflows on the CARD's width
+     rather than the window's. That distinction is the whole point: `--cw` ties the card to
+     the window's HEIGHT, so a short wide window gives a 207px card at 1219x543 while a
+     tall one gives 336px at 1440x900 — and a viewport media query cannot tell those apart.
+     Measured at 1219x543 before this: the rating competed with the name for a 175px line,
+     so "Coach A" wrapped away from "2200+", "8+ YRS EXPERIENCE" broke over two lines, and
+     because only A carries a chip the three heads came out three different heights and the
+     boards fell off one line. product.css:87 makes act 4's board pane a container for the
+     same class of reason. */
+  container-type: inline-size;
+  /* A PROPER CARD. This went open-on-the-room for one pass, to match the reference's
+     flat-black mock, and the founder's next note was "make these proper cards" — so the
+     plate is back, and it is the page's own card language: `--glass` on `--line`, the same
+     pair `.cell`, `.pane`, `.cmp-card` and `.stage-panel` use (product.css:226). No new
+     token, no new value.
+     It is also what carries the contrast. Measured with no plate and only a gradient wash
+     (tools/contrast.cjs 1440 900 1 0.42), the columns sat over paper sheets bright enough
+     to take the consequence lines to 1.87:1 p10 before the wash and 5.5:1 after; on the
+     plate they read 7:1 with no gradient at all. The type that grew when the plate came
+     off — 9.3px years, 12.8px `--sans` consequence — stays grown: it reads better and it
+     costs nothing. */
+  background: var(--glass);
+  border: 1px solid var(--line);
+  padding: clamp(10px, 0.95vw, 16px) clamp(10px, 0.9vw, 15px) clamp(9px, 0.8vw, 13px);
+}
+
+/* Three parts, in the chess.com order a player recognises instantly: a medallion,
+   the title chip and the name, and the rating hard right. The ratings run
+   DESCENDING across the three cards, so the boards underneath read as an
+   inversion — the titled 2200+ is the one whose hour has the least practice in it.
+   The years sit under the name, in the mockup's own place for them.
+   `minmax(0, 1fr)` on the name column, so a long name wraps instead of pushing
+   the rating off the plate. */
+.cv-who {
+  margin: 0;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 clamp(7px, 0.7vw, 12px);
+  align-items: center;
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.02rem, 1.42vw, 1.62rem); letter-spacing: -0.014em; color: var(--fg-dim);
+  font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0;
+}
+/* The avatar: a ring with a person in it, at 2.1em so it stands as tall as the two type
+   rows beside it — the reference's own proportion, and the reason the identity row reads
+   as a person rather than as a label. Drawn in compare.js as two circles and an arc: no
+   asset to fetch, no raster to go soft on a 3x screen, and nothing that could be
+   mistaken for a chess piece. */
+.cv-av {
+  grid-row: 1 / 3; align-self: center; justify-self: start;
+  width: 2.1em; height: 2.1em; display: block;
+  overflow: visible;
+}
+.cv-ar-o { fill: none; stroke: var(--line-2); stroke-width: 1; }
+.cv-ai { fill: none; stroke: var(--fg-dim); stroke-width: 1.4; stroke-linecap: round; }
+/* Chip, name and rating on ONE line, in that order, which is the reference's row and
+   chess.com's: the rating sits immediately after the name rather than hard right,
+   because at display size the name and its rating are one label. */
+.cv-w1 {
+  grid-column: 2; display: flex; align-items: baseline; flex-wrap: wrap;
+  gap: 2px clamp(5px, 0.5vw, 9px);
+}
+.cv-nm { color: var(--fg); }
+
+/* The title chip, in the chess.com order and register: a solid tag before the name,
+   uppercase mono, tight. The fill is `--bishop` — a token this palette already
+   declares (tokens.css:31) as stage 3's curriculum colour, borrowed here because it
+   is the violet a chess player expects a master title to be, and because inventing a
+   colour VALUE is the one thing the palette rules forbid. It is the only saturated
+   ink on the problem side, which is correct: the title is the fact the inversion
+   turns on.
+   NOTE on the colours below, and it is the trap this run keeps paying for: these
+   spans no longer carry the `mono` class. They used to, and `product.css:224` colours
+   `.mono` `--fg-faint` from a LATER sheet at equal specificity, so a single-class
+   `color` here silently lost the cascade and the method line rendered at 2.63:1 over
+   the lit board. Setting the mono face explicitly instead removes the tie entirely.
+   Measured before: 2.63-2.82:1 median, 1.91:1 min. After: title 5.42:1 median,
+   rating 5.65-5.91, method 5.67-6.17. Prove any change with
+   `node .audit5/cssom.cjs 1440 900 acts.css`, never by reading the file. */
+.cv-ti {
+  align-self: center;
+  font-family: var(--mono); font-weight: 600; font-size: 0.5rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  /* An OUTLINED chip, and the outline is the only reason it clears AA. chess.com sets
+     its title tags as solid colour with white text; that shipped first and measured
+     2.88:1 median on 7.36px type, because a 1px glyph stroke on a mid-violet fill is
+     mostly antialiasing whichever ink you choose — `--void` on `--bishop` got to
+     4.36:1 only by growing the tag to 11.5px, which made it the loudest thing in the
+     card. Ivory type on the card's own plate measures like everything else in the
+     block (17:1 nominal), and `--bishop` carries the title colour as the border, so
+     the chess.com read survives with none of the contrast cost and no new token. */
+  color: var(--fg); background: none;
+  border: 1px solid var(--bishop);
+  padding: 0.2em 0.36em 0.16em; border-radius: 2px;
+}
+/* The rating, hard right on the name's own line — chess.com's row, and the reason
+   the parentheses came off on 2026-09-03: a figure that is spatially separated from
+   the name does not also need to be bracketed off it. */
+.cv-rt {
+  align-self: center; margin-left: auto;
+  font-family: var(--mono); font-weight: 500; font-size: 0.6rem;
+  letter-spacing: 0.06em; color: var(--fg-dim);
+}
+/* 0.58rem, not 0.5. The plate is gone, so this line sits on the raked board: at 8px it
+   measured 4.9:1 median but 3.4:1 p10 over the brightest squares, and STATE.md's own rule
+   is `--fg-dim` at minimum below ~10px. 9.28px with the same token measures 6.0:1 median
+   and 4.7:1 p10 (tools/contrast.cjs 1440 900 1 0.42 '.cv-me'). */
+.cv-me {
+  grid-column: 2; grid-row: 2;
+  font-family: var(--mono); font-weight: 500; font-size: 0.58rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-dim);
+}
+
+/* THE HEAD REFLOWS ON THE CARD'S OWN WIDTH, in two steps, and the thresholds are the
+   card's CONTENT box because that is what an `inline-size` container query measures.
+   Under 205px the rating takes a flex row of its own — chip and name keep one line, the
+   years line keeps one, and every card comes out two rows whether or not it carries a
+   chip, which is what holds the three boards on one line. Under 150px the avatar goes
+   too: 2.1em of a 130px box, and the only mark in the head that says nothing the name
+   does not.
+   205 and 150, not 300 and 225: at 300/225 both rules fired on the 224px content box a
+   1219x543 card has, so the avatars vanished and the rating dropped a row on a card with
+   61px of the line still free. Measured content boxes: 308px at 1440x900, 224 at
+   1219x543, 153 at 981x620, 138 at 901x821, 90 at 390x844, 69 at 320x620. */
+@container (max-width: 205px) {
+  .cv-who { font-size: 0.86rem; }
+  .cv-rt { flex: 0 0 100%; margin-left: 0; font-size: 0.56rem; }
+}
+@container (max-width: 150px) {
+  .cv-av { display: none; }
+  .cv-who { grid-template-columns: minmax(0, 1fr); }
+  .cv-w1 { grid-column: 1; }
+  .cv-me { grid-column: 1; }
+}
+
+/* ------------------------------------------------------- the hour, as a picture
+   Three rows: what this coach does with the hour in words, the session's own
+   position with that hour drawn over it, and how much of the fifty minutes the
+   hour used.
+
+   Until 2026-09-03 this was six equal rows of horizontal rules, one a beat, and
+   the hour was legible only as a ragged right edge. The founder asked for the
+   picture: "more visually appealing and delivers the message", plus the method
+   named outright on every card. Read compare.js's record before changing what the
+   marks are — ADR-0011 built one position annotated N ways and the founder
+   overturned it, and what keeps this on the right side of that decision is that
+   the three overlays are three different KINDS of mark rather than three counts of
+   one kind. */
+.cv-seq {
+  /* `minmax(0, 1fr)` for the reason `.cv-col` carries it: an auto grid column takes its
+     children's largest min-content contribution, and the board's own width is 100% OF
+     THIS TRACK. Belt and braces — the card above already bounds it, and measurement
+     says the three tracks are equal at every gate window — but the failure mode if it
+     ever stopped being true is three boards at three different sizes, which is the one
+     thing this row cannot survive. */
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: clamp(5px, 0.7vh, 9px);
+  min-height: 0; min-width: 0;
+}
+/* The claim. Fraunces, because it is the card's sentence and not a label, and one
+   step under `.cv-who` so the name still leads. All three read to the same word
+   count — "A lecture / Puzzles / A game" + "every class." — so they wrap to the
+   same number of lines at every width and the three boards stay on one line. */
+.cv-mo {
+  margin: 0;
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(0.86rem, 1.1vw, 1.16rem); line-height: 1.1; letter-spacing: -0.014em;
+  color: var(--fg); font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0;
+}
+/* The board. One svg, sized off its own column and square by aspect-ratio — no
+   container query and no percentage height, because the card is content-height now
+   and a percentage against an indefinite row is exactly the trap product.css:80-89
+   documents on act 4's board.
+   It fills the card, with no cap of its own: the CARD carries the height relation now
+   (`.cv-col`'s `34vh` ceiling above), so the board is simply 100% of the track it is given
+   and there is never dead space beside it.
+   Square colours were act 4's own when this was written. They are not any more: on
+   2026-09-04 act 4's console became the console /teach opens and took /teach's lighter
+   squares with it (#e8dcc4 / #a98a63, annot.css). These two stay where they are, because
+   the arrow marks below are measured against exactly this pair — the two colours are
+   4.4:1 apart, which is why no single opaque ink clears 1.4.11's 3:1 against both and why
+   every mark carries an --ink halo. Change them and re-measure all 28 marks. */
+.cv-bd {
+  --sq-l: #cfc3ac;
+  --sq-d: #6f6152;
+  display: block; justify-self: center;
+  width: 100%; aspect-ratio: 1; min-width: 0;
+  border: 1px solid var(--line-2);
+}
+.cv-lt { fill: var(--sq-l); }
+.cv-dk { fill: var(--sq-d); }
+/* The rim, like a tournament board and like the reference: ink at half alpha, which is
+   product.css:104-106's own treatment for act 4's board. It is one group so it can go
+   below 901px, where a square is 8.6-11px and a 0.3-unit glyph is 2.6-3.3px — noise
+   rather than a coordinate. */
+.cv-co { fill: rgb(20 18 14 / 0.5); font-family: var(--mono); font-weight: 500; }
+/* the men, at act 4's own inset and scale (product.css:108) minus the drop shadow,
+   which at 8.6px a square is a smudge rather than a lift */
+.cv-pc { opacity: 0.92; }
+
+/* ------------------------------------------------------------------- the marks
+   A chess arrow, not a coloured line with a dark outline. One translucent fill on
+   `--rook` over a thin `--ink` halo (paint-order: stroke, so only the outer half of
+   the stroke shows), which is what a reader recognises from chess.com and lichess.
+   The first pass drew a 0.115-wide core inside a 1.85x casing and a boardful of them
+   read as pen scratches — more edge than arrow. This is 0.15-0.26 of a square with a
+   head 2.3x that long, so the point is the loudest part of the mark.
+
+   `fill-opacity: 0.82` is doing argument, not decoration: eighteen opaque arrows
+   crossing is a hatch, but at 0.82 they LAYER, and where coach A's lecture doubled
+   back the overlap goes visibly darker.
+
+   THE HALO IS WHAT CARRIES THE CONTRAST, and it is 1.4.11 conformance rather than
+   taste. Measured from the tokens: the composited fill is 1.92:1 against the light
+   square and 1.44:1 against the dark one, and no single opaque ink could do better,
+   because the two squares are 4.4:1 apart — clearing 3:1 against #cfc3ac needs an ink
+   below L 0.151 and clearing it against #6f6152 needs one above L 0.476. So the
+   BOUNDARY carries the 3:1 and the fill carries only the colour: `--ink` at full
+   opacity measures 10.68:1 on the light squares and 3.11:1 on the dark ones. It has to
+   be full opacity — at 0.5 it composites to 3.05:1 and 1.88:1, and the dark half of
+   the board fails. product.css:101-103 rings act 4's own from/to squares in ink for
+   exactly this reason, and 0.05 of a square is thin enough (0.6px at a 24px square)
+   that it reads as definition rather than as the casing the first pass had.
+   `--rook` is borrowed as the coach's hand exactly as `--bishop` is borrowed for the
+   FM chip: it is the warm ink this palette already declares, inventing a colour VALUE
+   is the one thing the palette rules forbid, and it is not `--hue` — so three
+   red-marked boards resolving into one green-ruled instrument is the act's whole
+   opposition in two tokens. */
+.cv-sh, .cv-hd {
+  fill: var(--rook); fill-opacity: 0.82;
+  stroke: var(--ink); stroke-width: 0.05;
+  paint-order: stroke;
+}
+
+/* Each mark draws itself out of nothing on its own band: `--d` is its offset from
+   the column's own --bs, written once by compare.js, and `--kw` is that coach's
+   draw width — 0.045 for A's eighteen fast strokes, 0.05 for B's eight even stamps,
+   0.09 for C's two slow sweeps, so the TEMPO of the marking is part of the
+   characterisation and not only its density. compare.js derives every `--d` so the
+   LAST mark of every column closes at t = 0.40, which is n 1.40: the exact frame
+   the room finishes sorting its pile into three heaps (director.js:137). Then
+   nothing in the act moves until the merge at 0.44. */
+.cv-mk {
+  --k: clamp(0, calc((var(--t) - (var(--bs, 0.27) + var(--d, 0))) / var(--kw, 0.05)), 1);
+  opacity: clamp(0, calc(var(--k) / 0.22), 1);
+}
+/* The shaft grows out of the tail and the head rides its tip, both in the arrow's
+   own rotated space — so one scale and one translate draw an arrow at any angle with
+   no trigonometry per frame. `transform-origin: 0 0` is the tail, because the group
+   above has already put the origin there. `--sh` is the shaft's length in user units,
+   and 1px IS one user unit inside a viewBox. */
+.cv-sh { transform: scaleX(var(--k)); transform-origin: 0 0; }
+.cv-hd { transform: translateX(calc((var(--k) - 1) * var(--sh, 0) * 1px)); }
+
+/* The columns fill their tracks, so 100% + the gutter IS one track pitch and the
+   slide needs nothing measured in JS. It runs on --sl, the same band as the
+   fade-out, because a slide that waited for the composed state would happen
+   after the three columns were already invisible. */
+.cv-col {
+  /* --c0, --bs, --dir and --kw are written per card by compare.js, once, at build.
+     They used to be three `.cv-col:nth-of-type()` rules; they moved because
+     `:nth-of-type` counts div siblings and `.cv-one` is div #4 of `.converge`, so any
+     div inserted ahead of the cards would have silently shifted every band by one
+     column and left the third card at `--ci: 0` — invisible, with nothing wrong in the
+     markup. It also stopped 0.17 / 0.22 / 0.27 being typed in two files. NOTE that
+     --c0 / --bs / --dir / --kw, and --d / --sh / --m below, exist ONLY as inline
+     styles, so no media query can retime them: a breakpoint that needs different
+     timing has to change compare.js. */
+  --ci: clamp(0, calc((var(--t) - var(--c0, 9)) / 0.11), 1);
+  opacity: calc(var(--ci, 0) * var(--fa));
+  transform: translateX(calc(var(--sl) * var(--dir, 0) * (100% + var(--cg))));
+  /* The meter and the verdict are the last things a column says, so they arrive
+     after that column's marks rather than with its name. `--cc` lives HERE rather
+     than on `.cv-cost` because two elements consume it now — the meter under the
+     board and the verdict at the foot — and they have to land on the same frame or
+     the card says its figure and its judgement at two different moments.
+     Keyed off the column's own --bs, so each lands with THAT column's last mark
+     rather than all three landing on column 3's: every column's last mark closes at
+     t = 0.40 by construction (compare.js derives the stagger from it), so the
+     0.34 → 0.40 fade puts the verdict exactly on the frame the marking stops. */
+  --cc: clamp(0, calc((var(--t) - (var(--bs, 0.27) + 0.075)) / 0.06), 1);
+}
+.cv-cost { opacity: calc(var(--ci, 0) * var(--fa) * var(--cc, 0)); }
+
+/* ------------------------------------------------- the instrument they land as
+   Not a tidier list: a fragment of the console. Same grammar as act 4's plan
+   pane — a mono eyebrow with the session id in the stage colour, the title in
+   Fraunces, one row per segment with its minutes and a proportional track, and a
+   foot that closes the budget — at a fraction of its size, because the reader has
+   to recognise a product here, not read a dashboard.
+
+   It stands ON the middle track's line: grid-column 2/4 justified to the start
+   puts its left edge exactly where the middle column's hairline was, so the rule
+   the outer two walked into is the rule this panel is built on and the one that
+   survives the handover. It reaches right, toward the file, and stops short of
+   it — measured with tools/box.cjs, 23vw from the second track's line leaves the
+   frame's centre line — where the d-file projects, where the paper lands and where the
+   light rises — clear by exactly 30px, at every width, because the anchor below is that
+   line and not a grid track. 17vw and a 300px ceiling, not 23vw and 348px: the row of
+   cards is much wider than it was, and a 348px panel 30px left of centre would have run
+   back under the first card. The 200px floor is unchanged and is what holds "Guided
+   practice" and its minutes on one line at 901. */
+.cv-one {
+  /* THE FOURTH CARD, AND IT IS THREE CARDS WIDE. It takes the whole row rather than
+     standing beside it: same rows the coach cards occupy, same plate, and its eyebrow and
+     foot are the same two lines theirs are. Three portraits become one landscape, which is
+     the only shape the frame's spare width actually wants.
+     What this replaced: a 245px list anchored 30px left of the frame's centre so it would
+     clear the projected d-file. That clearance is gone as a constraint, because the card is
+     now the frame's subject — the paper column lands on the file at n 1.44-1.62 and the
+     card materialises over it from t 0.55, so the sheets landing and becoming this is a
+     sequence rather than a collision. */
+  grid-row: 2 / 4; grid-column: 1 / -1;
+  /* 1040px, not the row's full width. At 1265 the plate sprawled: the rail's hairlines ran
+     740px with their figure marooned at the far end, and the field's cells grew to 33px and
+     read as a spreadsheet. Capped and centred, the content is dense and the card is still
+     four times the panel it replaced. Below 1040 it takes the row, which is every window at
+     or under 1219 wide. */
+  width: min(100%, 1040px); justify-self: center; align-self: center;
+  position: relative; isolation: isolate;
+  display: grid;
+  /* one column: every row of this card spans it. The two-column form went with the five
+     stage rails — the three fixes want the same three tracks the coach cards had, and they
+     get them from `.cv-fix`'s own grid. Row gap is tighter than a column gap would be
+     because five stacked rows of 21.6px added 86px of air to a card that is arguing. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(6px, 0.9vh, 13px);
+  padding: clamp(12px, 1.1vw, 19px) clamp(13px, 1.2vw, 21px) clamp(11px, 1vw, 16px);
+  min-width: 0;
+}
+.cv-eb { grid-column: 1 / -1; }
+.cv-brand { grid-column: 1 / -1; }
+.cv-fix { grid-column: 1 / -1; }
+.cv-open { grid-column: 1 / -1; }
+.cv-ft { grid-column: 1 / -1; }
+
+/* the ground and the frame, arriving around the words that are already there. isolation
+   keeps the negative z-index inside this box instead of dropping it behind the act's own
+   background. */
+.cv-one::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--glass); border: 1px solid var(--line-2);
+  opacity: calc(var(--pn) * var(--px));
+}
+/* The rule. It arrives with the card, grows to full height as the frame closes around it,
+   and it is the one thing that does not leave when the card does — it stretches through the
+   handover into the line act 2 lights. 2px on the hue is the site's own accent-bar idiom
+   (.scrub, .stage-panel). */
+.cv-one::after {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--hue); opacity: var(--one);
+  transform: scaleY(calc(0.58 + 0.42 * var(--pn) + var(--out) * 0.5));
+  transform-origin: 50% 100%;
+}
+/* The face is declared here rather than borrowed from the `mono` class, and that is the
+   cascade trap this file keeps paying for: product.css:224 colours `.mono` `--fg-faint` from
+   a LATER sheet at equal specificity, so a `color` here would lose the tie — measured
+   3.12:1 median and 2.41:1 p10 on this line's type, an SC 1.4.3 failure on the one surface
+   the act is selling. Same fix as `.cv-ti` and `.cv-rt`: drop the class, set the face.
+   0.58rem, not 0.5: the eyebrow carries a `--hue` figure, and mid-luminance green is where
+   the P28 wash bites hardest — at 8px it measured 4.18:1 median and 3.47:1 p10 against a
+   declared 6.87. */
+.cv-eb {
+  margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  font-family: var(--mono); font-weight: 500; text-transform: uppercase;
+  font-size: 0.58rem; letter-spacing: 0.16em; color: var(--fg-dim);
+  opacity: calc(var(--pn) * var(--px));
+}
+.cv-eb b { color: var(--hue); font-weight: 500; letter-spacing: 0.14em; }
+
+/* the brand lockup: mark, wordmark, claim, on one line across the head of the card. Each
+   coach card leads with a person; this one leads with a mark. */
+/* ONE BAND FOR THE WHOLE LOCKUP, and it is the fix for a real bug rather than a taste
+   change: `.cv-title` lost its rule in the 2026-09-04 rebuild, so the wordmark had no
+   opacity band at all and rendered from the act's FIRST frame — "Efhaam" sat over the three
+   coach cards for the whole comparison. The founder's note was exactly that: "the name
+   efhaam shows up too early it should load in with the componnent".
+   Mark, wordmark and claim now share `--pt`, which opens 0.02 after the plate (`--pn`), so
+   the card arrives and the brand lands inside it. It settles rather than pops: 8px of
+   travel, the same gesture `.cv-title` carried before. */
+.cv-brand {
+  /* baseline, so the wordmark and the claim sit on one line and the mark centres on it. Row
+     gap 0 because the lockup is one line at every width the mark is shown at. */
+  display: flex; align-items: baseline; flex-wrap: wrap;
+  gap: 0 clamp(9px, 1vw, 18px);
+  margin-top: clamp(2px, 0.4vh, 6px);
+  opacity: calc(var(--pt) * var(--px));
+  transform: translateY(calc((1 - var(--pt)) * 8px));
+}
+/* 2vw and a 20px floor, not 2.2vw and 24px: the mark has to fit the wordmark's own line box
+   or it overhangs the lockup. Measured at 1440x900, a 31.68px mark beside a 30.85px line box
+   put 2px of content outside `.cv-brand` — invisible, but it is content outside its box and
+   the gate watches for exactly that. At 2vw the mark is 28.8 against 30.85, and at 901 it is
+   20 against 21.2. */
+.cv-brand .mark {
+  width: clamp(20px, 2vw, 32px); height: clamp(20px, 2vw, 32px);
+  align-self: center;
+  -webkit-mask-size: 124%; mask-size: 124%;
+  -webkit-mask-position: 50% 48%; mask-position: 50% 48%;
+}
+/* the wordmark, at the scale a payoff wants. This rule is restored, not new — its absence
+   is what put the brand on screen from t = 0. */
+.cv-title {
+  margin: 0; font-family: var(--display); font-weight: 400;
+  /* 1.24, and it is measured rather than chosen. Fraunces at `opsz 72` has ink well past a
+     tight line box, so at 1.02 (and at 1.1, and at 1.18) the wordmark's glyphs sat outside
+     `.cv-brand` — `scroll 35 / client 33` at 1440x900 with every child's rect inside the
+     box, which is a box tools/gate.cjs asserts at exactly 0. Isolated by hiding one child at
+     a time: with the h3 hidden the overflow is 0. Swept: 1.18 clears it at 1440x900, 1.22 at
+     1920x1080, and 1.24 is the margin. The cost is ~4px of card height. */
+  font-size: clamp(1.3rem, 2.1vw, 2.5rem); line-height: 1.24; letter-spacing: -0.024em;
+  font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0;
+  color: var(--fg);
+}
+.cv-claim {
+  margin: 0;
+  font-family: var(--display); font-weight: 400; letter-spacing: -0.014em;
+  font-size: clamp(0.86rem, 1.1vw, 1.2rem); line-height: 1.18; color: var(--fg-dim);
+  font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0;
+}
+
+/* --------------------------------------------- three fixes, over three failures
+   THE POINT OF THE WHOLE PANEL. Three columns, on the same three tracks the coach cards
+   stood in, so each answer lands where its failure was: A's "Overloaded. Too many ideas."
+   gets "One idea an hour."; B's "Unbalanced. No clear structure." gets "The same parts, in
+   order."; C's "Too little. Not enough challenge." gets "The practice is chosen."
+   It replaced five stage rails of 213 coloured ticks, which the founder's note called what
+   it was — a picture of the catalogue when what the frame owes the reader is the fix. The
+   card is a followup to a comparison, so it has to answer it column for column.
+   Same anatomy as a coach card's verdict, deliberately: a Fraunces line, then two short
+   ones. Read one above the other, the three problem cards and this become six cells of the
+   same shape, three of them wrong and three of them right. */
+.cv-fix {
+  /* The band is not decoration: without it this rule's 1px border-top painted across the
+     three coach cards from the act's FIRST frame — the same defect as the wordmark's, one
+     element away. `--pn` alone, not `calc(var(--pn) * var(--px))`: the `.cv-fx` children
+     already multiply by --px, and doing it twice would strip the answers at px squared
+     through the handover. */
+  opacity: var(--pn);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.4vw, 26px);
+  margin-top: clamp(6px, 1vh, 14px);
+  padding-top: clamp(8px, 1.1vh, 15px);
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+.cv-fx {
+  min-width: 0;
+  /* left to right, AFTER the brand lands (--pt closes at 0.66): 0.628 + 0.036 + 0.035 puts
+     the third one at 0.699, inside the 0.70 by which everything in this act has landed and
+     nothing moves again until the handover at 0.75 */
+  --fx: clamp(0, calc((var(--t) - (0.628 + var(--d, 0))) / 0.035), 1);
+  opacity: calc(var(--fx) * var(--px));
+}
+.cv-fh {
+  margin: 0 0 0.26em;
+  font-family: var(--display); font-weight: 400; letter-spacing: -0.016em;
+  font-size: clamp(0.96rem, 1.24vw, 1.34rem); line-height: 1.08; color: var(--fg);
+  font-variation-settings: 'opsz' 60, 'SOFT' 0, 'WONK' 0;
+}
+.cv-fb {
+  margin: 0;
+  font-family: var(--sans); font-weight: 400;
+  font-size: clamp(0.74rem, 0.9vw, 0.86rem); line-height: 1.42; letter-spacing: -0.004em;
+  color: var(--fg-dim);
+}
+/* what a coach opens, on one line: the two views /teach toggles between and the copy
+   control on both. It is the only place the panel names the software rather than the
+   curriculum, so it is one mono line and not a list. */
+.cv-open {
+  margin: clamp(6px, 1vh, 13px) 0 0;
+  font-family: var(--mono); font-weight: 500; text-transform: uppercase;
+  font-size: 0.52rem; letter-spacing: 0.13em; color: var(--fg-dim);
+  opacity: calc(var(--pf) * var(--px));
+}
+
+.cv-ft {
+  margin: 2px 0 0; border-top: 1px solid var(--line); padding-top: 6px;
+  /* the two halves sit together rather than at opposite ends: `space-between` across a
+     520px column left the verification claim marooned from the counts it belongs to */
+  display: flex; flex-wrap: wrap; gap: 2px clamp(10px, 1.3vw, 24px);
+  font-family: var(--mono); font-weight: 500; text-transform: uppercase;
+  /* 0.52rem for the reason `.cv-eb` is 0.58: this line's second half is the act's one
+     verification claim, in `--hue`, and 7.36px of it measured 3.52:1 p10. */
+  font-size: 0.52rem; letter-spacing: 0.12em; color: var(--fg-dim);
+  opacity: calc(var(--pf) * var(--px));
+}
+.cv-ft b { color: var(--hue); font-weight: 500; letter-spacing: 0.1em; }
+
+/* THE VERDICT, at the foot of every column and on one baseline across the three: one
+   Fraunces word for what the hour was, then the consequence in two lines. That is the
+   reference's shape and its words, and it is where the act stops being a comparison and
+   becomes a problem.
+   The two lines are `--sans` at 12.8px, not the 8px mono they were while the columns had
+   a plate under them: 8px ivory-dim on the raked board measures 2.9:1 at its worst, and
+   with the plate gone this is the type that had to grow. Measured after: 6.6:1 median,
+   5.1:1 p10.
+   It lands after that column's last mark has drawn (t = 0.40, by construction) and
+   leaves on the column's own fade, on the column's own band — which is why `--cc` lives
+   on `.cv-col` above. */
+.cv-cost {
+  display: block; padding-top: clamp(3px, 0.5vh, 7px);
+}
+.cv-vd {
+  display: block; margin-bottom: 0.24em; overflow-wrap: break-word;
+  font-family: var(--display); font-weight: 400; letter-spacing: -0.016em;
+  font-size: clamp(0.98rem, 1.26vw, 1.36rem); line-height: 1.06; color: var(--fg);
+  font-variation-settings: 'opsz' 60, 'SOFT' 0, 'WONK' 0;
+}
+.cv-cw {
+  display: block;
+  font-family: var(--sans); font-weight: 400;
+  font-size: clamp(0.74rem, 0.9vw, 0.86rem); line-height: 1.42; letter-spacing: -0.004em;
+  color: var(--fg-dim);
+}
+
+/* ------------------------------------------------- the line the act turns on
+   The reference's last beat, and the only place in this act that addresses the reader
+   directly: everything above it describes three coaches, and this says what that means
+   for their academy. One rule the full width of the three columns, then two centred
+   lines — the second in the live act colour, because it is the turn from problem to
+   product and the product surface resolves out of that same hue four beats later.
+   It rides the third column's bands: `--cc` from `.cv-col` would be per-column, so the
+   band is restated here off column 3's own --bs (0.27), which is when the last verdict
+   in the row has landed. */
+.cv-end {
+  grid-row: 3; grid-column: 1 / -1;
+  margin-top: clamp(10px, 1.5vh, 22px);
+  border-top: 1px solid var(--line-2);
+  padding: clamp(9px, 1.3vh, 18px) 0 clamp(6px, 0.9vh, 12px);
+  text-align: center;
+  /* the same wash as the columns, for the same measured reason: this row sits directly
+     over the pawn and the paper convergence, and its two lines read 3.83:1 and 3.17:1
+     p10 with nothing behind them. Background, not `::before` — see `.cv-col`. */
+  background: radial-gradient(64% 132% at 50% 52%,
+    rgb(4 4 8 / 0.96) 0%, rgb(4 4 8 / 0.93) 54%, rgb(4 4 8 / 0) 100%);
+  --ce: clamp(0, calc((var(--t) - 0.36) / 0.06), 1);
+  opacity: calc(var(--ce) * var(--fa, 1));
+}
+.cv-e1 {
+  margin: 0;
+  font-family: var(--sans); font-weight: 400;
+  font-size: clamp(0.8rem, 1vw, 1rem); line-height: 1.4; color: var(--fg-dim);
+}
+/* Weight 600 and a step up in size, and both are contrast rather than emphasis: this is
+   the one line in the act set in `--hue`, and a mid-luminance green is where the P28 wash
+   bites hardest (STATE.md open decision 7 — the scrim quad is in the front GL pass, so
+   every glyph renders ~20% under its declared value). Measured after the scrim and the
+   weight: 5.36:1 median, 3.79:1 p10 against a declared 6.87:1. That is the best `--hue`
+   reading anywhere in this act — the surface's own two accents measure 4.26/3.70 and
+   4.07/3.52 — and it is the accent idiom the whole page turns on, so the residual is
+   P28's to fix, not this line's. Do not reach for a new green. */
+.cv-e2 {
+  margin: 0.2em 0 0;
+  font-family: var(--sans); font-weight: 600;
+  font-size: clamp(0.9rem, 1.16vw, 1.2rem); line-height: 1.3; letter-spacing: -0.008em;
+  color: var(--hue);
+}
+
+/* Act 1 on a phone. Three tracks of 89-110px still hold a name, a claim, a board and
+   a verdict, but 23vw of a 390px screen is 90px, so the surface takes the width it
+   needs and stays on the left-hand track line it stood on. */
+@media (max-width: 900px) {
+  .converge { width: 100%; --cg: 10px; }
+  /* THE THREE BOARDS HAVE TO SIT ON ONE LINE, and at these widths that is a fight
+     about the head, not about the board. Measured at 320x620: only card A carries an FM
+     chip, and if the chip, the name and the rating share a wrapping line then A wraps to
+     three lines where B and C wrap to two — which hangs A's board 10-13px below its
+     neighbours' and the row reads as three unaligned columns.
+     So: the avatar goes (it is 2.1em of a 69px column, and the only mark in the head
+     that says nothing the name does not), the type comes down so "FM Coach A" holds one
+     line, and the rating takes a full flex row of its own where it cannot compete for
+     that line. Two rows in every column, whatever the chip. */
+  .cv-who { font-size: 0.8rem; grid-template-columns: minmax(0, 1fr); }
+  .cv-av { display: none; }
+  .cv-w1 { grid-column: 1; }
+  .cv-rt { flex: 0 0 100%; margin-left: 0; font-size: 0.54rem; }
+  .cv-me { grid-column: 1; }
+  /* A 0.3-unit glyph on a 69-90px board is 2.6-3.4px: noise, not a coordinate. */
+  .cv-co { display: none; }
+  /* The claim holds the tallest of the three wraps whether a column needs it, so the
+     three boards start on one line: at 90px "A lecture every class." takes three lines
+     and "A game every class." takes two. `align-content: start` on the column above is
+     what makes this the ONLY equalisation needed. */
+  .cv-mo { font-size: 0.82rem; min-height: 3.5em; }
+  /* The wash pulls in at these widths: a 90px column is narrow enough that a
+     full-strength ellipse reads as a panel edge, and the point of the gradient is that
+     there is no edge. */
+  .cv-col { background: radial-gradient(92% 98% at 50% 50%,
+    rgb(4 4 8 / 0.94) 0%, rgb(4 4 8 / 0.9) 44%, rgb(4 4 8 / 0) 100%); }
+  /* 0.76rem is what holds the longest verdict, "Unbalanced.", inside the 69px column a
+     320px window gives this column. */
+  .cv-vd { font-size: 0.76rem; }
+  .cv-cw { font-size: 0.68rem; line-height: 1.34; }
+  /* 10px of the card's own air goes back at this width: the phone tier carries a
+     three-line claim and a three-line consequence, and at 320x620 the card was 7px past
+     its box with the closing row below it. */
+  .cv-col { gap: 6px; padding: 8px 8px 7px; }
+  .cv-end { margin-top: 8px; padding-top: 7px; }
+  .cv-e1 { font-size: 0.72rem; }
+  .cv-e2 { font-size: 0.78rem; }
+  /* The card stacks into one column and the spine stays — five rails of 7px ticks still
+     read at 300px, and they are the only picture the card has. What goes is the stage
+     NAME on each rail: "KNIGHT" plus its count plus 44 ticks does not hold 300px, and the
+     count is the load-bearing half. */
+  .cv-one {
+    grid-column: 1 / -1; width: min(100%, 330px);
+    justify-self: start;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    padding: 11px 13px 10px;
+  }
+  .cv-brand, .cv-fix, .cv-open, .cv-ft { grid-column: 1; }
+  /* The three fixes stack: three 92px columns cannot hold a Fraunces line and two of sans,
+     and stacked they still read in the order of the three cards above them. Everything in
+     the card comes down a step with them — measured, the stacked form ran 40px past a
+     320x620 stage before these, and `.converge` is a box tools/gate.cjs asserts at 0. */
+  .cv-fix { grid-template-columns: minmax(0, 1fr); gap: 7px; margin-top: 4px; padding-top: 6px; }
+  .cv-one { gap: 5px; }
+  .cv-brand { gap: 1px 8px; }
+  .cv-fh { font-size: 0.92rem; margin-bottom: 0.18em; }
+  .cv-fb { font-size: 0.7rem; line-height: 1.34; }
+  .cv-open { font-size: 0.46rem; margin-top: 5px; }
+  /* the monogram goes: 30px of it plus its gap is 36px of a card that was 37px too tall for
+     a 620px window, and the nav carries the same mark two inches above it */
+  .cv-brand .mark { display: none; }
+  /* two more pixels off the spine's own air: at 320x620 the card left `.converge` 1px over,
+     and that box is one tools/gate.cjs asserts at exactly 0 */
+  .cv-title { font-size: 1.3rem; }
+  .cv-claim { font-size: 0.82rem; }
+  /* The panel cannot start on track 2's line at this width without overflowing the
+     pad, so the columns stop travelling instead: they fade in place and the payoff
+     arrives where they were. A gesture that points 256px away from its own payoff
+     is worse than no gesture. */
+  .chaos { --sl: 0; }
+  .cv-title { font-size: 1.06rem; }
+  /* Two things give at this width. The YEARS line goes — three lines of 8px mono in a
+     90-110px column, and it is the least load-bearing thing on the card. Every column
+     KEEPS its verdict: hiding two of the three was tried on 2026-09-01 and reverted,
+     because "ends at 48m" with no verdict beside it makes the coach the act most wants
+     condemned look like the best timekeeper on screen, and sw-a carries only Coach A's
+     consequence, not B's or C's. And act 1's `.coord` goes: it is absolutely
+     positioned on `bottom: 3.4vh`, which is INSIDE the pad's content box, so it
+     overlapped the third column's cost line by 12px at 390x844 and by 17px at 320x620
+     (measured). `file d · convergence` is decorative, act 2's kicker says it again one
+     screen later, and `.coord` is already `display: none` at the 820-height tier. */
+  .cv-me { display: none; }
+  .chaos .coord { display: none; }
+}
+/* Short windows. The row the columns and the surface share is what gives, so the
+   type comes down before the geometry does. */
+/* The 1700px+ override that took `.cv-one` to 430px is gone. It existed because the
+   348px cap left ~250px of dark board between the panel and the paper column it is the
+   twin of; with the cards at 77vw the second track's line starts 200px further right, so
+   a 430px panel would cross the frame's centre and land on the d-file instead. */
+
+/* SHORT AND WIDE: THE HEAD MOVES BESIDE THE CARDS.
+   Measured at 1219x543 — a laptop with browser chrome, which is the window the founder
+   reviews in — the act had 465px of content height and the head took 89 of it plus a 16px
+   gap, so three portrait cards with square boards came out 151x286 and the row was 503px
+   in a 1112px box. The founder drew a stencil over the empty left band: "cards are still
+   too small the red box is a stencil of how big they can be".
+   The head is the only thing in that stack big enough to be worth moving, and moving it
+   sideways is what the empty band was for. In this band the pad becomes two columns — head
+   left at a fixed 290px, the three cards in the rest — and the cards get the head's 105px
+   back as HEIGHT, which (because the board is square) is what makes them wider too.
+   Measured after: 248x375 at 1219x543 and 290x421 at 1366x600, and the row of cards fills
+   the frame's right two thirds instead of its left half.
+   THE BAND, and why it is drawn here: 1150px is the narrowest width where a 290px head
+   column still leaves three cards wider than they are in one column, and 720px is where
+   the one-column stack stops being starved. Below either, nothing changes. */
+@media (min-width: 1150px) and (max-height: 720px) {
+  .chaos {
+    grid-template-columns: minmax(0, 290px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0 clamp(20px, 2.4vw, 44px);
+  }
+  .chaos-head {
+    grid-column: 1; grid-row: 1;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center; gap: 6px 0;
+  }
+  .chaos-head .kicker { grid-column: 1; margin-bottom: 4px; }
+  .chaos .lead-swap { max-width: none; min-height: 0; align-self: start; }
+  .converge { grid-column: 2; grid-row: 1; width: 100%; justify-self: stretch; }
+  /* the card's ceiling roughly doubles, because the head is no longer taking the height it
+     was: the TRACK is what binds now at most widths in this band, and this only stops a
+     1920x700 window from making a 449px card that would not fit its own stage. */
+  .chaos { --cw: calc(min(60vh, 72vh - 155px) + 2 * clamp(10px, 0.9vw, 15px) + 2px); }
+}
+
+/* SHORT DESKTOP WINDOWS, act 1 only. The shared `max-height: 820` tier below cannot be
+   widened - it appears three times and re-lays-out all eight acts - but 821-900px tall is
+   exactly where this act runs out of room: the card is 34vh of board plus ~190px of chrome,
+   and the closing row costs another ~100. Measured at 1600x821 with the 900-tall type,
+   `.cv-seq` sat 29px past its own box. This trims act 1's own type and its closing row in
+   that band and nothing else's, which is what buys the 34vh card. */
+@media (max-height: 900px) and (min-width: 901px) {
+  /* the card's own air, trimmed on the two axes that do not change `--cw` — the
+     horizontal padding is in that calc, so it must not move here. Worth ~6.5px at 1600. */
+  .cv-col { gap: clamp(6px, 0.8vh, 10px);
+    padding-top: clamp(9px, 0.85vw, 13px); padding-bottom: clamp(8px, 0.7vw, 11px); }
+  .cv-who { font-size: clamp(0.96rem, 1.28vw, 1.42rem); }
+  .cv-vd { font-size: clamp(0.9rem, 1.14vw, 1.18rem); }
+  .cv-cw { font-size: clamp(0.7rem, 0.84vw, 0.8rem); line-height: 1.36; }
+  .cv-mo { font-size: clamp(0.8rem, 1vw, 1.04rem); }
+  .cv-end { margin-top: clamp(7px, 1.1vh, 13px);
+    padding: clamp(7px, 1vh, 12px) 0 clamp(5px, 0.7vh, 9px); }
+  .cv-e1 { font-size: clamp(0.76rem, 0.94vw, 0.92rem); }
+  .cv-e2 { font-size: clamp(0.82rem, 1.04vw, 1.04rem); }
+}
+@media (max-height: 820px) and (min-width: 901px) {
+  .cv-mo { font-size: clamp(0.8rem, 1vw, 1.04rem); }
+  .cv-vd { font-size: clamp(0.9rem, 1.14vw, 1.18rem); }
+  .cv-cw { font-size: clamp(0.7rem, 0.84vw, 0.8rem); line-height: 1.36; }
+  .cv-who { font-size: clamp(0.96rem, 1.28vw, 1.42rem); }
+  .cv-end { margin-top: clamp(7px, 1.1vh, 14px); padding-top: clamp(7px, 1vh, 13px); }
+  .cv-one { gap: 4px; padding: 9px 12px 8px; }
+  .cv-title { font-size: clamp(0.96rem, 1.14vw, 1.22rem); }
+}

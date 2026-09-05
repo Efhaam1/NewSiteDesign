@@ -1,0 +1,669 @@
+/* ============================================================================
+   ACT 7 — terms. The licence schedule, printed on the paper the room already
+   lifted to in act 5.
+
+   IT WAS A RULED LEDGER UNTIL 2026-09-05. The founder supplied a reference for a
+   card grid and the instruction is the standing one: copy it. So the composition
+   is the mock's — centred head, a pill billing control under it, four equal cards
+   in one row, the recommended card lifted out of the row on a hue edge, the last
+   card inverted to an ink plate with a light button. The radius is the mock's too,
+   on the precedent STATE.md decision 12 records for act 4: when the founder's
+   reference draws a rounded plate, the plate is rounded.
+
+   What is NOT the mock's, and why:
+    - Five bands, four cards. The six-week pilot is an offer, not a tier, and it
+      keeps the ruled-off strip under the row that it has always had.
+    - Ink. Every colour still comes from the ramp the director resolves in JS
+      (--fg, --line, --glass, --hue), so the sheet turns to ink-on-ivory with the
+      rest of the page and the ink card is the room's own inverse rather than a
+      hardcoded black. The four `--c-*` tokens on `.rate-band` are what let the
+      inverted card restate the ramp once instead of restating every rule in it.
+    - Two figures on every card, in both states. The control swaps the PAIR rather
+      than the emphasis: monthly reads `$39 a month` over `$390 a year`, yearly reads
+      `$390 a year` over `$32.50 a month`. The default state carries the whole
+      schedule, so a reader who never touches the control is not shown half of it.
+   ========================================================================== */
+
+/* base.css:75 sets the stage's COLUMN to `1fr`, which is `minmax(auto, 1fr)`: the
+   column can never be narrower than its content's min-content size. Every other act
+   is fine with that, and act 7 is not, because the phone tier below turns the card row
+   into an inline-axis scroller — and a grid with four fixed tracks has a min-content
+   size of four tracks whether it scrolls or not. `overflow-x: auto` gives the scroller
+   an automatic MINIMUM size of zero; it does not change what the box CONTRIBUTES to an
+   ancestor's intrinsic width. So the four tracks propagated all the way out: measured
+   at 390x844, `.pad` came out 1,189px on a 390px viewport and the pinned stage carried
+   799px of horizontal overflow, taking the head, the pill and the invariant line off
+   the right edge. This is the column form of the same fix base.css:77 documents for the
+   row, scoped to the one act that needs it. */
+.act-terms .act-stage { grid-template-columns: minmax(0, 1fr); }
+
+.terms {
+  /* and the same for `.pad`'s own implicit column, which is `auto` and therefore
+     max-content: with the stage fixed at 390 the column still resolved to 1,150 and
+     `.rate`'s `width: min(100%, --sheet)` measured its 100% against THAT. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+  --rows: clamp(0, calc((var(--t) - 0.03) / 0.3), 1);
+  /* The mock is a centred composition with paper either side of it. 1180 is not a
+     round number picked for tidiness: at 1920x1080 it puts a card at 281 x 467,
+     which is the mock's own 1:1.66, and it is the widest value that still does so
+     — wider and the row goes squat, narrower and the head's two lines break. */
+  --sheet: 1180px;
+}
+
+/* ------------------------------------------------------------------- the head */
+.terms-head {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: clamp(5px, 0.9vh, 12px);
+  width: min(100%, var(--sheet));
+  margin-inline: auto;
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+.terms-head .kicker { justify-content: center; margin: 0 0 2px; }
+.terms-head .d3 { font-size: clamp(1.4rem, 2.7vw, 2.6rem); }
+.terms-head .lead { max-width: 68ch; font-size: clamp(0.9rem, 1.02vw, 1.04rem);
+  /* centred, so the break points are visible: `pretty` still let line two open on
+     the em dash. `balance` sets three even lines and puts the dash inside one. */
+  text-wrap: balance; }
+
+/* --------------------------------------------------------------- the schedule */
+.rate {
+  margin-top: clamp(10px, 1.8vh, 26px);
+  width: min(100%, var(--sheet));
+  margin-inline: auto;
+  min-height: 0;
+  /* Flex, not grid: the card row is the one child that takes the leftover height,
+     and `flex: 1 0 auto` means it GROWS into spare room and never shrinks out of
+     an overflow. A row that could shrink would hide a clip from the gate, which
+     measures `.act-terms .act-stage`'s own scrollHeight. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.2vh, 17px);
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+
+/* ------------------------------------------------- the control and the caption
+   The mock's third head line is the control: a pill track holding the two
+   segments and the discount note, centred under the subtitle. The caption line
+   under it is not the mock's, and it stays because it is the only place the page
+   states its currency and what a licence is counted per (B6). */
+.rate-cap {
+  display: grid;
+  justify-items: center;
+  /* tight to the pill, so the line reads as its footnote and not as a fourth line of
+     centred head copy */
+  gap: clamp(3px, 0.45vh, 6px);
+  /* --fg-dim, not --fg-faint. This line is 8-9px of mono and it sits on the BOARD, not
+     on a plate: measured with `node tools/contrast.cjs 1440 900 7 0.5 '.rate-cap-l'`,
+     --fg-faint rendered 2.09:1 median against a nominal 2.66:1 — the composited ink
+     comes out rgb(138 133 145) over a backdrop of relative luminance 0.70. STATE.md's
+     standing rule for type under ~10px is --fg-dim as a floor, which is the same
+     one-token swap acts.css:39 made for the CTA micro line. It lands near 3:1 rather
+     than at 4.5:1, and that residual is the act's, not this line's: every unplated
+     string in acts 5-7 pays the same wash. */
+  color: var(--fg-dim);
+}
+/* The colour is declared HERE and not inherited from `.rate-cap`: both spans carry
+   `mono`, and product.css:107's `.mono` list is one class in a later file than acts.css,
+   so it beats anything inherited from a parent. Same cascade tie acts.css:35 records for
+   `.mono.tiny`; this side of it wins on source order, because terms.css loads after
+   product.css. Measured before the fix: `.rate-cap` set --fg-dim and the line still
+   rendered 2.12:1 from a 2.54:1 nominal, i.e. it was still --fg-faint. */
+.rate-cap-l { text-align: center; font-size: 0.56rem; letter-spacing: 0.15em;
+  max-width: 100%; color: var(--fg-dim); }
+.rate-prov { color: var(--fg-dim); }
+
+.rate-bill {
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 0.4vw, 7px);
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--glass);
+}
+/* `font: inherit` clears the UA button font and takes the BODY font with it — 17px of
+   Inter Tight, which is what the ledger's control actually shipped at even though its
+   markup says `mono`, because the shorthand is a later single class than product.css's
+   `.mono`. The mock's pill labels are about 12px, so the face and the size are taken back
+   in the same rule, after the shorthand that resets them.
+   --fg-dim, not --fg-faint: the segment that is NOT live measured 3.13:1 rendered on the
+   pill's own plate against a 3.53:1 nominal, and it is a control, so 4.5:1 is the bar
+   rather than 3:1. */
+.rate-bill-b {
+  padding: 0.56em 1.15em;
+  font: inherit;
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.14em;
+  background: transparent; border: 0; border-radius: 999px;
+  color: var(--fg-dim); cursor: pointer;
+  transition: color 200ms var(--ease), background 200ms var(--ease),
+              box-shadow 260ms var(--ease);
+}
+.rate-bill-b:hover { color: var(--fg); }
+/* The live segment is a raised chip, which is what the mock draws — not a filled
+   hue block. `--fg-inv` is the ramp's other end, so the chip is ivory on paper and
+   ink on the board, and the label on it is `--fg` either way: the one pairing that
+   cannot invert into an unreadable state as the room turns. */
+.rate-bill-b[aria-pressed='true'] {
+  background: var(--fg-inv);
+  color: var(--fg);
+  box-shadow: 0 1px 2px rgb(6 6 10 / 0.16), 0 2px 8px rgb(6 6 10 / 0.10);
+}
+/* The mock's third label. It is not a third state: it is what the second one buys,
+   so it is a note in the same track and not a button. */
+.rate-bill-note {
+  padding-right: clamp(8px, 0.9vw, 14px);
+  color: var(--hue);
+  display: inline-flex; align-items: center; gap: 0.5em;
+}
+
+/* The line that answers the only question a price list ever provokes. It sits
+   where the mock's subtitle sits, one centred line, and it says something. */
+.rate-inv {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.84rem, 0.98vw, 1rem);
+  line-height: 1.38;
+  color: var(--fg-dim);
+  max-width: 86ch;
+  margin-inline: auto;
+  text-wrap: pretty;
+}
+.rate-inv-l { color: var(--hue); margin-right: 0.7em; white-space: nowrap; }
+.rate-inv-c { color: var(--fg); }
+.rate-inv-more { color: var(--fg-dim); }
+
+/* ---------------------------------------------------------------- the four cards
+   `flex: 1 0 auto` on the row, `stretch` on the cards and `space-between` inside
+   each one: the four cards are always the same height, that height is whatever the
+   stage has left, and the slack lands in the three gaps the mock draws air in —
+   name to price, price to list, list to button. Nothing is positioned against a
+   fixed card height, so the same rules hold at 620 and at 1080. */
+.rate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(9px, 1.25vw, 20px);
+  align-items: stretch;
+}
+
+.rate-band {
+  /* the ramp, restated once per card so the inverted card can swap all of it */
+  --c-ink: var(--fg);
+  --c-dim: var(--fg-dim);
+  --c-faint: var(--fg-faint);
+  /* two edges, because the inverted card needs them to differ: the PLATE's own edge has
+     to match its fill, and a hairline drawn INSIDE the plate has to be the other end of
+     the ramp or it is invisible on it. */
+  --c-edge: var(--line-2);
+  --c-line: var(--line);
+  --c-plate: var(--fg);
+  --c-label: var(--fg-inv);
+
+  display: grid;
+  align-content: space-between;
+  gap: clamp(8px, 1.5vh, 22px);
+  padding: clamp(11px, 1.7vh, 21px) clamp(11px, 1.15vw, 19px);
+  border: 1px solid var(--c-edge);
+  border-radius: 10px;
+  background: var(--glass);
+  color: var(--c-ink);
+  box-shadow: 0 1px 2px rgb(6 6 10 / 0.05), 0 8px 22px rgb(6 6 10 / 0.05);
+  /* `translate` for the pointer and `transform` for the scroll, because only one of
+     the two may be transitioned: --r is rewritten every frame the act moves, and a
+     320ms ease on the property carrying it would smear the whole reveal. The two
+     compose — translate is applied before transform — so the card can lift under a
+     cursor while the row is still dealing itself in. */
+  transition: translate 320ms var(--ease), box-shadow 320ms var(--ease),
+              border-color 320ms var(--ease);
+  opacity: var(--r, 1);
+  --r: clamp(0, calc((var(--rows) - var(--i, 0) * 0.11) / 0.36), 1);
+}
+/* The row deals itself in left to right rather than all four at once: --i is the
+   card's place in the row and --rows is the act's own reveal clock. */
+.rate-band:nth-child(2) { --i: 1; }
+.rate-band:nth-child(3) { --i: 2; }
+.rate-band:nth-child(4) { --i: 3; }
+/* ONE transform declaration on this element, and it belongs to the scroll. The hover
+   lift is the separate `translate` property above, which composes with it rather than
+   replacing it — two `transform` declarations meant the later one won outright, and a
+   card hovered mid-reveal snapped to its resting place. */
+.rate-band { transform: translateY(calc((1 - var(--r, 1)) * 10px)); }
+
+/* A card is a material, not a swatch: the plate lifts and its shadow opens under
+   the pointer, the same gesture .cta makes 2px at a time. */
+@media (hover: hover) and (pointer: fine) {
+  .rate-band:hover {
+    translate: 0 -3px;
+    border-color: var(--hue);
+    box-shadow: 0 2px 4px rgb(6 6 10 / 0.07), 0 16px 38px rgb(6 6 10 / 0.10);
+  }
+  /* Both of these are (0,3,0) on purpose. `.rate-band.is-fit` and `.rate-band.is-invert`
+     each declare their own resting box-shadow further down this file, which TIES with
+     `.rate-band:hover` at (0,2,0) and wins on source order — so without these two the two
+     marked cards were the only ones whose shadow did not open under the pointer. */
+  .rate-band.is-fit:hover {
+    box-shadow: 0 3px 6px rgb(6 6 10 / 0.09), 0 18px 42px rgb(6 6 10 / 0.14);
+  }
+  .rate-band.is-invert:hover {
+    box-shadow: 0 2px 4px rgb(6 6 10 / 0.16), 0 16px 38px rgb(6 6 10 / 0.18);
+  }
+}
+
+/* -------------------------------------------------------------- inside a card */
+/* GRID, NOT A WRAPPING FLEX ROW. The mock puts the badge on the plan name's line,
+   right-aligned, and a flex row with `wrap` only keeps it there while the two happen to
+   fit: measured at 1920x1080, where `.rate-name`'s clamp is at its 1.3rem ceiling, the
+   name and the badge came to 250px in a 250px content box and the badge dropped to its
+   own line. Two tracks keep it beside the name at every width and let a long badge wrap
+   inside its own column instead. */
+.rate-top {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px clamp(6px, 0.7vw, 12px);
+}
+.rate-name {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(0.98rem, 1.18vw, 1.3rem);
+  line-height: 1.04;
+  letter-spacing: -0.016em;
+  font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0;
+}
+/* The mock's badge: an amber mark, then the label, on the plan name's line. The
+   mark is `.kicker .dot`, this page's rotated square. */
+/* The mock's badge is a dark label with an amber mark in front of it, and that is
+   also the only version of it that can be read: gold on ivory is 2.31:1 nominal
+   before the wash is counted, and this badge measured 1.77:1 rendered at 8px when the
+   label carried the hue. The mark keeps it. */
+.rate-chip {
+  display: inline-flex; align-items: baseline; gap: 0.5em;
+  justify-self: end;
+  color: var(--c-ink); font-size: 0.54rem; line-height: 1.3;
+  letter-spacing: 0.13em;
+  text-align: right;
+}
+.rate-chip .dot {
+  width: 5px; height: 5px; flex: none; background: var(--hue);
+  border-radius: 0; transform: rotate(45deg); box-shadow: 0 0 10px var(--hue);
+}
+
+.rate-fee { display: grid; gap: 2px; }
+.rate-mo, .rate-yr { display: block; }
+/* the figure itself, held apart from its unit so neither takes the other's tracking.
+   `$2,490` is the reason it may not break: a wrapped thousands separator reads as two
+   numbers. */
+.rate-n { white-space: nowrap; }
+
+/* THE PROMOTED FIGURE. One selector list, three members: the monthly figure by
+   default, the yearly figure once the control is on annual — and the monthly figure
+   again on the inverted card, whose annual slot is the sentence `Quoted, not
+   listed.` and which would otherwise promote a sentence to price size and demote
+   the only figure it has. That was measured as defect P5 and it is the same fix,
+   now with one exception where it needed two: the pilot no longer carries a yearly
+   figure at all. */
+.rate-mo,
+.rate.is-annual .rate-band .rate-yr,
+.rate.is-annual .rate-band.is-invert .rate-mo {
+  font-size: clamp(1.5rem, 2.25vw, 2.35rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--c-ink);
+}
+.rate-mo small,
+.rate.is-annual .rate-band .rate-yr small,
+.rate.is-annual .rate-band.is-invert .rate-mo small {
+  margin-left: 0.16em; font-size: 0.3em; letter-spacing: 0.14em; color: var(--c-faint);
+}
+
+/* THE DEMOTED FIGURE, one per state, on the same line of the card either way. */
+.rate-yr,
+.rate-eff,
+.rate.is-annual .rate-band.is-invert .rate-yr {
+  font-size: 0.72rem; letter-spacing: normal; line-height: 1.3; color: var(--c-faint);
+}
+.rate-yr small,
+.rate.is-annual .rate-band.is-invert .rate-yr small {
+  /* the colour matters as much as the metric: without it product.css:107's `.mono` list
+     wins the tie and the unit renders in the PAGE's --fg-faint, which is an ink-side grey
+     and measures near 2.5:1 on the inverted card's plate. */
+  margin-left: 0.1em; font-size: 0.86em; letter-spacing: 0.1em; color: var(--c-faint);
+}
+/* THE SWAP IS A PAIR, NOT AN EMPHASIS. Monthly reads `$39 a month` over `$390 a year`;
+   yearly reads `$390 a year` over `$32.50 a month`, which is the same annual price on a
+   monthly basis and the figure a buyer actually compares. Printing the monthly PLAN price
+   under the yearly one as well put two different `a month` figures in one card, which is
+   what the earlier form of this got wrong. Two lines in both states, so the card does not
+   change height when the control is pressed (asserted in tools/interact.cjs), and the
+   default state — the one a reader who never touches the control sees — still carries the
+   whole schedule.
+   `.rate-eff` is empty on the inverted card, whose annual slot is a sentence, so that card
+   is excluded and keeps the pair it already had. */
+.rate-band .rate-eff { display: none; }
+.rate.is-annual .rate-band:not(.is-invert) .rate-mo { display: none; }
+.rate.is-annual .rate-band:not(.is-invert) .rate-eff { display: block; }
+/* The promoted figure reads first, so the yearly one moves up its column when the
+   control promotes it — and does not on the inverted card, where nothing moved. */
+.rate.is-annual .rate-band:not(.is-invert) .rate-yr { order: -1; }
+
+/* `from`, in front of the one figure on the sheet that is a floor and not a price */
+.rate-pre { font-style: normal; margin-right: 0.14em; font-size: 0.32em;
+  letter-spacing: 0.1em; color: var(--c-dim); }
+
+/* the seat and roster band: the mock's one bold line, heading the list */
+.rate-fit {
+  display: block; color: var(--c-ink); font-size: 0.54rem; line-height: 1.5;
+  letter-spacing: 0.1em; margin-bottom: clamp(3px, 0.5vh, 7px);
+}
+
+/* THE ROWS ARE INK, THE TICKS ARE DIM. The mock sets its feature rows in grey and on
+   white paper that is fine; through this page's wash it is not. Measured at 1440x900,
+   act 7, t=0.5: `--c-dim` on the card plate rendered 3.84-3.98:1 median at 11.52px
+   against a nominal 7.98:1, which is under AA for body copy. `--c-ink` renders
+   6.26-6.49 in the same place (that is `.rate-fit`'s own measured figure) and the
+   hierarchy survives without the tone, because the line above the rows is uppercase
+   mono at 8.6px and the rows are sentence-case sans at 11.5px. The tick keeps the dim:
+   it is a graphic, its threshold is 3:1, and it measures 3.9. */
+.rate-adds { display: grid; align-content: start; font-size: 0.72rem;
+  line-height: 1.34; color: var(--c-ink); }
+.ra-l { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(2px, 0.4vh, 5px); }
+.ra-l li { position: relative; padding-left: 15px; }
+/* the mock's tick, drawn out of two hairlines rather than an icon set */
+.ra-l li::before {
+  content: ''; position: absolute; left: 1px; top: 0.36em;
+  width: 7px; height: 3.5px;
+  border-left: 1.4px solid var(--c-dim);
+  border-bottom: 1.4px solid var(--c-dim);
+  transform: rotate(-45deg);
+}
+.ra-s { display: none; }
+/* Was gold, which on ivory is 2.31:1 before the wash. It is the most persuasive line
+   in the card, so it keeps its separation from the rows — a hairline, which is the
+   sheet's own way of setting something apart — and gives up the tone. */
+.rate-aside { display: block; margin-top: clamp(3px, 0.5vh, 7px); color: var(--c-ink);
+  border-top: 1px solid var(--c-line); padding-top: clamp(3px, 0.5vh, 6px);
+  font-style: normal; font-size: 0.68rem; line-height: 1.3; }
+
+/* the plate. Full width, bottom of the card, and the fill comes from the card's own ramp
+   so the inverted card gets an ivory plate with no second declaration.
+   `background-color`, NOT the `background` shorthand: product.css:166 puts the milled
+   face on `background-image` — the radial gradient whose light source is the pointer —
+   and a shorthand here resets it to `none`. That is the whole of the plate's material,
+   and losing it at rest is exactly the flat surface this project reads as unfinished. It
+   would have come back only on :hover, where product.css re-declares the image. */
+.rate-band .rate-go {
+  width: 100%; justify-content: center; border-radius: 6px;
+  padding: 0.74em 1em; font-size: 0.82rem;
+  background-color: var(--c-plate); color: var(--c-label); border-color: var(--c-plate);
+}
+.rate-band .rate-go:hover, .rate-band .rate-go:focus-visible { border-color: var(--hue); }
+
+/* ------------------------------------------------- the recommended card, lifted
+   The mock lifts it out of the row on both edges and tints it. The tint is the
+   act's own hue at the top of the plate, fading out, so the card is warmer than
+   its neighbours without being a different material. */
+.rate-band.is-fit {
+  margin-block: calc(-1 * clamp(5px, 0.9vh, 13px));
+  border-color: var(--hue);
+  background-image: linear-gradient(180deg, var(--hue-soft), rgb(0 0 0 / 0) 58%);
+  box-shadow: 0 2px 5px rgb(6 6 10 / 0.07), 0 14px 34px rgb(6 6 10 / 0.09);
+}
+
+/* ------------------------------------------------------ the last card, inverted
+   One declaration pair does all of it: the plate is the room's own `--fg` and the
+   six `--c-*` tokens above are re-pointed at the other end of the ramp. `--fg`
+   itself is NOT overridden, which is what lets `background: var(--fg)` on this
+   element still mean the room's ink while everything inside it reads ivory. The
+   dim and faint values are alphas of the ivory end rather than `--fg-dim` and
+   `--fg-faint`, whose paper values (78 76 88 and 134 130 143) are ink-side greys
+   and measure under 2:1 on an ink plate. */
+.rate-band.is-invert {
+  background: var(--fg);
+  --c-ink: var(--fg-inv);
+  --c-dim: rgb(242 236 224 / 0.78);
+  --c-faint: rgb(242 236 224 / 0.60);
+  --c-edge: var(--fg);
+  --c-line: rgb(242 236 224 / 0.20);
+  --c-plate: var(--fg-inv);
+  --c-label: var(--fg);
+  box-shadow: 0 2px 5px rgb(6 6 10 / 0.14), 0 14px 34px rgb(6 6 10 / 0.14);
+}
+
+/* ------------------------------------------------------------------- the pilot
+   An offer, not a tier: ruled off from the row, on the hue edge the sheet has
+   always given it, and with no button because /pilot has no route. */
+.rate-pilot {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, auto) minmax(0, 1fr);
+  gap: 3px clamp(12px, 1.8vw, 30px);
+  align-items: center;
+  border: 1px solid var(--line-2);
+  border-left: 2px solid var(--hue);
+  border-radius: 10px;
+  background: var(--glass);
+  padding: clamp(6px, 0.95vh, 13px) clamp(11px, 1.15vw, 19px);
+  opacity: clamp(0, calc((var(--t) - 0.16) / 0.16), 1);
+}
+.rate-p-who { display: grid; gap: 1px; }
+.rate-p-k { color: var(--hue); font-size: 0.5rem; }
+.rate-pilot .rate-name { font-size: clamp(0.92rem, 1.05vw, 1.14rem); }
+/* The pilot's own gold is its left edge, its `PILOT` label and its mark. The figure is
+   ink: gold at 26px still only reaches 2.2:1 rendered, which is under the 3:1 that even
+   large text is held to. */
+.rate-pilot .rate-mo { font-size: clamp(1.1rem, 1.55vw, 1.66rem); color: var(--fg); }
+.rate-pilot .rate-mo small { color: var(--fg-dim); }
+.rate-p-body { display: grid; gap: 1px; }
+.rate-p-body .rate-fit { margin-bottom: 0; color: var(--fg); }
+.rate-p-adds { font-size: 0.7rem; line-height: 1.34; color: var(--fg); }
+.rate-p-credit { font-size: 0.7rem; line-height: 1.34; color: var(--fg);
+  font-weight: 500; }
+
+/* --------------------------------------------------------------- the footnotes */
+.rate-led {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(3px, 0.6vh, 8px) clamp(14px, 2.4vw, 34px);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(5px, 0.8vh, 10px);
+  font-size: 0.66rem;
+  line-height: 1.32;
+  color: var(--fg-dim);
+  opacity: clamp(0, calc((var(--t) - 0.22) / 0.16), 1);
+}
+.rate-led p { margin: 0; }
+
+
+/* The line the four plates share. There is no fifth, section-level plate any more:
+   with a button in every card it was the fifth identical plate on one screen. */
+/* `text-align`, not just `justify-content`: product.css:519 gives `.cta-row .tiny` a
+   `flex-basis: 100%` below 901px so the hero's micro line drops under its buttons, and
+   a full-width flex item cannot be centred by its container. */
+.rate-cta { justify-content: center; text-align: center;
+  opacity: clamp(0, calc((var(--t) - 0.2) / 0.16), 1); }
+
+/* Without WebGL the page becomes an ordinary stacked document and the scroll engine's
+   --t never arrives, so every clamp() in this file rests at 0 and the sheet is a blank
+   column. base.css:139 forces `.act > *` back to full opacity, which is the act's own
+   `.act-stage`, three levels above any of this. */
+body.gl-failed .rate,
+body.gl-failed .terms-head,
+body.gl-failed .rate-band,
+body.gl-failed .rate-pilot,
+body.gl-failed .rate-led,
+body.gl-failed .rate-cta { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rate-band { transform: none; transition: none; }
+  .rate-band:hover { translate: none; }
+}
+
+/* ============================================================ THE HEIGHT LADDER
+   Act 7 is a pinned 100vh stage and the card row is the tallest thing on it, so the
+   sheet has to give height back as the window loses it. Measured with
+   `node tools/tsweep.cjs wide`, which reads `.act-terms .act-stage`'s own overflow
+   and the sheet's lowest ink against the fold in BOTH billing states. Before this
+   ladder, at 901px wide and up: 0 over at 1080 and 930, then +16 at 891, +28 at 861,
+   +39 at 1001x850, +70 at 821, +80 at 1100x720, +120 at 1001x721, +175 at 661 and
+   +208 at 901x620 — and the overflow is almost purely a function of HEIGHT (+72 at
+   1920x821 against +70 at 901x821), which is why every block below is keyed on
+   height and only the phone tier is keyed on width.
+
+   Four blocks, cheapest first, and nothing above block 2 takes a word off the page:
+   block 1 is spacing, block 2 drops the head's lead and the sheet's provenance,
+   block 3 steps the head down and shortens the invariant, block 4 trades the tick
+   rows for the same claims as one sentence and drops the footnotes. The order is the
+   old ledger's own order of value, and `.rate-cap` — the only place the page states
+   its currency (B6) — survives all four. */
+
+/* 1 — spacing only. Recovers the band from about 935 down to 870 with the ledger,
+   the lead, the tick rows and the full head clamp all still on the sheet. */
+@media (min-width: 901px) and (max-height: 935px) {
+  .terms { padding-top: clamp(54px, 6.9vh, 96px); padding-bottom: clamp(18px, 2.8vh, 44px); }
+  .terms-head { gap: clamp(4px, 0.7vh, 9px); }
+  .rate { margin-top: clamp(7px, 1.15vh, 18px); gap: clamp(5px, 0.9vh, 13px); }
+  .rate-band { gap: clamp(6px, 1.2vh, 17px);
+    padding: clamp(8px, 1.3vh, 17px) clamp(10px, 1vw, 17px); }
+  .rate-led { font-size: 0.62rem; }
+}
+
+/* 2 — the head's lead and the sheet's provenance. The lead is three centred lines
+   restating what the headline above it and the card row below it both say; the
+   provenance is the same three figures act 8's proof strip prints one scroll later,
+   and this file's own ladder has always treated it as the first line to go. */
+@media (min-width: 901px) and (max-height: 872px) {
+  .terms-head .lead { display: none; }
+  .rate-prov { display: none; }
+}
+
+/* 3 — the headline takes a step and the invariant keeps its first sentence. The
+   sentence that goes ("It adds seats, a bigger roster, and the owner tools to see
+   what was taught") is what the four cards are a list of, so it is the one place the
+   sheet can repeat itself without losing a claim. */
+@media (min-width: 901px) and (max-height: 802px) {
+  .terms-head .d3 { font-size: clamp(1.3rem, 2.1vw, 1.95rem); }
+  .rate-inv { font-size: clamp(0.82rem, 0.92vw, 0.94rem); }
+  .rate-inv-more { display: none; }
+  .rate-mo,
+  .rate.is-annual .rate-band .rate-yr,
+  .rate.is-annual .rate-band.is-invert .rate-mo { font-size: clamp(1.3rem, 1.9vw, 2rem); }
+}
+
+/* 4 — the tick rows become the sentence they were itemised from, and the footnotes
+   go. This is the only block that changes what a card looks like, and it is the same
+   trade the ruled ledger made at the same heights: `.ra-s` is `addsShort` in
+   pricing.json and it carries every claim `.ra-l` carries, one sentence instead of
+   four or five rows. `.rate-fit` stays — the seat and roster band is what the
+   headline says is being paid for, and it is two lines. */
+@media (min-width: 901px) and (max-height: 732px) {
+  .ra-l { display: none; }
+  .ra-s { display: block; }
+  .rate-led { display: none; }
+  .rate-aside { font-size: 0.64rem; }
+  .rate-p-adds { font-size: 0.66rem; }
+}
+
+/* 5 — the floor. Below about 640 of height the four blocks above still leave the
+   pilot strip and the card row fighting for the same 200px, so the spacing goes to
+   its own floor and Growth's ROI line — the one line on the sheet that is an
+   argument rather than a fact — goes with it. */
+@media (min-width: 901px) and (max-height: 642px) {
+  .terms { padding-top: clamp(46px, 5.6vh, 72px); padding-bottom: 14px; }
+  .rate { margin-top: 6px; gap: 5px; }
+  .rate-band { gap: 6px; padding: 8px 10px; }
+  .rate-aside { display: none; }
+  .rate-pilot { padding: 5px 10px; }
+  .rate-inv { font-size: 0.8rem; }
+}
+
+/* ============================================================== A PHONE, AND WHY
+   IT IS STILL A CARD ROW. Four cards will not stand side by side under 901px and
+   they will not stack either: four of them at their natural height is 1,100px on a
+   844px stage. The third option is the one every card-based schedule on a phone
+   takes and it is the one that keeps the founder's reference intact — the row keeps
+   its cards and scrolls sideways, one and a bit at a time, so the next card is
+   always visibly there. The vertical axis of the page is untouched: this is an
+   inline-axis scroller with `overscroll-behavior-x: contain`, and the act's own
+   scroll engine never sees the gesture. */
+@media (max-width: 900px) {
+  .terms { padding-top: clamp(58px, 7.2vh, 92px); padding-bottom: 18px; }
+  .terms-head .d3 { font-size: clamp(1.3rem, 5.6vw, 2rem); }
+  .terms-head .lead { font-size: 0.82rem; max-width: 46ch; }
+  .terms-head .lead-more { display: none; }
+  .rate-cap-l { font-size: 0.46rem; letter-spacing: 0.13em; }
+  .rate-prov { display: none; }
+  .rate-inv { font-size: 0.8rem; }
+  .rate-inv-more { display: none; }
+  .rate-bill-b { padding: 0.42em 0.86em; }
+
+  .rate-list {
+    flex: 0 0 auto;
+    min-width: 0;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    /* vw, NOT a percentage. `grid-auto-columns: 66%` resolves against the grid's own
+       content box, which is circular while the browser is working out how narrow the
+       track CAN be — so it falls back to the items' max-content and the whole act got
+       WIDER than the viewport: measured at 390x844, `.pad` came out 446px and the
+       pinned stage carried 56px of horizontal overflow, which took the head, the pill
+       and the invariant line off the right edge with it. */
+    grid-auto-columns: clamp(214px, 72vw, 320px);
+    gap: 9px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    /* the lift and the shadow both need room inside the scroller */
+    padding: 3px 1px 5px;
+  }
+  .rate-band { scroll-snap-align: center; }
+  /* nothing overhangs a scroller: the recommended card is marked by its edge, its
+     wash and its badge, which is three of the four things the mock marks it with */
+  .rate-band.is-fit { margin-block: 0; }
+
+  .rate-pilot { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+  .rate-led { grid-template-columns: minmax(0, 1fr); }
+  /* One footnote at 900px and under, and it is the first: the soft-cap promise and
+     the one-academy licence. The second note's disclosure is carried by the cards
+     themselves — Starter says `Print packs and parent reports when they ship` and
+     Enterprise says `SSO and localization are planned, not built` — and the third's
+     $299 setup fee is off the page on a phone, which is the same call the ruled
+     ledger made here. Measured: with two notes at 351px of column, 390x900 came out
+     +13 over its stage. */
+  .rate-led p:nth-child(n + 2) { display: none; }
+}
+
+/* A phone shorter than about 880 has no room for the footnotes, and the two it keeps
+   at full height are three lines each at 390 wide. Measured before: +24 at 390x844,
+   +55 at 390x800, +70 at 390x780, +115 at 390x721, +22 at 360x844, +28 at 320x835.
+   The disclosure the second note carries is not lost with it — Enterprise's card says
+   `SSO and localization are planned, not built` in both its long and its short form,
+   which is why that item is in `pricing.json` twice. */
+@media (max-width: 900px) and (max-height: 880px) {
+  .rate-led { display: none; }
+}
+/* 320 wide is 288px of column, and the one footnote the tier above keeps wraps to four
+   lines there against three at 390: measured +15 over the stage at 320x900, where 390x900
+   is clean. Below 390 the note goes. Same ceiling and the same one declaration the ruled
+   ledger used at this width. */
+@media (max-width: 389px) and (max-height: 940px) {
+  .rate-led { display: none; }
+}
+
+/* Below about 770 the head's lead goes too, and the spacing takes its floor. */
+@media (max-width: 900px) and (max-height: 772px) {
+  .terms-head .lead { display: none; }
+  .terms { padding-top: clamp(48px, 6.2vh, 76px); padding-bottom: 14px; }
+  .rate { margin-top: 6px; gap: 5px; }
+  .rate-band { gap: 7px; padding: 9px 11px; }
+  .rate-p-adds, .rate-p-credit { font-size: 0.66rem; }
+  .rate-aside { display: none; }
+}

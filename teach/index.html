@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Teach a free session — Efhaam</title>
+<meta name="description" content="A real Efhaam session in the coach’s console: the plan minute by minute, every board, the answers behind a reveal, a segment clock. Three free sessions, no signup." />
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..800,0,0&family=Inter+Tight:wght@300..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/NewSiteDesign/css/tokens.css" />
+<link rel="stylesheet" href="/NewSiteDesign/css/teach.css" />
+</head>
+<body class="teach">
+
+<header id="t-top">
+  <a class="t-back" href="/NewSiteDesign/" aria-label="Efhaam, home">
+    <span class="mark" aria-hidden="true"></span>
+    <span>Efhaam</span>
+  </a>
+  <div class="t-id">
+    <p class="mono t-crumb"><b></b><span></span></p>
+    <h1 class="t-title"></h1>
+  </div>
+  <!-- The visual readout is a counter; the sentence a screen reader needs is in
+       .t-status, which survives the narrow layout where this one is hidden. -->
+  <div class="t-seg mono" aria-hidden="true"></div>
+  <p class="t-status sr" role="status"></p>
+  <div class="t-pick" role="group" aria-label="Free sessions"></div>
+  <div class="t-views" role="group" aria-label="View">
+    <button type="button" data-view="teach" aria-pressed="true" aria-keyshortcuts="T">Teach</button>
+    <button type="button" data-view="prep" aria-pressed="false" aria-keyshortcuts="P">Prep</button>
+  </div>
+</header>
+
+<main id="t-main" tabindex="-1">
+  <!-- ------------------------------------------------------------- TEACH view -->
+  <div id="t-teach" class="t-grid">
+    <aside class="t-rail t-left" aria-label="The session, minute by minute">
+      <p class="t-rail-h mono"><span></span><b></b></p>
+      <ol class="t-flow"></ol>
+      <div class="t-panel t-pos">
+        <h3 class="t-rail-h mono"><span>This position</span><b></b></h3>
+        <div class="t-copy" role="group" aria-labelledby="t-fen-l">
+          <p class="t-field-l mono" id="t-fen-l">FEN</p>
+          <code class="t-fen"></code>
+          <button type="button" class="t-copy-btn" data-copy="fen">Copy FEN</button>
+        </div>
+        <div class="t-copy t-copy-pgn" role="group" aria-labelledby="t-pgn-l" hidden>
+          <p class="t-field-l mono" id="t-pgn-l">PGN</p>
+          <code class="t-pgn"></code>
+          <button type="button" class="t-copy-btn" data-copy="pgn">Copy PGN</button>
+        </div>
+        <p class="t-copy-status mono" role="status"></p>
+        <p class="t-note mono">FEN for a board. PGN for the whole line.</p>
+      </div>
+    </aside>
+
+    <section class="t-stage" aria-label="The board and the question">
+      <p class="t-beat-h mono"></p>
+      <h2 class="t-beat-title"></h2>
+      <div class="t-beats" role="group" aria-label="Positions in this segment"></div>
+      <div class="t-board-wrap"><div class="t-board"></div></div>
+      <p class="t-caption"></p>
+      <p class="t-hint mono">Left and right step the line. Up and down change position. R reveals the answer.</p>
+    </section>
+
+    <aside class="t-rail t-right" aria-label="Focus, answer and clock">
+      <div class="t-panel t-focus">
+        <h3 class="t-rail-h mono"><span>The focus</span><b></b></h3>
+        <dl class="t-meta"></dl>
+        <p class="t-prompt"></p>
+        <p class="t-hintline" hidden></p>
+      </div>
+      <div class="t-panel t-solution">
+        <h3 class="t-rail-h mono"><span>The answer</span><b></b></h3>
+        <p class="t-sol-lead">Hidden so you can ask the room first.</p>
+        <div class="t-sol-body" id="t-sol-body" hidden></div>
+        <button type="button" class="t-reveal" aria-expanded="false" aria-controls="t-sol-body" aria-keyshortcuts="R"><span class="t-reveal-l">Reveal answer</span> <kbd aria-hidden="true">R</kbd></button>
+        <div class="t-line" hidden>
+          <h3 class="t-rail-h mono"><span>Whole line</span><b></b></h3>
+          <ol class="t-plies"></ol>
+          <div class="t-line-btns">
+            <button type="button" data-ply="start" aria-label="First move of the line">First</button>
+            <button type="button" data-ply="back" aria-label="Previous move">Back</button>
+            <button type="button" data-ply="next" aria-label="Next move">Next</button>
+            <button type="button" data-ply="end" aria-label="Last move of the line">Last</button>
+          </div>
+        </div>
+      </div>
+      <div class="t-panel t-controls">
+        <h3 class="t-rail-h mono"><span>Step the session</span><b></b></h3>
+        <div class="t-ctl">
+          <button type="button" class="t-prev">Previous position</button>
+          <button type="button" class="t-next">Next position</button>
+        </div>
+      </div>
+      <div class="t-panel t-clock">
+        <h3 class="t-rail-h mono" id="t-clock-h"><span>Segment clock</span><b></b></h3>
+        <p class="t-time num"><b>0:00</b><span></span></p>
+        <div class="t-bar" role="progressbar" aria-labelledby="t-clock-h" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+        <div class="t-ctl">
+          <button type="button" class="t-play">Start segment</button>
+          <button type="button" class="t-reset">Reset</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- -------------------------------------------------------------- PREP view -->
+  <div id="t-prep" class="t-prep" role="region" aria-label="Session plan" tabindex="0" hidden></div>
+</main>
+
+<script type="module" src="/NewSiteDesign/js/teach/main.js"></script>
+<script type="module" src="/NewSiteDesign/js/agentation.js"></script>
+</body>
+</html>

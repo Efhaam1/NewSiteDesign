@@ -1,0 +1,440 @@
+/* ============================================================================
+   The teaching console. This is the screen a coach actually stands in front of,
+   so it is laid out as a console and not as a page: three rails that all stay on
+   screen, nothing that scrolls away mid-class, and the board in the middle at the
+   largest size the window allows.
+
+   Ported from the previous build's rook preview, which had the layout right. The
+   tokens are the landing page's own, so the two read as one product.
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body.teach {
+  --fg: #f4efe4;
+  --fg-dim: #cdbca9;
+  --fg-faint: #9c8875;
+  --ground: #110f0e;
+  --panel: #1a1613;
+  --panel-hi: #221b16;
+  --line: rgb(214 181 143 / 0.16);
+  /* 0.5, not 0.3: this is the only boundary most of the controls have, and 0.3
+     composites to 1.93:1 against --ground. --line stays where it is, because it
+     draws gutters and panel fills rather than controls. */
+  --line-2: rgb(214 181 143 / 0.5);
+  --accent: var(--rook);
+
+  min-height: 100vh;
+  background: var(--ground);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.mono { font-family: var(--mono); letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 0.66rem; font-weight: 500; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+/* Several of these panels declare `display: grid`, which beats the user-agent
+   `[hidden] { display: none }`. Without this the gated solution and the prep view
+   are both visible from the first paint. */
+[hidden] { display: none !important; }
+/* The landing's own visually-hidden helper (base.css), which this route does not load. */
+.sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* --------------------------------------------------------------------- header */
+#t-top {
+  display: flex; align-items: center; gap: clamp(10px, 1.4vw, 22px);
+  padding: 10px clamp(14px, 1.6vw, 26px);
+  border-bottom: 1px solid var(--line); background: #171310;
+  flex-wrap: wrap;
+}
+.t-back { display: flex; align-items: center; gap: 0.5em; font-family: var(--display);
+  font-size: 1.05rem; font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0; }
+.t-back .mark { width: 20px; height: 20px; display: block; background: var(--fg);
+  -webkit-mask: url('/NewSiteDesign/assets/monogram.png') center/contain no-repeat;
+  mask: url('/NewSiteDesign/assets/monogram.png') center/contain no-repeat;
+  mask-mode: luminance; -webkit-mask-mode: luminance; }
+.t-back:hover { color: var(--accent); }
+.t-id { min-width: 14rem; flex: 1; }
+.t-crumb { margin: 0; color: var(--fg-faint); }
+.t-crumb b { color: var(--accent); font-weight: 500; }
+.t-title { margin: 2px 0 0; font-size: 0.95rem; font-weight: 500; letter-spacing: -0.01em;
+  color: #fff8ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-seg { display: flex; align-items: center; gap: 0.6em; color: var(--fg-dim);
+  border: 1px solid var(--line-2); padding: 0.5em 0.8em; font-size: 0.6rem; }
+.t-seg b { color: var(--accent); font-weight: 500; }
+.t-pick { display: flex; gap: 4px; }
+.t-pick button, .t-views button {
+  background: transparent; border: 1px solid var(--line-2); padding: 0.5em 0.7em;
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-dim);
+  transition: border-color 180ms, color 180ms, background 180ms;
+}
+.t-pick button:hover, .t-views button:hover { border-color: var(--accent); color: var(--fg); }
+.t-pick button[aria-current='true'], .t-views button[aria-pressed='true'] {
+  background: var(--accent); border-color: var(--accent); color: #160d09;
+}
+.t-views { display: flex; gap: 4px; }
+
+/* ----------------------------------------------------------------- the console */
+#t-main { min-height: 0; }
+#t-main:focus { outline: none; }
+.t-grid {
+  height: 100%; min-height: 0;
+  display: grid; gap: 1px; background: var(--line);
+  grid-template-columns: minmax(220px, 0.86fr) minmax(0, 1.9fr) minmax(240px, 1fr);
+}
+.t-rail, .t-stage { background: var(--ground); min-width: 0; min-height: 0;
+  padding: clamp(10px, 1vw, 16px); display: grid; align-content: start;
+  gap: clamp(8px, 0.9vh, 14px); overflow-y: auto; scroll-padding-block: 4px; }
+.t-rail::-webkit-scrollbar, .t-prep::-webkit-scrollbar { width: 6px; }
+.t-rail::-webkit-scrollbar-thumb, .t-prep::-webkit-scrollbar-thumb { background: var(--line-2); }
+
+.t-rail-h { margin: 0; display: flex; justify-content: space-between; gap: 8px;
+  color: var(--fg-faint); font-size: 0.62rem; }
+h3.t-rail-h { font-weight: 500; }
+.t-rail-h b { color: var(--accent); font-weight: 500; text-align: right; }
+.t-panel { border: 1px solid var(--line); background: var(--panel);
+  padding: clamp(9px, 0.85vw, 14px); display: grid; gap: 8px; }
+.t-note { margin: 0; color: var(--fg-faint); font-size: 0.58rem; letter-spacing: 0.12em; }
+
+/* the minute-by-minute flow */
+.t-flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.t-flow button {
+  width: 100%; text-align: left; background: transparent; border: 0;
+  border-left: 2px solid transparent; padding: 0.62em 0.7em;
+  display: grid; grid-template-columns: 1.9em 1fr auto; gap: 8px; align-items: baseline;
+  color: var(--fg-dim); transition: background 180ms, color 180ms, border-color 180ms;
+}
+.t-flow button:hover { background: var(--panel); color: var(--fg); }
+.t-flow .n { font-family: var(--mono); font-size: 0.56rem; color: var(--fg-faint); }
+.t-flow .l { font-size: 0.86rem; line-height: 1.24; }
+.t-flow .m { font-family: var(--mono); font-size: 0.56rem; color: var(--fg-faint); }
+/* #2a2119 rather than --panel-hi so the accent numerals clear 4.5:1 at every stage
+   colour, purple included. */
+.t-flow li.on button { background: #2a2119; color: #fff8ee;
+  border-left-color: var(--accent); }
+.t-flow li.on .n, .t-flow li.on .m { color: var(--accent); }
+.t-flow li.done .n { color: var(--fg-dim); }
+
+/* notation, kept where a coach can read it out */
+.t-copy { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: start; }
+.t-copy .t-field-l { grid-column: 1 / -1; margin: 0; color: var(--fg-faint);
+  font-size: 0.56rem; }
+.t-copy code {
+  font-family: var(--mono); font-size: 0.56rem; line-height: 1.5; color: var(--fg-dim);
+  background: #0d0b09; border: 1px solid var(--line); padding: 6px 7px;
+  white-space: pre-wrap; word-break: break-all; min-height: 2.6em;
+  max-height: 9em; overflow-y: auto;
+}
+.t-copy-btn { background: transparent; border: 1px solid var(--line-2);
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.5em 0.55em; color: var(--fg-dim);
+  white-space: nowrap; transition: all 180ms; }
+.t-copy-btn:hover { border-color: var(--accent); color: var(--fg); }
+.t-copy-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.t-copy-btn.ok { border-color: var(--accent); color: var(--accent); }
+.t-copy-status { margin: 0; min-height: 1em; color: var(--accent); font-size: 0.56rem; }
+
+/* ------------------------------------------------------------------- the board */
+.t-beat-h { margin: 0; color: var(--fg-faint); font-size: 0.58rem; }
+.t-beat-title { margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.2rem, 1.9vw, 1.85rem); line-height: 1.04; letter-spacing: -0.022em;
+  font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0; }
+/* A prompt can be three words or a 380-character calculation brief. The long ones
+   are set as prose, because display type at that length is a wall and eats the board. */
+.t-beat-title.long { font-family: var(--sans); font-size: clamp(0.95rem, 1.05vw, 1.1rem);
+  font-weight: 400; line-height: 1.4; letter-spacing: -0.005em; color: #fff8ee;
+  max-height: 9lh; overflow-y: auto; }
+.t-beats { display: flex; gap: 4px; flex-wrap: wrap; }
+.t-beats button { background: transparent; border: 1px solid var(--line-2);
+  font-family: var(--mono); font-size: 0.6rem; padding: 0.32em 0.6em; color: var(--fg-dim);
+  min-width: 2em; transition: all 180ms; }
+.t-beats button:hover { border-color: var(--accent); color: var(--fg); }
+.t-beats button[aria-current='true'] { background: var(--accent); border-color: var(--accent);
+  color: #160d09; }
+.t-board-wrap { display: grid; place-items: center; min-height: 0; }
+.t-board { width: min(100%, 68vh); }
+/* With no board there is no 1fr row to fill, so the column packs to the top and the
+   placeholder keeps the caption directly under it instead of stranding it at the foot.
+   The size containment has to go with it: a size-contained box in an auto row is a box
+   whose contents cannot give it a height, i.e. zero. */
+.t-stage.no-board { grid-template-rows: auto; }
+.t-stage.no-board .t-board-wrap { container-type: normal; }
+.t-caption { margin: 0; font-size: 0.88rem; line-height: 1.45; color: var(--fg-dim);
+  max-width: 62ch; max-height: 11lh; overflow-y: auto; }
+.t-hint { margin: 0; color: var(--fg-faint); font-size: 0.58rem; letter-spacing: 0.14em; }
+.t-empty { display: grid; place-items: center; place-self: center;
+  width: min(100%, 42ch); border: 1px dashed var(--line-2); color: var(--fg-faint);
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; text-align: center; padding: 2.6em 2em; }
+
+/* --------------------------------------------------------------- the board face
+   Same drawn board as the landing page, at console size. Own component on purpose:
+   chessground is GPL-3.0 and this is a commercial product (ADR-0007). */
+.board2d { position: relative; aspect-ratio: 1; display: grid;
+  grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+  border: 1px solid var(--line-2); }
+.board2d .sq { position: relative; }
+.board2d .sq.l { background: #e8dcc4; }
+.board2d .sq.d { background: #a98a63; }
+/* The accent wash alone is 1.08:1 on a dark square, so the square the room is meant
+   to look at was the least visible thing on the board. The ink ring is the cue that
+   does not depend on hue: 12:1 on a light square, 5.8:1 on a dark one. */
+.board2d .sq.from::after, .board2d .sq.to::after { content: ''; position: absolute; inset: 0;
+  outline: 3px solid #17120e; outline-offset: -3px; }
+.board2d .sq.to::after { box-shadow: inset 0 0 0 5px var(--accent); }
+.board2d .sq .co { position: absolute; font-family: var(--mono); font-size: 0.56rem;
+  color: rgb(24 16 10 / 0.9); letter-spacing: 0.04em; }
+.board2d .sq .co.f { right: 3px; bottom: 1px; }
+.board2d .sq .co.r { left: 3px; top: 1px; }
+.board2d img { position: absolute; inset: 5%; width: 90%; height: 90%;
+  filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.4)); }
+
+/* ------------------------------------------------------------- the coach panels */
+.t-meta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.t-meta > div { border-top: 1px solid var(--line); padding-top: 5px; display: grid; gap: 1px; }
+.t-meta dt { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-faint); }
+.t-meta dd { margin: 0; font-family: var(--mono); font-size: 0.8rem; color: var(--fg);
+  overflow-wrap: anywhere; }
+/* The routine's focus line is one sentence in one session and nine in another. */
+.t-prompt { margin: 0; font-size: 0.88rem; line-height: 1.42; color: #fff1e5;
+  border: 1px solid var(--line-2); border-left: 2px solid var(--accent);
+  background: var(--panel-hi); padding: 8px 10px; }
+.t-hintline { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--fg-dim); }
+/* A capped panel that is genuinely cut fades at the foot, so the half line reads as
+   more text below rather than as a panel that failed to draw. */
+.t-focus.clipped, .t-sol-body.clipped, .t-caption.clipped {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+}
+.t-sol-lead { margin: 0; font-size: 0.8rem; color: var(--fg-dim); }
+/* The panel is a fixed frame with one scrolling part: the answer. The reveal and the
+   ply transport are pinned under it, because a control that scrolls out of its own
+   panel mid-class is not a control. Rows are placed explicitly — half of these
+   children are hidden at any moment, and auto-placement would slide the 1fr row onto
+   whichever one is left. */
+.t-solution { grid-template-rows: auto auto minmax(0, 1fr) auto auto; }
+.t-solution > .t-rail-h { grid-row: 1; }
+.t-sol-lead { grid-row: 2; }
+.t-sol-body { grid-row: 3; min-height: 0; overflow-y: auto; }
+.t-reveal { grid-row: 4; }
+.t-line { grid-row: 5; }
+/* While the answer is closed the panel says so instead of looking like a panel that
+   failed to load: label at the top, the statement in the middle, the action at the foot. */
+.t-solution.locked { grid-template-rows: auto minmax(0, 1fr) auto; align-items: center; }
+.t-solution.locked > .t-rail-h { align-self: start; }
+.t-solution.locked .t-reveal { grid-row: 3; }
+.t-sol-body { display: grid; gap: 6px; align-content: start; }
+.t-sol-body .san { font-family: var(--mono); font-size: 0.94rem; letter-spacing: 0.06em;
+  color: var(--accent); }
+.t-sol-body p { margin: 0; font-size: 0.8rem; line-height: 1.42; color: var(--fg-dim); }
+.t-sol-body ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px;
+  align-content: start; }
+.t-sol-body li { font-size: 0.76rem; line-height: 1.34; color: var(--fg-dim);
+  padding-left: 11px; position: relative; }
+.t-sol-body li::before { content: ''; position: absolute; left: 0; top: 0.58em;
+  width: 5px; height: 1px; background: var(--accent); }
+.t-reveal { background: transparent; border: 1px solid var(--accent); color: var(--fg);
+  padding: 0.7em 0.8em; font-size: 0.82rem; transition: all 180ms; }
+/* The hover fill is the growing plate declared with .t-ctl's primaries further
+   down; a `background` shorthand here would reset its layer and fill instantly. */
+.t-reveal kbd { font-family: var(--mono); font-size: 0.62rem; opacity: 0.7;
+  border: 1px solid currentColor; padding: 0 0.3em; margin-left: 0.4em; }
+
+.t-line { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 6px; }
+.t-plies { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px;
+  max-height: 5.4em; overflow-y: auto; }
+.t-plies button { background: transparent; border: 1px solid var(--line-2);
+  font-family: var(--mono); font-size: 0.62rem; padding: 0.28em 0.42em; color: var(--fg-dim);
+  transition: all 160ms; }
+.t-plies button:hover { border-color: var(--accent); color: var(--fg); }
+.t-plies button[aria-current='step'] { border-color: var(--accent);
+  background: var(--panel-hi); color: #fff1e5; }
+.t-plies .no { color: var(--fg-faint); margin-right: 0.25em; }
+.t-line-btns, .t-ctl { display: grid; grid-auto-flow: column; gap: 5px; }
+.t-line-btns button, .t-ctl button { background: transparent; border: 1px solid var(--line-2);
+  padding: 0.6em 0.4em; font-size: 0.74rem; color: var(--fg-dim); transition: all 180ms; }
+.t-line-btns button:hover:not(:disabled), .t-ctl button:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--fg); }
+.t-line-btns button:disabled, .t-ctl button:disabled { opacity: 0.35; cursor: not-allowed; }
+/* Scoped through .t-ctl so these two actually beat the generic button rule above:
+   unscoped, the primary pair was drawn exactly like Reset, and its hover put --fg on
+   the accent at 2.66:1. */
+.t-ctl .t-next, .t-ctl .t-play { border-color: var(--accent); color: var(--fg); }
+/* The three primaries of this console FILL from their leading edge, the way the
+   landing page's console mock does (annot.css:.con-go) — the two are deliberately
+   one design, so the gesture belongs to both. Endpoint unchanged: accent plate,
+   #160d09 label. The label's flip waits 120ms because #160d09 on an unfilled button
+   is ink on ink. Background layers only; no box moves. */
+.t-ctl .t-next, .t-ctl .t-play, .t-reveal {
+  background-image: linear-gradient(90deg, var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  background-size: 0% 100%;
+  transition: border-color 180ms var(--ease), color 100ms var(--ease),
+              background-size 300ms var(--ease);
+}
+.t-ctl .t-next:hover:not(:disabled), .t-ctl .t-play:hover:not(:disabled), .t-reveal:hover {
+  background-size: 100% 100%; color: #160d09;
+  transition-delay: 0s, 120ms, 0s;
+}
+.t-time { margin: 0; display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
+.t-time b { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.02em; }
+.t-time span { font-family: var(--mono); font-size: 0.58rem; color: var(--fg-faint); }
+.t-bar { height: 3px; background: rgb(244 239 228 / 0.1); position: relative; }
+.t-bar i { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--accent); }
+/* Over budget is a hue swap of equal luminance, so it needs the outline as well as
+   the "over by" figure the clock prints beside it. */
+.t-bar.over i { background: #e0705a; outline: 1px solid var(--fg); }
+
+/* --------------------------------------------------------------------- prep view
+   The whole lesson as something a coach reads twenty minutes before class, on
+   paper if they want it. Ink on paper, because that is what prep is. */
+.t-prep {
+  background: #f7f3ea; color: #1a1d29;
+  padding: clamp(20px, 3.4vw, 54px) clamp(16px, 4vw, 72px) clamp(40px, 6vh, 90px);
+  /* Without the height this scroll container has no definite height to scroll
+     against, and at every window over 1100px the document below the fold — eight
+     segments, five note groups, pacing, homework — is unreachable by any means. */
+  height: 100%; overflow-y: auto; min-height: 0;
+}
+.t-prep .doc { max-width: 78ch; margin: 0 auto; display: grid; gap: clamp(14px, 2vh, 26px); }
+.t-prep h2 { margin: 0; font-family: var(--display); font-weight: 400;
+  font-size: clamp(1.7rem, 3.6vw, 3rem); line-height: 1.02; letter-spacing: -0.026em;
+  font-variation-settings: 'opsz' 96, 'SOFT' 0, 'WONK' 0; }
+.t-prep h3 { margin: 0 0 2px; font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #6b6757; font-weight: 500; }
+.t-prep h4 { margin: 6px 0 0; font-family: var(--mono); font-size: 0.58rem;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #2f5a4e; font-weight: 500; }
+.t-prep .kick { margin: 0; font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.16em; text-transform: uppercase; color: #2f5a4e; }
+.t-prep p { margin: 0; font-size: 1rem; line-height: 1.56; color: #34323c; }
+
+.t-prep section { border-top: 1px solid #d8cfbd; padding-top: clamp(10px, 1.6vh, 18px);
+  display: grid; gap: 7px; }
+.t-prep ul, .t-prep ol { margin: 0; padding-left: 1.15em; display: grid; gap: 5px; }
+.t-prep li { font-size: 0.95rem; line-height: 1.48; color: #34323c; }
+.t-prep .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 10px; padding: 0; list-style: none; }
+.t-prep .facts li { border-top: 1px solid #d8cfbd; padding-top: 5px; display: grid; gap: 1px; }
+.t-prep .facts .k { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: #6b6757; }
+.t-prep .facts .v { font-family: var(--mono); font-size: 0.95rem; color: #1a1d29; }
+.t-prep .routine { border: 1px solid #2f5a4e; padding: 10px 12px; display: grid; gap: 4px; }
+.t-prep .routine b { font-family: var(--mono); font-size: 1rem; letter-spacing: 0.08em;
+  color: #2f5a4e; }
+.t-prep code { font-family: var(--mono); font-size: 0.76rem; background: #ece5d6;
+  padding: 0.1em 0.35em; word-break: break-all; }
+.t-prep .san { font-family: var(--mono); font-size: 0.9rem; color: #2f5a4e; }
+
+/* ------------------------------------------------------------------------ small
+   A phone cannot hold three rails. It gets the board and the coach panel, with the
+   flow as a scroller across the top — which is how a coach uses a phone in class:
+   glance, not read. */
+@media (max-width: 1099px) {
+  body.teach { height: auto; overflow: visible; }
+  .t-grid { grid-template-columns: 1fr; height: auto; }
+  .t-rail, .t-stage { overflow: visible; }
+  .t-left { order: 1; }
+  .t-stage { order: 2; }
+  .t-right { order: 3; }
+  /* The strip is cut by the edge of the window, so it says so: a fade the width of
+     half a card, and a scrollbar that is drawn rather than hidden. */
+  .t-flow { grid-auto-flow: column; grid-auto-columns: minmax(10.5rem, 1fr);
+    overflow-x: auto; gap: 4px; padding-bottom: 4px; scroll-snap-type: x proximity;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 34px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 34px), transparent); }
+  .t-flow li { scroll-snap-align: start; }
+  .t-flow::-webkit-scrollbar { height: 5px; }
+  .t-flow::-webkit-scrollbar-thumb { background: var(--line-2); }
+  .t-flow button { border-left: 0; border-bottom: 2px solid transparent;
+    padding: 0.55em 0.6em; }
+  .t-flow li.on button { border-bottom-color: var(--accent); }
+  #t-top { gap: 8px 10px; padding: 9px 14px; }
+  /* Row one is the mark and the view switch; the session identity gets its own line
+     rather than being squeezed against the pills. */
+  .t-back { order: -3; }
+  .t-pick { order: -2; margin-left: auto; }
+  .t-views { order: -2; }
+  .t-id { order: -1; min-width: 100%; }
+  .t-seg { display: none; }
+}
+
+/* ------------------------------------------------------- the console fills the window
+   What keeps the console from piling up at the top of the window: one 1fr row per
+   column, and a board sized by the space that is actually left over rather than by a
+   guess at the viewport. `container-type: size` needs a definite height, which is why
+   this block and `height: 100vh` travel together — and why it is gated on having the
+   room for it: a 1024x600 tablet keeps the scrolling single column instead.
+   README performance note 8 is the same lesson from the landing page: every row that
+   has to hold something inside a fixed-height box is minmax(0, 1fr), never auto. */
+@media (min-width: 1100px), (min-width: 700px) and (min-height: 800px) {
+  body.teach { height: 100vh; overflow: hidden; }
+  .t-grid { height: 100%; }
+  .t-rail, .t-stage { overflow-y: auto; }
+  .t-left { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .t-right { grid-template-rows: auto minmax(8rem, 1fr) auto auto; }
+  .t-stage { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; }
+  /* S115's routine focus is nine sentences long. The panel that holds it takes a
+     quarter of the rail and scrolls inside, so neither the answer nor the clock can be
+     pushed off the bottom of a 720px window. */
+  .t-focus { max-height: 26vh; align-content: start; overflow-y: auto; min-height: 0; }
+  .t-solution { min-height: 0; }
+  .t-board-wrap { container-type: size; }
+  .t-board { width: min(100cqw, 100cqh); }
+}
+@media (min-width: 1100px) {
+  .t-flow { align-content: start; overflow-y: auto; min-height: 0; }
+}
+
+/* ------------------------------------------------------------- tablet, 700-1099
+   Two columns, not one: at 820x1180 a full-width board is 800px tall and pushes the
+   coach panel off the screen entirely, where a 460px board leaves the whole panel
+   beside it and the console still fits the window. The flow keeps the strip it has on
+   a phone, across the top of both columns. */
+@media (min-width: 700px) and (max-width: 1099px) and (min-height: 800px) {
+  .t-grid { grid-template-columns: minmax(0, 1.5fr) minmax(250px, 1fr);
+    grid-template-rows: auto minmax(0, 1fr); }
+  .t-left { grid-column: 1 / -1; grid-template-rows: auto auto auto; }
+  .t-flow { overflow: auto hidden; }
+}
+
+/* A 1280x720 laptop cannot show a 400-word answer, a five-ply line, the clock, the
+   routine and an 8x8 board at once. The reference panel gives up the room first, and
+   the answer keeps its own scrollbar rather than pushing the transport off the rail. */
+@media (min-width: 1100px) and (max-height: 820px) {
+  .t-focus { max-height: 20vh; }
+  .t-plies { max-height: 3.8em; }
+}
+/* On a tall window the reference panel takes the room that would otherwise be dead
+   ground at the foot of the rail, and S115's routine is nearly all visible at once. */
+@media (min-width: 1100px) and (min-height: 1000px) {
+  .t-focus { max-height: 42vh; }
+}
+
+@media (max-width: 560px) {
+  .t-pick { flex: 1 0 100%; margin-left: 0; order: 1; }
+  .t-pick button, .t-views button { padding: 0.45em 0.55em; font-size: 0.56rem; }
+  .t-line-btns { grid-auto-flow: row; grid-template-columns: repeat(2, 1fr); }
+  .t-ctl { grid-auto-flow: row; }
+}
+
+/* The three primaries grow a plate on hover now, so this block does have motion to
+   turn off — and it has to out-specify the (0,2,0) rule that declares it. */
+@media (prefers-reduced-motion: reduce) {
+  .t-pick button, .t-views button, .t-beats button, .t-copy-btn, .t-flow button,
+  .t-plies button, .t-line-btns button, .t-ctl button, .t-reveal { transition: none; }
+  .t-ctl .t-next, .t-ctl .t-play, .t-reveal:hover,
+  .t-ctl .t-next:hover, .t-ctl .t-play:hover { transition: none; transition-delay: 0s; }
+  .board2d img { animation: none; }
+  .t-flow { scroll-behavior: auto; }
+}

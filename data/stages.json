@@ -1,0 +1,280 @@
+{
+  "bundle_version": "1.1.0",
+  "generated": "2026-08-29T06:42:00.122Z",
+  "totals": {
+    "authored": 213,
+    "planned": 213
+  },
+  "stages": [
+    {
+      "number": 1,
+      "piece": "Pawn",
+      "colour": "Green",
+      "slug": "pawn",
+      "ratingBand": "0-500",
+      "ageBand": "5-7",
+      "theme": "The Chess World — rules, pieces, first checkmates, first tactics",
+      "levels": [
+        {
+          "code": "1A",
+          "name": "The Chess World"
+        },
+        {
+          "code": "1B",
+          "name": "First Battles"
+        }
+      ],
+      "sessionsPlanned": 41,
+      "sessionsAuthored": 41,
+      "status": "ready",
+      "units": [
+        {
+          "number": 1,
+          "name": "The Board & The Pieces",
+          "sessions": 7
+        },
+        {
+          "number": 2,
+          "name": "Setting Up & First Skills",
+          "sessions": 6
+        },
+        {
+          "number": 3,
+          "name": "Check & Checkmate",
+          "sessions": 8
+        },
+        {
+          "number": 4,
+          "name": "Winning Material",
+          "sessions": 6
+        },
+        {
+          "number": 5,
+          "name": "Checkmate Skills",
+          "sessions": 6
+        },
+        {
+          "number": 6,
+          "name": "First Tactics & Thinking",
+          "sessions": 8
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "piece": "Knight",
+      "colour": "Blue",
+      "slug": "knight",
+      "ratingBand": "500-900",
+      "ageBand": "7-9",
+      "theme": "Tactical Vision — the full tactical toolkit + first endgames + opening principles",
+      "levels": [
+        {
+          "code": "2A",
+          "name": "Tactical Eyes"
+        },
+        {
+          "code": "2B",
+          "name": "Tactical Hands & First Endgames"
+        }
+      ],
+      "sessionsPlanned": 44,
+      "sessionsAuthored": 44,
+      "status": "ready",
+      "units": [
+        {
+          "number": 1,
+          "name": "Double Attacks",
+          "sessions": 7
+        },
+        {
+          "number": 2,
+          "name": "Discovered Power",
+          "sessions": 7
+        },
+        {
+          "number": 3,
+          "name": "Checkmate Patterns",
+          "sessions": 8
+        },
+        {
+          "number": 4,
+          "name": "Advanced Tactics",
+          "sessions": 7
+        },
+        {
+          "number": 5,
+          "name": "Endgame Foundations",
+          "sessions": 7
+        },
+        {
+          "number": 6,
+          "name": "Opening Principles",
+          "sessions": 8
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "piece": "Bishop",
+      "colour": "Purple",
+      "slug": "bishop",
+      "ratingBand": "900-1300",
+      "ageBand": "8-10",
+      "theme": "The Thinking Player — evaluation, pawn structure, planning, rook endgames",
+      "levels": [
+        {
+          "code": "3A",
+          "name": "The Thinking Player"
+        },
+        {
+          "code": "3B",
+          "name": "The Strategic Player"
+        }
+      ],
+      "sessionsPlanned": 44,
+      "sessionsAuthored": 44,
+      "status": "ready",
+      "units": [
+        {
+          "number": 1,
+          "name": "Evaluation",
+          "sessions": 7
+        },
+        {
+          "number": 2,
+          "name": "Pawn Structure",
+          "sessions": 7
+        },
+        {
+          "number": 3,
+          "name": "Piece Power & Placement",
+          "sessions": 8
+        },
+        {
+          "number": 4,
+          "name": "Planning & Prophylaxis",
+          "sessions": 7
+        },
+        {
+          "number": 5,
+          "name": "Advanced Tactics & Sacrifice",
+          "sessions": 7
+        },
+        {
+          "number": 6,
+          "name": "Rook Endgames & Repertoire",
+          "sessions": 8
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "piece": "Rook",
+      "colour": "Red",
+      "slug": "rook",
+      "ratingBand": "1300-1700",
+      "ageBand": "10-12",
+      "theme": "The Complete Player — attack/defense, calculation, advanced strategy & endgames, tournament skills",
+      "levels": [
+        {
+          "code": "4A",
+          "name": "The Complete Player"
+        },
+        {
+          "code": "4B",
+          "name": "The Competitive Player"
+        }
+      ],
+      "sessionsPlanned": 44,
+      "sessionsAuthored": 44,
+      "status": "ready",
+      "units": [
+        {
+          "number": 1,
+          "name": "Attack & Defense",
+          "sessions": 7
+        },
+        {
+          "number": 2,
+          "name": "Calculation & Visualization",
+          "sessions": 7
+        },
+        {
+          "number": 3,
+          "name": "Advanced Strategy",
+          "sessions": 8
+        },
+        {
+          "number": 4,
+          "name": "Complex Endgames",
+          "sessions": 7
+        },
+        {
+          "number": 5,
+          "name": "Tournament Skills",
+          "sessions": 7
+        },
+        {
+          "number": 6,
+          "name": "Opening Depth",
+          "sessions": 8
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "piece": "Queen",
+      "colour": "Gold",
+      "slug": "queen",
+      "ratingBand": "1700-2000+",
+      "ageBand": "11-14",
+      "theme": "Mastery & Artistry — deep strategy, advanced endgames, analysis, style, competition",
+      "levels": [
+        {
+          "code": "5A",
+          "name": "The Analyst"
+        },
+        {
+          "code": "5B",
+          "name": "The Artist"
+        }
+      ],
+      "sessionsPlanned": 40,
+      "sessionsAuthored": 40,
+      "status": "ready",
+      "units": [
+        {
+          "number": 1,
+          "name": "Deep Strategy",
+          "sessions": 6
+        },
+        {
+          "number": 2,
+          "name": "Advanced Endgames",
+          "sessions": 6
+        },
+        {
+          "number": 3,
+          "name": "The Art of Analysis",
+          "sessions": 8
+        },
+        {
+          "number": 4,
+          "name": "Creative Chess",
+          "sessions": 6
+        },
+        {
+          "number": 5,
+          "name": "Style & Identity",
+          "sessions": 6
+        },
+        {
+          "number": 6,
+          "name": "Competition & The Path Forward",
+          "sessions": 8
+        }
+      ]
+    }
+  ]
+}

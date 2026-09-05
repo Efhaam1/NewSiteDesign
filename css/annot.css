@@ -1,0 +1,825 @@
+/* ============================================================================
+   ACT 4 — the console a coach is handed, named from the outside.
+
+   The act is a two-column diagram. On the left, what the session gives you: the
+   eyebrow, the headline, and five things a coach gets, one line each. On the
+   right, the console /teach opens — the same header, the same eight-segment flow,
+   the same board, the same four controls — at the size this act has room for,
+   with three labels above the plate and three below. Each label carries a
+   hairline leader that drops (or rises) to the edge nearest what it names, so the
+   act reads as a diagram of the instrument rather than a picture of a lesson.
+
+   Every reveal here is a clamp() on the act's own --t / --e / --h drivers, like
+   the rest of the page: no durations, no IntersectionObserver, nothing animated
+   but opacity and transform. Scrolling back up retracts the six callouts in the
+   order they arrived, because the same expression evaluated at a smaller --t is
+   the same shot running backwards.
+
+   THE THREE CLASS NAMES THE GATE RESOLVES STAY PUT. tools/gate.cjs measures
+   `.pane-plan`, `.pane-board` and `.pane-ctl` for silent clipping (assertion 11)
+   and `.board2d` inside `.pane-board` for collapse (assertion 12), all with
+   `document.querySelector`. Rename a rail and both assertions go quiet rather
+   than red — `board-is-a-board` reports "board or pane missing" and
+   `console-panes-fit` records a vacuous pass on an empty list.
+
+   Loaded after product.css, so this file wins every tie with the ACT 4 block.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ the act */
+.session {
+  /* Two columns: the copy, then the figure. `stretch` and a single 1fr row,
+     because the figure's own three rows (labels, plate, labels) have to resolve
+     against the space the pad actually has — an `auto` row grows past its
+     container and that is what used to cut the console in half. */
+  grid-template-columns: minmax(0, clamp(228px, 21.5vw, 344px)) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  column-gap: clamp(24px, 3.2vw, 60px);
+  align-content: stretch;
+
+  /* This one handover is a cover, not a dissolve: the console and the bento are
+     both opaque panel grids, so the bento arrives before the console leaves and
+     slides up over it. */
+  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+  /* the board's own arrival, one step behind the plate it sits in */
+  --k2: clamp(0, calc((var(--e) - 0.62) / 0.34), 1);
+
+  /* the five things a coach gets, dealt in as the act pins */
+  --f1: clamp(0, calc((var(--t) - 0.010) / 0.055), 1);
+  --f2: clamp(0, calc((var(--t) - 0.045) / 0.055), 1);
+  --f3: clamp(0, calc((var(--t) - 0.080) / 0.055), 1);
+  --f4: clamp(0, calc((var(--t) - 0.115) / 0.055), 1);
+  --f5: clamp(0, calc((var(--t) - 0.150) / 0.055), 1);
+  --fm: clamp(0, calc((var(--t) - 0.195) / 0.060), 1);
+
+  /* six callouts, one after another, while the act holds */
+  --c1: clamp(0, calc((var(--t) - 0.20) / 0.06), 1);
+  --c2: clamp(0, calc((var(--t) - 0.25) / 0.06), 1);
+  --c3: clamp(0, calc((var(--t) - 0.30) / 0.06), 1);
+  --c4: clamp(0, calc((var(--t) - 0.35) / 0.06), 1);
+  --c5: clamp(0, calc((var(--t) - 0.40) / 0.06), 1);
+  --c6: clamp(0, calc((var(--t) - 0.45) / 0.06), 1);
+  /* And off again, last in first out, well ahead of the plate — on --t rather than on
+     --h, because the room starts lifting to paper at t 0.62 and by t 0.80 the squares
+     under these six labels measure 0.185 relative luminance where at t 0.5 they
+     measure 0.019. No ink survives both, so the labels leave instead: all six are
+     gone by t 0.805, and the plate itself does not begin to fade until 0.773. */
+  --z6: clamp(0, calc((var(--t) - 0.700) / 0.045), 1);
+  --z5: clamp(0, calc((var(--t) - 0.712) / 0.045), 1);
+  --z4: clamp(0, calc((var(--t) - 0.724) / 0.045), 1);
+  --z3: clamp(0, calc((var(--t) - 0.736) / 0.045), 1);
+  --z2: clamp(0, calc((var(--t) - 0.748) / 0.045), 1);
+  --z1: clamp(0, calc((var(--t) - 0.760) / 0.045), 1);
+}
+
+/* =========================================================== the copy column */
+.ses-copy {
+  display: grid;
+  /* the five rows spread into whatever the four fixed rows leave, so the column
+     fills the same height as the plate beside it instead of stranding its link */
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  row-gap: clamp(13px, 2.1vh, 28px);
+  min-height: 0; min-width: 0;
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+/* the eyebrow's diamond is the brand green here, not the act's blue: this column
+   is what the product gives you, and the link at its foot is the same green */
+.session .kicker { margin: 0; color: var(--pawn); }
+.session .kicker .dot { background: var(--pawn); box-shadow: 0 0 14px var(--pawn); }
+
+.ses-h {
+  /* Act 4's headline used to be the base .d3 unscoped, which is 4.6vw — 66px at
+     1440 — and that no longer fits a 316px column. 3.1vw with a 3.1rem cap holds
+     "a coach sees." on one line from 1100 up. 1.24, not .d3's 0.94: Fraunces at
+     opsz 72 inks past a 1.18em line box, and the measured floor is 1.24. */
+  font-size: clamp(1.55rem, 3.1vw, 3.1rem);
+  line-height: 1.24;
+  letter-spacing: -0.022em;
+  font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0;
+  font-weight: 300;
+  text-wrap: balance;
+  margin: 0;
+}
+.ses-lead { max-width: none; font-size: clamp(0.94rem, 1.16vw, 1.1rem); line-height: 1.55; }
+
+.ses-feat {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; align-content: space-between;
+  gap: clamp(11px, 1.9vh, 30px);
+  min-height: 0;
+}
+.ses-f {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(12px, 1.3vw, 22px);
+  row-gap: 2px;
+  align-items: start;
+}
+.ses-f .ses-ic { grid-row: 1 / span 2; }
+.ses-ft {
+  margin: 0; font-size: clamp(0.92rem, 1.1vw, 1.05rem); font-weight: 500;
+  letter-spacing: -0.008em; color: var(--fg); line-height: 1.24;
+}
+.ses-fd {
+  margin: 0; font-size: clamp(0.8rem, 0.92vw, 0.9rem); line-height: 1.5;
+  color: var(--fg-dim); text-wrap: pretty;
+}
+/* A ringed square in the feature's own hue, the icon inside it in the same ink.
+   The five hues are stage_index.json's, in stage order for the first four; the
+   clock is deliberately neutral, because time is not a stage. */
+.ses-ic {
+  width: clamp(38px, 3.6vw, 54px); aspect-ratio: 1;
+  display: grid; place-items: center;
+  border: 1px solid currentColor; border-radius: 6px;
+}
+.ses-ic svg { width: 52%; height: 52%; display: block; }
+.f-curric  .ses-ic { color: var(--bishop); }
+.f-flow    .ses-ic { color: var(--pawn); }
+.f-puzzles .ses-ic { color: var(--gold); }
+.f-control .ses-ic { color: var(--knight); }
+.f-time    .ses-ic { color: var(--fg-faint); }
+
+/* each row deals in on its own band; the whole column still fades on the handover */
+.f-curric  { opacity: var(--f1); transform: translateY(calc((1 - var(--f1)) * 8px)); }
+.f-flow    { opacity: var(--f2); transform: translateY(calc((1 - var(--f2)) * 8px)); }
+.f-puzzles { opacity: var(--f3); transform: translateY(calc((1 - var(--f3)) * 8px)); }
+.f-control { opacity: var(--f4); transform: translateY(calc((1 - var(--f4)) * 8px)); }
+.f-time    { opacity: var(--f5); transform: translateY(calc((1 - var(--f5)) * 8px)); }
+
+.ses-more {
+  align-self: start; justify-self: start;
+  display: inline-flex; align-items: center; gap: 0.7em;
+  font-size: clamp(0.86rem, 1vw, 0.98rem); font-weight: 500;
+  color: var(--pawn);
+  opacity: var(--fm); transform: translateY(calc((1 - var(--fm)) * 8px));
+  transition: gap 200ms var(--ease);
+}
+.ses-more:hover { gap: 1.1em; }
+/* the arrow is the page's own outlined glyph, not a character: a box with a shaft
+   and a head, so it keeps its weight against the display face above it */
+.ses-arrow {
+  width: 1.5em; height: 1.5em; flex: none; position: relative;
+  border: 1px solid currentColor; border-radius: 3px;
+}
+.ses-arrow::before, .ses-arrow::after {
+  content: ''; position: absolute; background: currentColor;
+}
+.ses-arrow::before { left: 26%; right: 26%; top: calc(50% - 0.5px); height: 1px; }
+.ses-arrow::after {
+  right: 30%; top: 50%; width: 5px; height: 5px;
+  border-right: 1px solid currentColor; border-top: 1px solid currentColor;
+  background: none; transform: translateY(-50%) rotate(45deg); transform-origin: 100% 0;
+}
+
+/* ================================================================= the figure */
+.ses-fig {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0; min-width: 0;
+  /* the same auto-placement trap as the rails: below 901px both bands are
+     `display: none`, and without an explicit row the plate slid onto row 1 and became
+     content-sized — 356px of a 429px row at t=0.5, and every pixel of the difference
+     came off the board */
+  /* S115 is stage 3, and the console wears its session's own stage colour the way
+     /teach does (teach/main.js:68 writes the same hex onto --rook there). Set on
+     the figure, not the plate, so the six callouts and the leaders share it. */
+  --hue: var(--bishop);
+  --hue-soft: rgb(144 112 206 / 0.16);
+}
+
+/* ------------------------------------------------------------- the six callouts */
+.ca-top { grid-row: 1; }
+.console { grid-row: 2; }
+.ca-bot { grid-row: 3; }
+
+.ca-band {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center; align-items: start;
+  min-width: 0;
+}
+/* Centred in its third, left-aligned inside itself: the leader sits at the block's
+   own midpoint, which lands it under the label rather than under the gloss. */
+.ca {
+  position: relative; width: min(100%, 240px);
+  display: grid; justify-items: start; gap: 3px;
+}
+/* THE TOP BAND IS INSIDE THE NAV'S SCRIM, AND THIS PADDING IS THE ONLY LEVER ON IT.
+   `#nav::before` is 240% of #nav's own height of near-opaque gradient (acts.css:39-45)
+   — measured, #nav is 76.8px at 1600x900, so the scrim runs to y 184, and the plate's
+   top edge lands at 184.8. The whole band therefore sat in the darkest half of it: the
+   labels measured 2.8:1 rendered against 8.0:1 nominal, and the same three labels below
+   the plate measured 6.4-8.5:1, which is a difference you can see side by side. No ink
+   fixes it — pure white through 0.43 of that gradient tops out near 4.9:1 — so the band
+   moves down instead, and it is paid for by the 240px above, which takes every gloss in
+   both bands to two lines and gives the bottom band 21px back. Net cost to the plate at
+   1600x900: 19px of height, 19px of board. With it the labels land at y 124 and measure
+   4.8:1. Do not take this padding out without re-measuring both bands. */
+.ca-top { padding-top: clamp(8px, 4.4vh, 44px); }
+.ca1 { opacity: calc(var(--c1) * (1 - var(--z1))); }
+.ca2 { opacity: calc(var(--c2) * (1 - var(--z2))); }
+.ca3 { opacity: calc(var(--c3) * (1 - var(--z3))); }
+.ca4 { opacity: calc(var(--c4) * (1 - var(--z4))); }
+.ca5 { opacity: calc(var(--c5) * (1 - var(--z5))); }
+.ca6 { opacity: calc(var(--c6) * (1 - var(--z6))); }
+.ca1 .ca-r { transform: scaleY(var(--c1)); }
+.ca2 .ca-r { transform: scaleY(var(--c2)); }
+.ca3 .ca-r { transform: scaleY(var(--c3)); }
+.ca4 .ca-r { transform: scaleY(var(--c4)); }
+.ca5 .ca-r { transform: scaleY(var(--c5)); }
+.ca6 .ca-r { transform: scaleY(var(--c6)); }
+
+.ca-l {
+  margin: 0; font-family: var(--mono); font-size: clamp(0.6rem, 0.72vw, 0.72rem);
+  font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--bishop-hi);
+  /* These six labels are the only type in this act with no plate under them, so each
+     one carries its own: a stack of --void halos that makes the local backdrop near
+     black whatever square is behind it. The tint is tokens.css's, and the reason it
+     is a tint rather than --bishop is written there. Verify with
+     `node tools/contrast.cjs <w> <h> 4 <t> '.ca-l' '.ca-n'` at t 0.3 / 0.5 / 0.7. */
+  text-shadow: 0 0 2px var(--void), 0 0 4px var(--void), 0 0 8px var(--void),
+    0 0 15px var(--void), 0 1px 2px var(--void);
+}
+.ca-n {
+  margin: 0; font-size: clamp(0.78rem, 0.9vw, 0.88rem); line-height: 1.4;
+  color: var(--fg-dim); text-wrap: pretty;
+  text-shadow: 0 0 2px var(--void), 0 0 4px var(--void), 0 0 8px var(--void),
+    0 0 15px var(--void), 0 1px 2px var(--void);
+}
+/* The leader: a 1px rule from the label's own midpoint to the plate's edge, ending
+   in a dot on it. It draws itself out of the label on the way in — scaleY only,
+   from a 1px box, so there is nothing here for layout to do. */
+.ca-r {
+  justify-self: center; width: 1px; flex: none; position: relative;
+  height: clamp(16px, 3.4vh, 32px); background: var(--fg-faint);
+}
+.ca-r::after {
+  content: ''; position: absolute; left: -2px; width: 5px; height: 5px;
+  border-radius: 50%; background: var(--bishop-hi);
+}
+.ca-top .ca { align-content: start; }
+.ca-top .ca-r { margin-top: 7px; transform-origin: 50% 0; }
+.ca-top .ca-r::after { bottom: -2px; }
+.ca-bot .ca-r { order: -1; margin-bottom: 7px; transform-origin: 50% 100%; }
+.ca-bot .ca-r::after { top: -2px; }
+
+/* ================================================================ the console */
+.console {
+  position: relative; min-width: 0; min-height: 0;
+  display: grid; gap: 1px;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.56fr) minmax(0, 1.02fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--line);
+  border: 1px solid var(--line-2);
+  /* The plate is the one rounded surface on the page, and it is rounded because it
+     is a screen inside a scene rather than a panel on it. `overflow: hidden` is what
+     makes the corner rails clip to the radius. */
+  border-radius: 14px; overflow: hidden;
+  margin: 0;
+  /* THE PLATE DOES NOT TAKE THE PAPER LIFT. director.js:13-21 ramps seven tokens as the
+     room lifts — --fg, --fg-dim, --fg-faint, --fg-inv, --line, --line-2 and --glass — and
+     act 4's own lift runs t 0.67 to the handover. The old console was --glass, so it
+     became a translucent ivory panel with mid-grey type on it; this one is opaque, which
+     means it is an artefact rather than a surface in the room, and its type and hairlines
+     have to stop following the light. Re-declared locally, with tokens.css's own static
+     equivalents, so every rule below can keep saying var(--line) and var(--fg-dim). */
+  --fg: var(--on-dark);
+  --fg-dim: var(--on-dark-dim);
+  --fg-faint: var(--on-dark-faint);
+  --line: var(--hair);
+  --line-2: var(--hair-strong);
+  opacity: calc(var(--in2) * (1 - var(--out)));
+  transform: perspective(2200px)
+             rotateX(calc((1 - var(--in)) * 16deg))
+             translateY(calc((1 - var(--in)) * 6vh))
+             scale(calc(0.96 + var(--in) * 0.04));
+  transform-origin: 50% 0%;
+}
+/* Opaque, not --glass. The room lifts to paper inside this act, and at 0.88 alpha
+   every rail washed out with it — the console is the artefact, and an artefact does
+   not change colour because the light did. Both grounds are tokens.css's own. */
+.pane {
+  background: var(--ebony); min-width: 0; min-height: 0;
+  padding: clamp(9px, 0.85vw, 15px);
+  display: grid; align-content: start; gap: clamp(6px, 0.85vh, 12px);
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- the header bar */
+.con-top {
+  grid-column: 1 / -1; background: var(--ebony-2);
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: clamp(8px, 1.1vw, 20px);
+  padding: clamp(7px, 0.7vw, 12px) clamp(10px, 0.95vw, 18px);
+}
+.con-brand {
+  margin: 0; display: flex; align-items: center; gap: 0.45em; flex: none;
+  font-family: var(--display); font-size: clamp(0.86rem, 0.95vw, 1.06rem);
+  font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0; color: var(--fg);
+}
+.con-brand .mark { width: 1.05em; height: 1.05em; }
+.con-id { min-width: 0; flex: 1 1 12rem; }
+.con-crumb {
+  margin: 0; font-size: clamp(0.52rem, 0.6vw, 0.62rem); letter-spacing: 0.15em;
+  color: var(--fg-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.con-crumb b { color: var(--hue); font-weight: 500; }
+.con-title {
+  margin: 2px 0 0; font-size: clamp(0.8rem, 0.95vw, 1rem); font-weight: 500;
+  letter-spacing: -0.01em; color: var(--fg);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.con-seg {
+  margin: 0; display: flex; align-items: center; gap: 0.6em; flex: none;
+  border: 1px solid var(--line-2); padding: 0.5em 0.75em;
+  font-size: clamp(0.5rem, 0.58vw, 0.6rem); letter-spacing: 0.14em; color: var(--fg-dim);
+}
+.con-seg b { color: var(--hue); font-weight: 500; }
+.con-pick, .con-views { display: flex; gap: 4px; flex: none; }
+
+/* -------------------------------------------------------------- every control */
+/* One button metric for the whole console, the way /teach has one: a hairline box,
+   mono caps, no fill. `chip-go` is the primary of its pair and wears the hue. */
+.con-b {
+  background: transparent; border: 1px solid var(--line-2); color: var(--fg-dim);
+  font-family: var(--mono); font-size: clamp(0.5rem, 0.58vw, 0.6rem); font-weight: 500;
+  line-height: 1.2; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.55em 0.7em; text-align: center; cursor: pointer; min-width: 0;
+  transition: border-color 180ms var(--ease), color 180ms var(--ease),
+    background 180ms var(--ease);
+}
+.con-b:hover { border-color: var(--hue); color: var(--fg); }
+/* The primary of a pair now FILLS from its leading edge instead of switching to a
+   flat hue on hover, which is the same gesture the hero's secondary makes and the
+   same one the reference component's dot makes — a surface arriving, not a colour
+   swapping. Endpoint unchanged: hue plate, ebony label, the contrast that was
+   measured. The label's own flip is held back 120ms because ebony ink on an
+   unfilled console button is ebony on ebony; by the time it flips the plate is
+   ~70% arrived. No box changes: the fill is a background layer. */
+.con-b.con-go {
+  border-color: var(--hue); color: var(--fg);
+  background-image: linear-gradient(90deg, var(--hue), var(--hue));
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  background-size: 0% 100%;
+  transition: border-color 180ms var(--ease), color 100ms var(--ease),
+              background-size 300ms var(--ease);
+}
+.con-b.con-go:hover {
+  background-size: 100% 100%; color: var(--ebony);
+  transition-delay: 0s, 120ms, 0s;
+}
+.con-b.ok { border-color: var(--hue); color: var(--hue); }
+.con-b[disabled] { opacity: 0.45; cursor: default; }
+.con-brow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; }
+
+/* a rail head, and the panels under it — the console's own micro-label ladder */
+.rail-h {
+  margin: 0; display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; font-family: var(--mono); font-size: clamp(0.5rem, 0.58vw, 0.6rem);
+  font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--fg-faint);
+}
+.rail-h b { color: var(--hue); font-weight: 500; text-align: right; }
+.panel {
+  border: 1px solid var(--line); background: var(--ebony-2);
+  padding: clamp(7px, 0.7vw, 12px); display: grid; gap: 7px; align-content: start;
+  min-height: 0; min-width: 0;
+}
+
+/* ----------------------------------------------------------- rail 1, the plan */
+/* EVERY CHILD OF A BOUNDED RAIL IS PLACED EXPLICITLY. Half of these children are hidden
+   at one window or another, and grid auto-placement slides the `minmax(0, 1fr)` row onto
+   whichever child is left: with `.b-prompt` and `.b-hint` off below 901px the board landed
+   on an `auto` row and rendered 2x2px at all seven of `board-is-a-board`'s windows. Same
+   device, same reason, as teach.css:225-230. */
+.pane-plan { grid-template-rows: auto minmax(0, 1fr) auto; align-content: stretch; }
+.pane-plan > .rail-h { grid-row: 1; }
+.con-flow { grid-row: 2; }
+.panel-pos { grid-row: 3; }
+/* Eight segments in the order they are taught, from the same buildSegments /teach
+   uses. The rail scrolls rather than clipping: a coach reads this list, and the
+   pane the gate watches must not be the thing that cuts it. */
+.con-flow {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 1px;
+  align-content: start; overflow-y: auto; min-height: 0;
+  scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+}
+.con-flow li {
+  display: grid; grid-template-columns: 1.9em minmax(0, 1fr) auto;
+  gap: 8px; align-items: baseline;
+  padding: 0.42em 0.5em; border-left: 2px solid transparent;
+  color: var(--fg-dim);
+}
+.con-flow .n, .con-flow .m {
+  font-family: var(--mono); font-size: clamp(0.46rem, 0.54vw, 0.56rem);
+  color: var(--fg-faint); letter-spacing: 0.06em;
+}
+.con-flow .m { text-align: right; }
+.con-flow .l { font-size: clamp(0.74rem, 0.86vw, 0.86rem); line-height: 1.24; }
+/* --ebony-3 is the lightest ground tokens.css has, and it is what the hue's own numerals
+   need on the row the segment clock is holding: purple is the darkest of the five stage
+   hues and lands at exactly 4.5:1 there. */
+.con-flow li.on { background: var(--ebony-3); color: var(--fg); border-left-color: var(--hue); }
+.con-flow li.on .n, .con-flow li.on .m { color: var(--hue); }
+.con-flow li.done .n { color: var(--fg-dim); }
+
+.panel-pos { gap: 5px; }
+.field-l { margin: 0; font-size: clamp(0.44rem, 0.52vw, 0.54rem); letter-spacing: 0.14em;
+  color: var(--fg-faint); }
+.fen-grp { display: grid; gap: 5px; }
+.fen-v {
+  display: block; font-family: var(--mono); font-size: clamp(0.46rem, 0.54vw, 0.56rem);
+  line-height: 1.5; color: var(--fg-dim); background: rgb(0 0 0 / 0.32);
+  border: 1px solid var(--line); padding: 5px 6px; word-break: break-all;
+}
+.fen-b { justify-self: end; }
+.copy-st { margin: 0; font-size: clamp(0.44rem, 0.52vw, 0.54rem); letter-spacing: 0.12em;
+  color: var(--hue); min-height: 1em; }
+.note { margin: 0; font-size: clamp(0.44rem, 0.52vw, 0.54rem); letter-spacing: 0.11em;
+  line-height: 1.5; color: var(--fg-faint); }
+
+/* ---------------------------------------------------------- rail 2, the board */
+.pane-board {
+  align-content: stretch;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+}
+.b-head { grid-row: 1; }
+.b-prompt { grid-row: 2; }
+.con-beats { grid-row: 3; }
+.b-slot { grid-row: 4; }
+.b-cap { grid-row: 5; }
+.b-hint { grid-row: 6; }
+.b-head { margin: 0; font-size: clamp(0.46rem, 0.56vw, 0.58rem); letter-spacing: 0.15em;
+  color: var(--fg-faint); }
+/* The puzzle's own prompt, at sans rather than display: it is 349 characters, and a
+   display face at that length is a wall. Bounded and scrollable, because the row
+   above the board must never be the thing that collapses the board. */
+.b-prompt {
+  margin: 0; font-size: clamp(0.78rem, 0.94vw, 0.94rem); line-height: 1.44;
+  color: var(--fg); max-height: 7lh; overflow-y: auto; min-height: 0;
+  scrollbar-width: thin; scrollbar-color: var(--line-2) transparent;
+}
+/* mask only, never a layout property: toggling this must not feed back into the box whose
+   overflow decided it. Three of the five window tiers cut this paragraph, and a clamp with no
+   cue reads as a paragraph that failed to draw rather than as one with more below. */
+.b-prompt.clipped {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 15px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 15px), transparent);
+}
+.con-beats { display: flex; gap: 4px; flex-wrap: wrap; }
+.con-beats .con-b { min-width: 2.1em; padding: 0.34em 0.5em; letter-spacing: 0.06em; }
+/* the position on the board is marked by state, not by a class the JS has to remember */
+.con-beats .con-b[aria-current='true'] {
+  background: var(--hue); border-color: var(--hue); color: var(--ebony);
+}
+.con-pick .con-b[aria-current='true'] {
+  background: var(--hue); border-color: var(--hue); color: var(--ebony);
+}
+.con-views .con-b[aria-pressed='true'] {
+  background: var(--hue); border-color: var(--hue); color: var(--ebony);
+}
+/* A size container, not a percentage height. `height: min(100%, 100cqw)` inside a
+   `place-content: center` grid resolves against an auto row that is sized by the item
+   itself, which is circular, and the board came out 0x0. `container-type: size` gives
+   the board both of the slot's axes to read — the slot's own height is definite because
+   it is the rail's `minmax(0, 1fr)` row — and is what /teach sizes its board with. */
+.b-slot { min-height: 0; min-width: 0; display: grid; place-items: center;
+  container-type: size; }
+.b-cap { margin: 0; font-size: clamp(0.78rem, 0.9vw, 0.9rem); line-height: 1.4;
+  color: var(--fg-dim); }
+.b-hint { margin: 0; font-size: clamp(0.44rem, 0.52vw, 0.56rem); letter-spacing: 0.13em;
+  color: var(--fg-faint); }
+
+/* -------------------------------------------------------- rail 3, the controls */
+.pane-ctl { grid-template-rows: auto auto auto auto; align-content: space-between;
+  row-gap: clamp(6px, 0.85vh, 12px); }
+.pane-ctl.open { grid-template-rows: auto minmax(0, 1fr) auto auto;
+  align-content: stretch; }
+.panel-focus { grid-row: 1; }
+.panel-answer { grid-row: 2; }
+.panel-step { grid-row: 3; }
+.panel-clock { grid-row: 4; }
+.meta { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 7px; }
+.meta > div { border-top: 1px solid var(--line); padding-top: 4px; display: grid; gap: 1px; }
+.meta dt { font-family: var(--mono); font-size: clamp(0.44rem, 0.52vw, 0.54rem);
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-faint); }
+.meta dd { margin: 0; font-family: var(--mono); font-size: clamp(0.62rem, 0.74vw, 0.78rem);
+  line-height: 1.32; color: var(--fg); overflow-wrap: anywhere; }
+
+.panel-answer { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.panel-answer.locked { grid-template-rows: auto minmax(0, 1fr) auto; }
+.panel-answer > .rail-h { grid-row: 1; }
+.sol-lead { grid-row: 2; margin: 0; font-size: clamp(0.74rem, 0.86vw, 0.86rem);
+  line-height: 1.36; color: var(--fg-dim); }
+.sol-body { grid-row: 3; display: grid; gap: 5px; align-content: start;
+  overflow-y: auto; min-height: 0; scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent; }
+/* mask only, never a layout property: toggling this must not feed back into the box
+   whose overflow decided it */
+.sol-body.clipped {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
+}
+.panel-answer .reveal { grid-row: 4; }
+/* An author `display` beats the UA's [hidden] rule, so every block this file gives a
+   display to has to say what hidden means for itself. */
+.sol-body[hidden], .prep[hidden], .reveal[hidden] { display: none; }
+.sol-body .san { margin: 0; font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.86vw, 0.9rem); letter-spacing: 0.05em; color: var(--hue); }
+.sol-res { margin: 0; font-family: var(--mono); font-size: clamp(0.5rem, 0.58vw, 0.6rem);
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-dim); }
+.sol-x { margin: 0; font-size: clamp(0.72rem, 0.84vw, 0.84rem); line-height: 1.42;
+  color: var(--fg-dim); }
+.reveal { display: flex; align-items: center; justify-content: center; gap: 0.5em; }
+.reveal kbd { font-family: var(--mono); font-size: 0.92em; opacity: 0.7;
+  border: 1px solid currentColor; border-radius: 2px; padding: 0 0.3em; }
+
+.clk { margin: 0; display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
+.clk b { font-size: clamp(1.06rem, 1.4vw, 1.5rem); font-weight: 500; letter-spacing: -0.02em;
+  color: var(--fg); }
+.clk span { font-family: var(--mono); font-size: clamp(0.46rem, 0.54vw, 0.58rem);
+  color: var(--fg-faint); }
+.clk-bar { height: 3px; background: rgb(244 239 228 / 0.09); position: relative;
+  overflow: hidden; }
+.clk-bar i { position: absolute; inset: 0; background: var(--hue);
+  transform: scaleX(0); transform-origin: 0 50%; }
+/* Over budget swaps the hue, and the clock prints "over by 0:41" beside it — the
+   colour is the second cue, never the only one. */
+.clk-bar.over i { background: var(--rook); }
+
+/* --------------------------------------------------------------- the board face */
+/* The board is exactly as big as its rail has room for, on BOTH axes: `height: 100%`
+   plus `aspect-ratio: 1` makes the width a transferred size suggestion and a grid
+   item's `min-width: auto` floors the used width at it, so `max-width: 100%` alone
+   could not cut it back and the board ran past its column. The rail is an
+   inline-size container so the board can be min(row height, rail content width). */
+.board2d {
+  position: relative; width: min(100cqw, 100cqh); height: auto; max-width: 100%;
+  min-width: 0; aspect-ratio: 1; display: grid;
+  grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+  border: 1px solid var(--line-2);
+  opacity: var(--k2); transform: scale(calc(0.97 + var(--k2) * 0.03));
+}
+/* /teach's own two square colours, so the same position reads the same on both routes */
+.board2d .sq { position: relative; }
+.board2d .sq.l { background: #e8dcc4; }
+.board2d .sq.d { background: #a98a63; }
+/* The ink ring is the cue that does not depend on hue, and the destination is told
+   apart from the origin by its fill rather than by colour alone. */
+.board2d .sq.from::after, .board2d .sq.to::after { content: ''; position: absolute;
+  inset: 0; outline: 3px solid #17120e; outline-offset: -3px; }
+.board2d .sq.to::after { box-shadow: inset 0 0 0 4px var(--hue); }
+.board2d .sq .co { position: absolute; font-family: var(--mono); font-size: 0.46rem;
+  color: rgb(24 16 10 / 0.86); letter-spacing: 0.04em; }
+.board2d .sq .co.f { right: 3px; bottom: 1px; }
+.board2d .sq .co.r { left: 3px; top: 1px; }
+.board2d img { position: absolute; inset: 5%; width: 90%; height: 90%;
+  filter: drop-shadow(0 2px 5px rgb(0 0 0 / 0.42)); }
+
+/* ---------------------------------------------------------------- the prep sheet
+   Paper, laid over the console. Dark is what the coach teaches from and light is
+   what the photocopier gets: prep is read before class, so it is printed. It stops
+   short of the right rail and of the header, so it never covers the PREP control
+   that opened it. Its colours are the static ivory tokens, not the paper-lift
+   drivers — this sheet is paper at every scroll position. */
+.prep {
+  position: absolute; z-index: 3;
+  left: 8px; bottom: 8px; width: min(456px, 46%);
+  max-height: calc(100% - 74px); overflow-y: auto;
+  background: var(--ivory); color: var(--on-light);
+  border: 1px solid rgb(20 20 28 / 0.24);
+  padding: 12px 14px 14px; display: grid; gap: 8px; align-content: start;
+}
+.prep.clipped {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+}
+.prep .mono { color: var(--on-light-dim); }
+.prep-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.prep-k { margin: 0; font-size: 0.47rem; letter-spacing: 0.13em; text-transform: uppercase; }
+.prep-x {
+  background: transparent; border: 1px solid rgb(20 20 28 / 0.3); color: var(--on-light);
+  font-family: var(--mono); font-size: 0.5rem; font-weight: 500; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 0.42em 0.6em; cursor: pointer; flex: none;
+  transition: background 180ms var(--ease), color 180ms var(--ease);
+}
+.prep-x:hover { background: var(--on-light); color: var(--ivory); }
+.prep-t {
+  margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.36rem;
+  line-height: 1.02; letter-spacing: -0.022em;
+  font-variation-settings: 'opsz' 72, 'SOFT' 0, 'WONK' 0;
+}
+.prep-f { margin: 0; padding: 0; list-style: none; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(66px, 1fr)); gap: 6px 10px; }
+.prep-f li { display: grid; gap: 1px; border-top: 1px solid rgb(20 20 28 / 0.18);
+  padding-top: 3px; }
+.prep-f .k { font-size: 0.44rem; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--on-light-dim); }
+.prep-f .v { font-family: var(--mono); font-size: 0.72rem; }
+.prep-s { display: grid; gap: 4px; }
+.prep-s h4 { margin: 0; font-size: 0.44rem; font-weight: 500; letter-spacing: 0.16em; }
+.prep-s p { margin: 0; font-size: 0.74rem; line-height: 1.4; }
+.prep-s ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.prep-s li { font-size: 0.72rem; line-height: 1.34; padding-left: 10px; position: relative; }
+.prep-s li::before { content: ''; position: absolute; left: 0; top: 0.6em;
+  width: 5px; height: 1px; background: rgb(20 20 28 / 0.5); }
+.prep-r { font-family: var(--mono); letter-spacing: 0.09em; }
+.prep-h { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.prep-h li { display: flex; justify-content: space-between; gap: 10px; font-size: 0.72rem;
+  border-bottom: 1px solid rgb(20 20 28 / 0.13); padding-bottom: 2px; }
+.prep-h li.off { color: var(--on-light-dim); }
+.prep-h b { font-weight: 500; }
+.prep-n { margin: 0; font-size: 0.44rem; letter-spacing: 0.13em; text-transform: uppercase; }
+/* the global ring is 2px of --hue, which is a stage colour on ivory. On paper the ring
+   goes to ink so it clears 3:1 against the sheet at every stage. */
+.prep :focus-visible, .prep:focus-visible { outline-color: var(--on-light); }
+
+/* ==================================================================== short desktop
+   1366x768 and 1440x900 both land here: a laptop panel is the common case, and the
+   leaders and the panel metrics are what the act can afford to give back before any
+   content goes. */
+@media (min-width: 901px) and (max-height: 920px) {
+  .ses-copy { row-gap: clamp(10px, 1.5vh, 18px); }
+  .ses-feat { gap: clamp(9px, 1.4vh, 18px); }
+  .panel { padding: 7px 9px; gap: 5px; }
+  .pane { padding: 9px 11px; gap: 6px; }
+  .con-flow li { padding: 0.3em 0.45em; }
+  .b-prompt { max-height: 5lh; }
+}
+
+/* Below about 800px of window the two label bands are 190px of a 560px figure. The
+   labels are what makes the act a diagram, so they stay and their one-line glosses
+   go — a reader on a window this short is not reading a 0.8rem note anyway. Same
+   trade this file made for the four-callout build at 660px. */
+@media (min-width: 901px) and (max-height: 800px) {
+  .ca-n { display: none; }
+  .ca-r { height: clamp(12px, 2.2vh, 20px); }
+  .panel { padding: 6px 8px; gap: 4px; }
+  .pane { padding: 7px 9px; gap: 5px; }
+  .b-prompt { max-height: 4lh; }
+  .clk b { font-size: 1rem; }
+  .con-b { padding: 0.46em 0.6em; }
+}
+
+/* ============================================================= narrow desktop
+   901-1179 wide. The copy column's floor is 228px and the figure's three rails need
+   about 950 between them, so below 1180 the two-column split stops being a split:
+   the copy becomes a head above the plate, the five rows lose their glosses and run
+   across it, and the figure takes the whole width. The six labels stay — the plate
+   is still nearly a thousand pixels wide, which is what a leader needs to land. */
+@media (min-width: 901px) and (max-width: 1179px) {
+  .session {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: clamp(10px, 1.6vh, 20px);
+  }
+  .ses-copy {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-content: start; column-gap: clamp(18px, 2.6vw, 40px); row-gap: 6px;
+  }
+  .ses-copy .kicker { grid-column: 1 / -1; }
+  .ses-h { grid-column: 1; grid-row: 2; font-size: clamp(1.5rem, 2.7vw, 2.3rem); }
+  .ses-lead { grid-column: 2; grid-row: 2; align-self: end; max-width: 40ch; }
+  .ses-feat {
+    grid-column: 1 / -1; grid-row: 3;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-content: start; gap: clamp(8px, 1.2vw, 18px); margin-top: 4px;
+  }
+  .ses-f { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+  .ses-f .ses-ic { grid-row: auto; }
+  .ses-ic { width: clamp(30px, 3vw, 38px); border-radius: 5px; }
+  .ses-fd { display: none; }
+  .ses-more { display: none; }
+  .ca-n { display: none; }
+}
+
+/* The narrow band on a short window: at 981x620 — a gate window — the stacked head, its
+   five-across row and the two label bands took 234px of a 542px pad and left the board 73px,
+   which clears `board-is-a-board`'s 64px floor and is still not a board anyone can read. The
+   five rows go (every claim on them is made by the acts either side), the claim takes the step
+   act 4's own `.d3` used to take here, and the prompt loses two of its five lines to its own
+   scroller. Measured after: 981x620 board 73 -> 151px. */
+@media (min-width: 901px) and (max-width: 1179px) and (max-height: 760px) {
+  .ses-feat { display: none; }
+  .ses-h { font-size: clamp(1.3rem, 2.1vw, 1.8rem); }
+}
+@media (min-width: 901px) and (max-height: 700px) {
+  .b-prompt { max-height: 3lh; }
+}
+
+/* THE COPY COLUMN HAS TO FIT WITHOUT BEING CLIPPED, and on a short window it does not.
+   At 1219x543 — the founder's own window — the five rows asked for 324px of a 233px track,
+   so the fifth row painted under the link and off the bottom of the stage, which
+   `.act-stage { overflow: clip }` hides without a scrollbar or an assertion. The glosses go
+   first (each row's title still names the thing, and the two acts either side make the same
+   claims in full), then the lead below 600 of height. Measured after: 1219x543 `.ses-copy`
+   overflow 91px -> 0. */
+@media (min-width: 901px) and (max-height: 780px) {
+  .ses-fd { display: none; }
+  .ses-f { align-items: center; }
+  .ses-f .ses-ic { grid-row: auto; }
+  .ses-ic { width: clamp(28px, 2.6vw, 38px); border-radius: 5px; }
+  .ses-feat { gap: clamp(8px, 1.4vh, 18px); }
+}
+@media (min-width: 901px) and (max-height: 600px) {
+  .ses-lead { display: none; }
+}
+
+/* ==================================================================== tablet
+   901 down. Three rails do not fit in a column narrower than the board wants, so the
+   console stacks and the BOARD's row is the one that absorbs whatever the header and
+   the controls leave. A grid sizes an `auto` track to max-content before `fr` gets
+   anything, which is what used to collapse the board to 2px here, so the controls
+   rail is capped as a percentage and scrolls inside that cap — nothing is dropped,
+   it is reachable. The plan rail goes: every line on it is on the prep sheet, which
+   is one control away in the same console.
+
+   A tablet is not a diagram either: six leader lines at 900px is a tangle, and the
+   plate no longer has three landing zones across. The labels come off and the copy
+   column keeps the argument. */
+@media (max-width: 900px) {
+  .session {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: clamp(8px, 1.4vh, 16px);
+  }
+  .ses-copy {
+    grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto;
+    align-content: start; row-gap: clamp(7px, 1.2vh, 14px);
+  }
+  .ses-h { font-size: clamp(1.5rem, 6vw, 2.4rem); }
+  .ses-lead { max-width: 46ch; }
+  .ses-feat {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start; gap: 8px clamp(12px, 3vw, 26px);
+  }
+  .ses-f { align-items: center; }
+  .ses-f .ses-ic { grid-row: auto; }
+  .ses-ic { width: 32px; border-radius: 5px; }
+  .ses-fd, .ses-more { display: none; }
+  .ca-band { display: none; }
+
+  .console {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 42%);
+    border-radius: 10px;
+  }
+  .con-brand, .con-seg { display: none; }
+  .con-top { padding: 7px 10px; gap: 8px; }
+  .con-id { flex: 1 1 8rem; }
+  .pane-plan { display: none; }
+  .pane-ctl {
+    grid-template-rows: auto auto auto auto;
+    align-content: start; overflow-y: auto; row-gap: 5px;
+  }
+  .pane-ctl.clipped {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
+  }
+  .b-prompt { display: none; }
+  .b-hint { display: none; }
+  .prep { left: 8px; right: 8px; top: 8px; bottom: 8px; width: auto; max-height: none; }
+}
+
+/* 601-900 has the width to read the controls two at a time, which is 90px of the
+   board's height back on every window in the band. */
+@media (min-width: 601px) and (max-width: 900px) {
+  .pane-ctl { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto; column-gap: 6px; }
+  .panel-focus, .panel-answer, .panel-step, .panel-clock { grid-row: auto; }
+}
+
+/* A tablet under 821px of height cannot hold the argument AND the instrument: measured at
+   900x620 with the head intact, the console got 169px and the board 2px. The head keeps the
+   eyebrow and the two-line claim, at the step act 4's own `.d3` used to take here
+   (product.css's 820 tier cut it to clamp(1.3rem, 2.4vw, 2.1rem)), and the lead and the five
+   rows come off — every one of them is a claim the acts either side of this one also make,
+   and the console is the only thing on the page that is the artefact rather than a claim
+   about it. With them off: board 93px at 900x620, 97 at 601x620, 119 at 700x660, 158 at
+   661x731, all against `board-is-a-board`'s 64px floor. */
+@media (max-width: 900px) and (max-height: 820px) {
+  .ses-h { font-size: clamp(1.15rem, 3.4vw, 1.6rem); }
+  .ses-lead, .ses-feat { display: none; }
+}
+
+/* A phone is one column wide: the console is the whole point of the act and the five rows
+   would push it under its own floor at every height measured (48px of board at 390x844 with
+   them on, 183px with them off). The headline stays, and so does every control. */
+@media (max-width: 600px) {
+  .ses-lead, .ses-feat { display: none; }
+  .panel-focus { display: none; }
+  .con-flow, .fen-v { font-size: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .con-b, .prep-x, .ses-more { transition: none; }
+  /* (0,2,0), because .con-go's own transition above is (0,2,0) and a single-class
+     rule in here would lose to it. The delay goes too, so the fill and the label
+     land together instead of the ink flipping 120ms into nothing. */
+  .con-b.con-go { transition: none; transition-delay: 0s; }
+  .console { transform: none; }
+}
