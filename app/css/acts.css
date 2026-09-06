@@ -393,6 +393,26 @@ html.ready .act-threshold { --b: 1; }
    considered. --fg-dim is the token every `.lead` on the site already uses; no token
    value changed, only which existing one this block reads. */
 .foot p { margin: 0; font-size: 0.56rem; letter-spacing: 0.1em; color: var(--fg-dim); }
+/* The site map, added 2026-09-06 with the supporting pages. It takes its own line ABOVE the
+   brand row — `order: -1` with a full flex basis — rather than squeezing into it: the credit
+   line it would share that row with is 39 words of mono, and a third flex item there took the
+   map to 90px of wrapped text on a 1244px stage. `.foot` already wrapped, so no new layout
+   behaviour enters the act.
+   --fg-dim, not --fg-faint, for the same reason the block below it uses --fg-dim: this sits
+   over the lit board at 0.9 group opacity and faint's measured ceiling there is 3.91:1. The
+   selector is (0,2,0) so it clears product.css:224's single-class `.mono` colour — the exact
+   cascade tie STATE.md's trap list records. */
+.foot .foot-map { flex: 1 0 100%; order: -1; display: flex; flex-wrap: wrap; gap: 3px 14px;
+  /* The credit line's own metric, not .mono's. At 0.66rem/0.19em the five links wrapped to
+     two lines in every container under about 1150px and the 42px that cost took act 8 into
+     11px of stage overflow at 1219x543 — the founder's own window. On the credit line's
+     0.56rem/0.1em they are one line from 700px of container up, the footer reads as one
+     block rather than two type sizes, and the act is back to 0. */
+  font-size: 0.56rem; letter-spacing: 0.1em; }
+.foot-map a { color: var(--fg-dim); padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease); }
+.foot-map a:hover { color: var(--fg); border-bottom-color: var(--hue); }
 
 /* Short windows: the acts thin themselves rather than being cut off. Act 2's
    ten rows and act 7's two blocks are where the height actually is. */
@@ -452,7 +472,16 @@ html.ready .act-threshold { --b: 1; }
 .act-spine { height: 300vh; }
 .act-stages { height: 760vh; }
 .act-session { height: 540vh; }
-.act-system { height: 460vh; }
+/* 760vh, up from 460vh on 2026-09-05, and it is the same value act 4 has rather than a
+   new one. The act stopped being eight cards that are all present at t 0.1 and became a
+   diagram that assembles, turns, and then holds: six figures at 0.048 apart, a control,
+   the ream, and the payoff. --h opens at (H - 200vh)/(H - 100vh), so at 460vh the whole
+   story had to be told by t 0.722 and each figure got 0.048 x 360vh = 17vh — a flick of
+   a trackpad. At 760vh the same beat is 32vh, the story closes at t 0.715, and 0.13 of
+   the pin (86vh) passes with the diagram complete and motionless before the handover.
+   Act heights carry no narrative weight: `n` is act index plus local progress, so this
+   moves no frame of the camera and no band in director.js. */
+.act-system { height: 760vh; }
 .act-terms { height: 400vh; }
 .act-promotion { height: 400vh; }
 
@@ -463,7 +492,7 @@ html.ready .act-threshold { --b: 1; }
   .act-spine { height: 240vh; }
   .act-stages { height: 620vh; }
   .act-session { height: 460vh; }
-  .act-system { height: 420vh; }
+  .act-system { height: 620vh; }
   .act-terms { height: 340vh; }
   .act-promotion { height: 340vh; }
 }

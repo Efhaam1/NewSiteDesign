@@ -8,7 +8,7 @@ import { Director, ACTS } from './gl/director.js';
 import { ScrollEngine } from './scroll.js';
 import { buildConsole } from './ui/console.js';
 import { buildStages } from './ui/stages.js';
-import { buildBento } from './ui/bento.js';
+import { buildSystem } from './ui/system.js';
 import { buildLadder, buildScrub, buildProof, buildReadout, buildLevels, bindPlates } from './ui/chrome.js';
 import { buildCompare } from './ui/compare.js';
 import { buildSunday } from './ui/sunday.js';
@@ -20,10 +20,13 @@ const STAGE_NAMES = ['pawn stage', 'knight stage', 'bishop stage', 'rook stage',
 const json = (p) => fetch(p).then((r) => r.json());
 
 async function boot() {
-  const [stages, catalog, showcase, variance, pricing] = await Promise.all([
+  const [stages, catalog, showcase, variance, pricing, inventory, pathways, tracks] = await Promise.all([
     json('/data/stages.json'), json('/data/catalog.json'),
     json('/data/showcase.json'), json('/data/variance.json'),
     json('/data/pricing.json'),
+    // act 6's two: the roll-up tools/inventory.cjs counts off the curriculum repo's 213
+    // authored session files, and the delivery pathways, copied from the same bundle.
+    json('/data/inventory.json'), json('/data/pathways.json'), json('/data/tracks.json'),
   ]);
 
   // ------------------------------------------------------------------- DOM first
@@ -42,7 +45,11 @@ async function boot() {
   let sessionAct = null;
   const playPuzzle = buildConsole(document.getElementById('console'), showcase.data.S115,
     { active: () => !!(sessionAct && sessionAct.active) });
-  const updateBento = buildBento(document.getElementById('bento'), stages, catalog);
+  // Act 6. Same session as acts 1 and 5 on purpose: the reader opens S115 in act 1,
+  // teaches it in act 5, and here learns that everything they were just shown exists
+  // 213 times. Nothing in it is written per frame - see the note at the top of system.js.
+  buildSystem(document.getElementById('sysfield'),
+    { lesson: showcase.data.S115, inventory, pathways, tracks, stages, catalog });
   buildCompare(document.getElementById('compare'), variance, catalog, stages);
   const sunSegs = buildSunday(document.getElementById('sun-rail'), showcase.data.S115, catalog);
   buildRate(document.getElementById('rate'), pricing);
@@ -90,7 +97,6 @@ async function boot() {
   const act = (name) => engine.acts.find((a) => a.name === name);
   const aSession = act('session');
   sessionAct = aSession;
-  const aSystem = act('system');
   const aSpine = act('spine');
 
   // ------------------------------------------------------------ adaptive quality
@@ -153,10 +159,6 @@ async function boot() {
     // the "now passing" card no longer names the exact tile the light head is standing on.
     if (aSpine?.active) { updateScrub(aSpine.t); updateLevels(aSpine.t); }
     if (aSession?.active) playPuzzle(aSession.t);
-    // the cells start dealing while the stage is still sliding in, so the plan
-    // view is never a bare board waiting for cards
-    if (aSystem?.active) updateBento(Math.max(aSystem.t, (aSystem.e - 0.34) / 0.5));
-
     // A long frame counts against the tier; a run of short ones earns it back.
     // Weighting by the overrun stops one 200ms hitch from demoting the whole page.
     const ms = dt * 1000;

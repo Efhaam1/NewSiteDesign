@@ -25,11 +25,23 @@ const TYPES = {
 
 http
   .createServer((req, res) => {
-    const url = decodeURIComponent(req.url.split('?')[0]);
+    const [rawPath, query] = req.url.split('?');
+    const url = decodeURIComponent(rawPath);
+
+    // ONE URL PER PAGE. /curriculum and /curriculum/ are two different URLs to a crawler,
+    // and before this both returned 200 with identical bodies — a duplicate that
+    // rel=canonical then has to clean up as a hint rather than as a fact. The site links
+    // and canonicalises the unslashed form, so the slashed one is a permanent redirect to
+    // it. The root is the documented exception: https://host and https://host/ are the
+    // same URL.
+    if (url.length > 1 && url.endsWith('/')) {
+      res.writeHead(301, { Location: url.replace(/\/+$/, '') + (query ? '?' + query : '') }).end();
+      return;
+    }
+
     let file = path.join(ROOT, url);
-    // /teach and /teach/ both mean app/teach/index.html
-    if (url.endsWith('/')) file = path.join(file, 'index.html');
-    else if (!path.extname(file) && fs.existsSync(path.join(file, 'index.html'))) {
+    // A directory means its index.html: /teach, /curriculum, /curriculum/pawn.
+    if (!path.extname(file) && fs.existsSync(path.join(file, 'index.html'))) {
       file = path.join(file, 'index.html');
     }
     if (!file.startsWith(ROOT)) {
@@ -38,10 +50,12 @@ http
     }
     fs.stat(file, (err, stat) => {
       if (err || stat.isDirectory()) {
-        const fallback = path.join(ROOT, 'index.html');
-        fs.readFile(fallback, (e, buf) => {
-          if (e) return res.writeHead(404).end('not found');
-          res.writeHead(200, { 'Content-Type': TYPES['.html'] }).end(buf);
+        // A REAL 404. This used to serve the homepage with a 200, which is a soft 404: a
+        // crawler stores a copy of the front page under every wrong URL anyone ever links
+        // to, and reports it as a duplicate rather than as missing.
+        fs.readFile(path.join(ROOT, '404.html'), (e, buf) => {
+          if (e) return res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('not found');
+          res.writeHead(404, { 'Content-Type': TYPES['.html'] }).end(buf);
         });
         return;
       }

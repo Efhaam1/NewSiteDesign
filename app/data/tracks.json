@@ -1,0 +1,40 @@
+{
+ "$comment": "AUTHORED, like pricing.json, and the one act-6 data file that is not a count. Every field below is transcribed from a decision record or its plan - the reference is on the field. Do not add a field that has no `from`.",
+ "_source": "CurriculumWebsite/docs/decisions/0004-two-track-delivery.md (accepted 2026-07-26) for the two tracks, their names and their bands; docs/curriculum/two-track-differentiation-plan.md §1.2 for the axes; ChessCurriculumProject/curriculum/pathways.json for the Stage-1 compression figure Challenger cites.",
+ "label": "the same sessions, two ways to run them",
+ "aside": "set per group · a coach can override per child",
+ "asideFrom": "two-track-differentiation-plan.md §5: 'Track choice is a per-group setting the academy makes; coaches can override per child (age ≠ level — a strong 7-year-old can run Challenger).'",
+ "tracks": {
+  "explorer": {
+   "name": "Explorer",
+   "ages": "5–7",
+   "blocks": "5–8 minute blocks",
+   "positions": "Foundation and Core are the set, Challenge is the coach's to show",
+   "play": "mini-games before full games",
+   "from": "ADR-0004 (≈5–7; shorter segments, more guided practice and mini-games, fewer but higher-quality puzzles, slower abstraction); plan §1.2 (5–8 min blocks, more transitions; subset of 4–5 of the 8, the Foundation/Core tier; mini-games first, full games later)",
+   "tier": {
+    "Foundation": "the set",
+    "Core": "the set",
+    "Challenge": "coach shows"
+   },
+   "short": "5–8 minute blocks · Foundation and Core are the set"
+  },
+  "challenger": {
+   "name": "Challenger",
+   "ages": "8–12",
+   "blocks": "10–15 minute blocks",
+   "positions": "all eight, with the Challenge tier the point of the hour",
+   "play": "notation and full games early",
+   "from": "ADR-0004 (≈8–12; faster pacing, merged introductory concepts, earlier notation/coordinates, harder puzzles, earlier practical games); plan §1.2 (10–15 min blocks; all 8, Challenge tier emphasized; full games early; notation introduced early)",
+   "tier": {
+    "Foundation": "warm-up",
+    "Core": "the set",
+    "Challenge": "the point"
+   },
+   "short": "10–15 minute blocks · all eight, Challenge the point"
+  }
+ },
+ "shared": "Both tracks reach the same educational outcomes; the difference is HOW, not WHAT.",
+ "sharedFrom": "ADR-0004, verbatim",
+ "shortNote": "The one-line form the shortest phones print instead of the full readout, so no window loses a clause mid-sentence. Same device as pricing.json's `addsShort`."
+}

@@ -1,0 +1,363 @@
+/* ============================================================================
+   /curriculum — the map, and /curriculum/<stage> — the detail.
+
+   THE MAP IS A DOCUMENT WITH A TABLE OF CONTENTS, not a component. 213 session rows
+   nested three deep under a rail that stays on screen: that is what a syllabus of
+   this size actually wants, and it is why there is no accordion here. Every row is
+   present and open. The filter hides rows a reader asked to hide; it is the only
+   thing on the page that removes anything, and with the script off nothing is
+   removed at all.
+
+   THE HUE IS ALWAYS A MARK, NEVER A WORD. The five stage colours are curriculum
+   data (stage_index.json declares one per stage) and on this ground they measure
+   2.06:1 to 3.31:1 — so a stage's colour is its band edge, its rail tick and its
+   kicker diamond, and the stage's NAME is ink every time. The same trade act 7
+   recorded for gold.
+   ========================================================================== */
+
+/* -------------------------------------------------------- the four-word explainer */
+.cu-shape {
+  display: grid; gap: clamp(18px, 2.4vw, 36px);
+  grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+  margin: clamp(22px, 3vh, 34px) 0 clamp(24px, 3.4vh, 40px);
+}
+.cu-shape > div { display: grid; gap: 8px; align-content: start;
+  padding-top: 0.8em; border-top: 2px solid var(--line-2); }
+.cu-shape > div > p:first-child { color: var(--fg-faint); }
+.cu-shape h3 { font-size: 1rem; }
+.cu-shape > div > p:last-child { color: var(--fg-dim); font-size: 0.92rem; }
+
+.cu-two {
+  display: grid; gap: clamp(22px, 3.4vw, 52px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: start; margin-top: clamp(20px, 3vh, 30px);
+}
+.cu-two > div:first-child { display: grid; gap: clamp(14px, 2vh, 20px); }
+
+/* ==================================================================== the map */
+.cu-map { padding-bottom: clamp(56px, 8vh, 110px); }
+.cu-head { max-width: 74ch; margin-bottom: clamp(24px, 3.4vh, 40px); }
+.cu-head h2 { margin-bottom: 0.5em; }
+.cu-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-top: clamp(16px, 2.2vh, 22px); }
+/* Without the script the filter cannot do anything, so it is not offered. */
+body:not(.js) .cu-filter { display: none; }
+.cu-count { margin-top: 10px; color: var(--fg-faint); min-height: 1.2em; }
+
+.cu-grid {
+  display: grid; gap: clamp(20px, 3vw, 54px);
+  grid-template-columns: 208px minmax(0, 1fr);
+  align-items: start;
+}
+
+/* -------------------------------------------------------- the stage-length chart
+   One bar per stage, its width the stage's share of the longest stage, split at the
+   level boundary, with an ink tick where each level's graded session sits. The hue is
+   the bar; every value it encodes is also printed as text beside it, so nothing here
+   depends on colour. */
+.cu-mini { margin: 0; display: grid; gap: 10px; align-content: start; }
+.cu-mini figcaption { color: var(--fg-faint); }
+.cu-mini ol { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(8px, 1.2vh, 12px); }
+.cu-mini li {
+  display: grid; grid-template-columns: minmax(78px, auto) minmax(0, 1fr) 2.2em;
+  gap: 2px 12px; align-items: center;
+}
+.cu-mt { display: grid; gap: 0; }
+.cu-mt b { font-weight: 500; font-size: 0.9rem; line-height: 1.2; }
+.cu-mt .mono { font-size: 0.5rem; letter-spacing: 0.1em; color: var(--fg-dim); }
+.cu-mb { display: flex; gap: 3px; width: var(--w); height: 9px; }
+.cu-mb i { background: var(--hue); position: relative; min-width: 3px; }
+/* the gate. 2px of ink at the closing edge of each level, standing above and below the
+   bar so it reads as a boundary rather than as part of the fill. */
+.cu-mb i::after {
+  content: ''; position: absolute; right: 0; top: -3px; bottom: -3px; width: 2px;
+  background: var(--fg);
+}
+.cu-mc { font-size: 0.8rem; color: var(--fg-dim); text-align: right; }
+.cu-mk { display: flex; align-items: center; gap: 0.6em; color: var(--fg-dim);
+  padding-top: 0.6em; border-top: var(--rule) solid var(--line); margin: 2px 0 0;
+  font-size: 0.5rem; }
+.cu-mk span { width: 2px; height: 13px; background: var(--fg); flex: none; }
+
+/* -------------------------------------------------------------------- the rail
+   Sticky, its own scroller, and real links — so it works before the script marks a
+   section, and it keeps working if the script never arrives. */
+.cu-rail {
+  position: sticky; top: clamp(12px, 2vh, 22px);
+  align-self: start; max-height: calc(100vh - clamp(24px, 4vh, 44px));
+  overflow-y: auto; overscroll-behavior: contain;
+  padding-right: 6px;
+}
+.cu-rail::-webkit-scrollbar { width: 5px; }
+.cu-rail::-webkit-scrollbar-thumb { background: var(--line-2); }
+.cu-rail-h, .cu-rail-f { color: var(--fg-faint); margin: 0; }
+.cu-rail-f { padding-top: 0.7em; border-top: var(--rule) solid var(--line); margin-top: 12px; }
+.cu-rail > ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 2px; }
+.cu-rail > ol > li { display: grid; }
+.cu-rail > ol > li > a {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px;
+  align-items: baseline; padding: 0.5em 0.6em 0.5em 0.7em;
+  border-left: 2px solid var(--line);
+  transition: border-color 200ms var(--ease), background 200ms var(--ease);
+}
+.cu-rn { grid-column: 1; color: var(--fg-faint); font-size: 0.5rem; letter-spacing: 0.14em; }
+.cu-rt { grid-column: 1; font-weight: 500; font-size: 0.94rem; }
+.cu-rc { grid-column: 2; grid-row: 1 / span 2; align-self: center;
+  color: var(--fg-faint); font-variant-numeric: tabular-nums; }
+.cu-rail > ol > li > a:hover { background: var(--plate); border-left-color: var(--hue); }
+.cu-rail > ol > li.is-on > a { border-left-color: var(--hue); background: var(--plate); }
+.cu-rail > ol > li.is-on .cu-rt { color: var(--fg); }
+.cu-rail > ol > li.is-on .cu-rc { color: var(--fg-dim); }
+/* The two levels under a stage only open for the stage a reader is in. Before the
+   script runs they are all open, which is correct: the whole contents, visible. */
+.cu-rail ul { list-style: none; margin: 0; padding: 0 0 0 0.7em; display: grid; gap: 1px; }
+.js .cu-rail > ol > li:not(.is-on) > ul { display: none; }
+.cu-rail ul a {
+  display: grid; grid-template-columns: 2.4em minmax(0, 1fr); gap: 6px;
+  align-items: baseline; padding: 0.34em 0.5em; font-size: 0.8rem; color: var(--fg-dim);
+  border-left: 2px solid var(--line);
+}
+.cu-rail ul a:hover { color: var(--fg); border-left-color: var(--line-2); background: var(--plate); }
+.cu-rail ul .mono { font-size: 0.5rem; letter-spacing: 0.1em; color: var(--fg-dim); }
+
+/* ------------------------------------------------------------------- the bands */
+.cu-bands { display: grid; gap: clamp(34px, 5vh, 68px); min-width: 0; }
+.cu-band { display: grid; gap: clamp(18px, 2.6vh, 28px); scroll-margin-top: 18px; }
+.cu-bh {
+  display: grid; gap: 10px; align-content: start;
+  padding-top: clamp(14px, 1.8vh, 20px); border-top: 2px solid var(--hue);
+}
+.cu-bn { display: flex; align-items: center; gap: 0.7em; color: var(--fg-dim); margin: 0; }
+.cu-bn .dot { width: 6px; height: 6px; background: var(--hue); transform: rotate(45deg); flex: none; }
+.cu-bh h2 { max-width: 26ch; }
+.cu-bt { color: var(--fg-dim); max-width: 62ch; }
+.cu-bd {
+  display: flex; flex-wrap: wrap; gap: 2px clamp(16px, 2vw, 34px); margin: 4px 0 2px;
+}
+.cu-bd > div { display: grid; gap: 1px; }
+.cu-bd dt { color: var(--fg-faint); margin: 0; }
+.cu-bd dd { margin: 0; font-family: var(--mono); font-size: 0.82rem;
+  font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------- level and unit
+   Two nested heads and then rows. The level head is the one that names the gate,
+   because the gate is what the level is for. */
+.cu-l { display: grid; gap: clamp(12px, 1.8vh, 18px); scroll-margin-top: 18px; }
+.cu-lh {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 4px 18px; padding-bottom: 0.5em; border-bottom: var(--rule) solid var(--line-2);
+}
+.cu-lh h3 { display: flex; align-items: baseline; gap: 0.7em; font-size: 1.06rem; }
+.cu-lc { color: var(--fg-faint); font-size: 0.58rem; letter-spacing: 0.14em; }
+.cu-lm { color: var(--fg-dim); margin: 0; text-transform: none; letter-spacing: 0.1em;
+  font-size: 0.55rem; }
+.cu-lm b { color: var(--fg); font-weight: 500; }
+
+.cu-u { display: grid; gap: 6px; }
+.cu-uh {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.7em;
+  font-weight: 400; font-size: 0.9rem;
+}
+.cu-uh .mono { color: var(--fg-dim); font-size: 0.52rem; }
+.cu-un { font-weight: 500; }
+.cu-uc { margin-left: auto; color: var(--fg-dim); font-size: 0.5rem; }
+
+/* --------------------------------------------------------------- the session row
+   The one place on the site where 213 of something are listed, so the row is as
+   quiet as it can be and still be scannable: an ordinal, a title, a count, a badge.
+   No id — S115 is a handle, not copy — but the anchor keeps the number. */
+.cu-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.cu-s {
+  display: grid; align-items: baseline; gap: 2px 12px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 0.44em 0.5em 0.44em 0;
+  border-top: var(--rule) solid var(--line);
+  border-left: 2px solid transparent;
+}
+.cu-s:last-child { border-bottom: var(--rule) solid var(--line); }
+.cu-t {
+  display: grid; grid-template-columns: 2.9em minmax(0, 1fr); gap: 0.6em;
+  align-items: baseline; font-size: 0.92rem;
+  padding-left: 0.5em;
+  /* No rest-state underline, and only here. In a list where EVERY row is a link, 213
+     underlines are noise rather than affordance — the convention for a list or a table is
+     an underline on hover, which is what the row rule below does. Prose links keep theirs. */
+  text-decoration: none;
+}
+.cu-n { color: var(--fg-faint); font-size: 0.68rem; text-align: right; }
+.cu-p { color: var(--fg-dim); font-size: 0.5rem; letter-spacing: 0.12em;
+  white-space: nowrap; }
+.cu-c { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.cu-s:hover { background: var(--plate); border-left-color: var(--line-2); }
+.cu-s:hover .cu-t { text-decoration: underline; text-decoration-color: var(--line-2);
+  text-underline-offset: 0.18em; }
+/* A graded session is the end of a level, so it carries the stage's own edge. */
+.cu-s.is-gate { border-left-color: var(--hue); background: var(--hue-soft); }
+.cu-s.is-gate .cu-t { font-weight: 500; }
+
+/* The filter. Rows a reader asked not to see are `hidden` by the script, which also
+   hides any unit, level or band left with nothing in it — a head over an empty list
+   reads as a bug. */
+.cu-s[hidden], .cu-u[hidden], .cu-l[hidden], .cu-band[hidden] { display: none !important; }
+
+/* ------------------------------------------------------------- the free sessions */
+.cu-free {
+  display: grid; gap: clamp(12px, 1.6vw, 20px); margin: clamp(20px, 3vh, 30px) 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
+}
+.cu-fc {
+  display: grid; gap: 8px; align-content: start; border-left: 2px solid var(--hue);
+  transition: box-shadow 260ms var(--ease), transform 260ms var(--ease);
+}
+.cu-fc .mono { display: flex; align-items: center; gap: 0.6em; color: var(--fg-dim); }
+.cu-fc .dot { width: 5px; height: 5px; background: var(--hue); transform: rotate(45deg); flex: none; }
+.cu-fc h3 { font-size: 1.04rem; }
+.cu-fo { color: var(--fg-dim); font-size: 0.9rem; }
+.cu-fm { color: var(--fg-dim); font-size: 0.5rem; }
+.cu-fc:hover { transform: translateY(-2px);
+  box-shadow: 0 2px 3px rgb(20 20 28 / 0.06), 0 10px 26px rgb(20 20 28 / 0.10); }
+
+/* ======================================================= /curriculum/<stage> */
+.st-hero .pg-kick { color: var(--fg-dim); }
+
+/* One column, not two. The arc is four or five sentences and the two gate plates carry
+   full objectives, so a side-by-side split left 300px of empty column under the prose at
+   every width above 1100px. Prose at its own measure, then the two gates as a row beneath
+   it — which also gives each objective the width it needs to be read. */
+.st-arc { display: grid; gap: clamp(24px, 3.4vh, 40px); }
+.st-arc > div:first-child { max-width: 74ch; }
+/* Exactly two, because every stage has exactly two levels. `auto-fit` was wrong here and
+   in a way worth recording: the label above the pair and the note under it both span
+   `1 / -1`, which makes every repeated track non-empty, so nothing collapses — the grid
+   stayed three tracks wide and the two plates sat in 65% of the row. */
+.st-gates { display: grid; gap: 12px; align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.st-gates > .mono, .st-gates > .pg-from { grid-column: 1 / -1; }
+.st-gates > .mono { color: var(--fg-faint); margin: 0; }
+.st-gates .pg-plate { display: grid; gap: 6px; }
+.st-gates .pg-plate .mono { color: var(--fg-dim); }
+.st-gates h3 { font-size: 1rem; }
+.st-gates .pg-plate p:last-child { color: var(--fg-dim); font-size: 0.88rem; }
+.pg-from { color: var(--fg-dim); margin: 0; font-family: var(--mono); font-size: 0.5rem;
+  letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.7; }
+
+.st-ut { margin-top: clamp(16px, 2.4vh, 26px); }
+.st-ut td a { text-decoration: underline; text-decoration-color: var(--line-2);
+  text-underline-offset: 0.16em; }
+.st-ut td a:hover { text-decoration-color: var(--fg); }
+.st-ut .mono { color: var(--fg-dim); font-size: 0.5rem; }
+
+/* ------------------------------------------------- every session, with its objective */
+.st-all { }
+.st-all .lead { margin-bottom: clamp(24px, 3.4vh, 40px); }
+.st-l { display: grid; gap: clamp(16px, 2.4vh, 26px); margin-bottom: clamp(30px, 4.4vh, 56px);
+  scroll-margin-top: 18px; }
+.st-lh {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 4px 18px; padding-bottom: 0.55em; border-bottom: 2px solid var(--hue);
+}
+.st-lh h3 { display: flex; align-items: baseline; gap: 0.7em; font-size: 1.14rem; }
+.st-lh h3 .mono { color: var(--fg-faint); font-size: 0.56rem; letter-spacing: 0.14em; }
+.st-lh > .mono { color: var(--fg-dim); margin: 0; font-size: 0.55rem; }
+
+.st-u { display: grid; gap: 10px; margin-top: clamp(10px, 1.6vh, 16px); scroll-margin-top: 18px; }
+.st-u h4 {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.7em;
+  font-size: 0.98rem; padding-bottom: 0.45em; border-bottom: var(--rule) solid var(--line-2);
+}
+.st-u h4 .mono { color: var(--fg-dim); font-size: 0.52rem; }
+.st-uc { margin-left: auto; }
+
+.st-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.st-s {
+  display: grid; gap: 5px; padding: clamp(11px, 1.5vh, 16px) 0;
+  border-bottom: var(--rule) solid var(--line);
+  scroll-margin-top: 20px;
+}
+.st-sh {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35em 0.7em;
+}
+.st-sh b { font-weight: 500; font-size: 1rem; letter-spacing: -0.008em; }
+.st-n {
+  color: var(--fg-faint); font-size: 0.7rem; min-width: 2.6em; text-align: right; flex: none;
+}
+.st-m { color: var(--fg-dim); font-size: 0.5rem; margin-left: auto; white-space: nowrap; }
+.st-free {
+  font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.13em; text-transform: uppercase;
+  border: var(--rule) solid var(--fg); border-radius: 3px; padding: 0.28em 0.46em;
+  transition: background 200ms var(--ease), color 200ms var(--ease);
+}
+.st-free:hover { background: var(--fg); color: var(--fg-inv); }
+/* The concept is the short line and the objective is the paragraph, which is what
+   stops a page of 44 objectives reading as one wall — the two do different jobs and
+   39 of the 213 sessions carry no concept, so the row has to work without it. */
+.st-c { padding-left: 3.3em; font-weight: 500; font-size: 0.93rem; max-width: 76ch; }
+.st-o { padding-left: 3.3em; color: var(--fg-dim); font-size: 0.92rem; max-width: 82ch; }
+.st-x { padding-left: 3.3em; color: var(--fg-dim); font-size: 0.5rem; }
+.st-s.is-gate { background: var(--hue-soft); border-left: 2px solid var(--hue);
+  padding-left: 0.7em; margin-left: -0.7em; }
+.st-s.is-gate .st-sh b { font-weight: 500; }
+.st-s:target { background: var(--plate); box-shadow: inset 2px 0 0 0 var(--fg); }
+
+.st-onward {
+  display: grid; gap: clamp(12px, 1.6vw, 20px); margin: clamp(20px, 3vh, 32px) 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+}
+.st-on { display: grid; gap: 6px; align-content: start; border-left: 2px solid var(--hue);
+  transition: box-shadow 260ms var(--ease), transform 260ms var(--ease); }
+.st-on .mono { display: flex; align-items: center; gap: 0.6em; color: var(--fg-dim); }
+.st-on .dot { width: 5px; height: 5px; background: var(--hue); transform: rotate(45deg); flex: none; }
+.st-on h3 { font-size: 1.02rem; }
+.st-on .mono:last-child { color: var(--fg-dim); font-size: 0.5rem; }
+.st-on:hover { transform: translateY(-2px);
+  box-shadow: 0 2px 3px rgb(20 20 28 / 0.06), 0 10px 26px rgb(20 20 28 / 0.10); }
+
+/* ================================================================== responsive
+   The rail is the one thing that has to become something else. Above 900px it is a
+   sticky column; below, it is a scrollable strip of five stage chips pinned under the
+   header, which is the same job in the shape a thumb can use. */
+@media (max-width: 980px) {
+  .cu-grid { grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 2.4vh, 24px); }
+  .cu-rail {
+    position: sticky; top: 0; z-index: 5; max-height: none; overflow: visible;
+    background: var(--paper); padding: 8px 0 10px;
+    box-shadow: 0 1px 0 0 var(--line), 0 8px 14px -10px rgb(20 20 28 / 0.18);
+  }
+  .cu-rail-h, .cu-rail-f { display: none; }
+  .cu-rail > ol {
+    grid-auto-flow: column; grid-auto-columns: max-content; gap: 6px; margin: 0;
+    overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .cu-rail > ol::-webkit-scrollbar { display: none; }
+  .cu-rail > ol > li > a {
+    grid-template-columns: auto auto; gap: 0 0.5em; align-items: center;
+    border: var(--rule) solid var(--line-2); border-left-width: 2px; border-radius: 4px;
+    padding: 0.42em 0.7em;
+  }
+  .cu-rn { display: none; }
+  .cu-rt { grid-column: 1; grid-row: 1; font-size: 0.86rem; }
+  .cu-rc { grid-column: 2; grid-row: 1; }
+  .cu-rail ul { display: none !important; }
+  .cu-two { grid-template-columns: minmax(0, 1fr); }
+  .st-gates { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+  /* The badge column is the first thing to go: the type is already in the title's
+     own row on the stage page, and a 213-row map needs its title width more. */
+  .cu-s { grid-template-columns: minmax(0, 1fr) auto; }
+  .cu-c { grid-column: 1 / -1; justify-content: flex-start; padding-left: 3.5em; }
+  .cu-t { grid-template-columns: 2.4em minmax(0, 1fr); font-size: 0.88rem; }
+  .st-c, .st-o, .st-x { padding-left: 0; }
+  .st-n { min-width: 2.2em; }
+  .st-m { margin-left: 0; }
+  /* Five columns of unit table on a phone is four columns too many. */
+  .st-ut thead th:nth-child(3), .st-ut tbody td:nth-child(3),
+  .st-ut thead th:nth-child(5), .st-ut tbody td:nth-child(5) { display: none; }
+}
+@media print {
+  .cu-rail, .cu-filter, .cu-count { display: none; }
+  .cu-grid { grid-template-columns: minmax(0, 1fr); }
+  .cu-band, .cu-l, .st-l { break-inside: auto; }
+  .cu-bh, .st-lh, .st-u h4 { break-after: avoid; }
+  .cu-s, .st-s { break-inside: avoid; }
+}

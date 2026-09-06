@@ -28,7 +28,7 @@ export function buildSunday(root, lesson, catalog) {
   const segs = buildSegments(lesson);
 
   const head = el(root, 'div', 'sr-head');
-  el(head, 'p', 'sr-lede mono', 'the hour, already written');
+  el(head, 'p', 'sr-lede mono', 'the hour, already planned');
   const line = el(head, 'p', 'sr-line');
   el(line, 'b', 'sr-id num', lesson.id);
   el(line, 'span', 'sr-title', lesson.title);

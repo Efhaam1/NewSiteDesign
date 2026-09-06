@@ -261,6 +261,27 @@ node tools/say.cjs <act> <w> <h> <t> <sel...>     # the words actually on screen
 node tools/interact.cjs                           # drives the real interactions, reports OK/FAIL
 ```
 
+The site is two surfaces. `/` is the film — nine pinned acts, WebGL, `app/index.html`,
+hand-authored. The eleven supporting pages (`/curriculum`, five `/curriculum/<stage>`,
+`/inside-a-session`, `/for-chess-coaches`, `/for-chess-academies`, `/about`, `/404.html`,
+plus `robots.txt` and `sitemap.xml`) are **GENERATED and must never be hand-edited**: change
+`tools/pages/*.cjs` and rebuild. No template contains a digit — every figure is read out of
+`app/data` by `tools/pages/data.cjs`.
+
+```
+node tools/build-pages.cjs                        # write the eleven pages + sitemap + robots
+node tools/build-pages.cjs --check                # fail if committed HTML drifts from app/data
+node tools/pagefit.cjs [route]                    # per page per window: fit, head, links, console
+node tools/pageact.cjs                            # drives the track control, filter and rail
+node tools/shotproduct.cjs                        # re-shoot /teach AND re-measure its callout boxes
+node tools/ogshoot.cjs                            # the eleven 1200x630 social cards
+ROUTE=/curriculum node tools/contrast.cjs 1440 900 '.cu-p'   # measured contrast on any route
+```
+
+Read the *supporting site* section of `STATE.md` before touching any of it: it records why
+each page exists, which data file owns which figure, the SEO decisions and the research
+behind them, and the full list of claims those pages are and are not allowed to make.
+
 `gate.cjs` is the stopping condition, not a formality: extend it as decisions land, and
 never delete an assertion to make it green.
 

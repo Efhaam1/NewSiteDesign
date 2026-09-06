@@ -1,0 +1,14 @@
+# Efhaam — a complete chess curriculum for academies.
+#
+# Everything here is meant to be read. Nothing is cloaked, nothing is generated per
+# crawler, and no bot is blocked — including the AI search crawlers, which are how a
+# reader now finds a page like this and follows the link back to it.
+#
+# One page carries <meta name="robots" content="noindex, follow">: /teach, the console.
+# It renders its session from JSON at runtime, so its markup holds no session to index.
+# The readable version of it is /inside-a-session, and that page is indexable.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://efhaam.com/sitemap.xml

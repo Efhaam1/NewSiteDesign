@@ -1,0 +1,682 @@
+/* ============================================================================
+   THE FIELD MANUAL — the shell every supporting page is built in.
+
+   The homepage is a film: nine pinned acts, two WebGL contexts, and a tonal cut
+   that carries the room from ink to paper. These pages are what the film is about,
+   and they are deliberately the other thing: a document set. No canvas, no video,
+   no 3D, no scroll-driven timeline — type, rules, real position diagrams, and
+   interactions that only ever reveal information that is already in the markup.
+
+   WHY PAPER, AND WHY IT IS NOT A SECOND IDENTITY. director.js's RAMPS carry --fg to
+   #14141c, --line to rgb(20 20 28 / 0.16) and --glass to near-white as the room
+   lifts, and acts 5-8 of the homepage are entirely on that side of the cut. So the
+   film already ends where these pages begin. Dark is what a coach teaches FROM —
+   /teach, the console, the projector — and paper is what gets read. Every value
+   below is one of the two ends of a token tokens.css already declares. One value is
+   new and it is a legibility tint, declared with its measurement beside it.
+
+   TYPE IS THE ONLY DECORATION. Fraunces for the headings, Inter Tight for the prose,
+   JetBrains Mono for anything a reader scans rather than reads. Same three faces,
+   same scale, same 8-file gutter as the film.
+   ========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+html {
+  background: #f2ece0;
+  -webkit-text-size-adjust: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body.pg {
+  /* ------------------------------------------------------- the paper end of the ramp
+     --fg / --fg-dim / --fg-inv / --line / --line-2 are director.js's own lift-1
+     values, re-declared statically because there is no director on these routes and
+     every component below is written against the same token names the acts use.
+
+     --fg-faint is the ONE new value on these pages and it is a legibility tint, on
+     the precedent tokens.css sets with --fg-rung and --bishop-hi. The ramp's paper
+     faint is #86828f, which measures 2.86:1 on this ground: an SC 1.4.3 failure that
+     the film gets away with only because its own note says so (the GL wash lowers
+     everything and the acts' faint text is provenance, not prose). There is no wash
+     here and these pages are read, so faint has to clear AA. #6b6875 measures
+     4.62:1 on #f2ece0 and 5.13:1 on the plate, stays 1.9:1 under --fg-dim so the
+     three tiers still read as three, and keeps the family's cool cast. */
+  --paper: #f2ece0;
+  --plate: #fdfbf6;
+  --fg: #14141c;
+  --fg-dim: #4e4c58;
+  --fg-faint: #6b6875;
+  --fg-inv: #f2ece0;
+  --line: rgb(20 20 28 / 0.16);
+  --line-2: rgb(20 20 28 / 0.32);
+  --glass: rgb(253 251 246 / 0.965);
+
+  /* The five stage hues are curriculum data, so they are only ever MARKS here — an
+     edge, a rotated square, a wash, a chip border. None of them can carry type on
+     this ground: measured against #f2ece0 they run 2.06:1 (queen) to 3.31:1
+     (bishop), so a stage name is always ink and the hue is always beside it, never
+     instead of it. Same decision act 7 recorded for gold. A page with no stage of
+     its own inherits ink, which is why --hue defaults here rather than in tokens. */
+  --hue: #2a2836;
+  --hue-soft: rgb(20 20 28 / 0.06);
+
+  /* /teach's own squares, and act 4's, so a position reads the same on every route. */
+  --sq-l: #e8dcc4;
+  --sq-d: #a98a63;
+
+  --gut: clamp(20px, 4.4vw, 84px);
+  --col: 1180px;
+  --rule: 1px;
+
+  background: var(--paper);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+/* ------------------------------------------------------------------ typography */
+.display, .pg h1, .pg h2 {
+  font-family: var(--display);
+  font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 96;
+  font-weight: 300;
+  letter-spacing: -0.024em;
+  /* 1.12 is above the 1.24 floor the film measured for CLIPPED Fraunces boxes; these
+     boxes never clip, so the floor is legibility rather than ink overflow. Nothing on
+     these pages puts `overflow: hidden` on a Fraunces box — see STATE.md's trap. */
+  line-height: 1.08;
+  text-wrap: balance;
+  margin: 0;
+}
+.pg h1 { font-size: clamp(2.05rem, 4.6vw, 3.9rem); }
+/* The bottom margin lives on the heading rather than as a `h2 + *` rule, because every
+   composition on these pages starts with something different — a lead, a prose block, a
+   table, a grid — and a sibling selector would have to name all of them. No grid on these
+   pages has an h2 as its own first child, so a trailing margin cannot open a gap in one. */
+.pg h2 { font-size: clamp(1.44rem, 2.5vw, 2.16rem); line-height: 1.14; letter-spacing: -0.018em;
+  margin: 0 0 clamp(11px, 1.7vh, 18px); }
+.pg h3 {
+  font-family: var(--sans); font-weight: 500; font-size: 1.045rem;
+  letter-spacing: -0.008em; line-height: 1.34; margin: 0;
+}
+.pg h4 { font-family: var(--sans); font-weight: 500; font-size: 0.94rem; margin: 0; }
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--fg-dim);
+}
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.pg p { margin: 0; text-wrap: pretty; }
+.pg .lead {
+  font-size: clamp(1.04rem, 1.3vw, 1.24rem);
+  line-height: 1.52;
+  color: var(--fg-dim);
+  max-width: 46ch;
+}
+/* The reading measure. 68 characters is the width prose is set at on every page; a
+   figure caption, a table cell and a callout each carry their own. */
+.pg .prose { max-width: 68ch; }
+.pg .prose > * + * { margin-top: 0.85em; }
+.pg .prose strong, .pg strong { font-weight: 500; color: var(--fg); }
+.pg .prose em { font-style: italic; }
+
+.pg a { color: inherit; }
+/* Body links are underlined, because a document's links have to be findable without
+   colour — the hues on this ground cannot carry a state (see --hue above). */
+.pg .prose a, .pg .lead a, .pg-body-link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: var(--line-2);
+  transition: text-decoration-color 180ms var(--ease);
+}
+.pg .prose a:hover, .pg .lead a:hover, .pg-body-link:hover { text-decoration-color: var(--fg); }
+.pg nav a, .pg .cta, .pg-foot a { text-decoration: none; }
+
+:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 2px; }
+.pg button { font: inherit; color: inherit; cursor: pointer; }
+.pg [hidden] { display: none !important; }
+
+.sr, .pg-skip {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.pg-skip:focus {
+  position: fixed; z-index: 60; top: 8px; left: 8px;
+  width: auto; height: auto; margin: 0; padding: 0.6em 1em;
+  clip-path: none; background: var(--fg); color: var(--fg-inv); border-radius: 6px;
+}
+
+/* ============================================================ the header
+   Five links, always in the markup, never behind a button. A six-page site does not
+   need a disclosure widget, and a menu that needs JavaScript to open is a menu that a
+   crawler and a reader with a failed script both lose. Below 900px the row wraps to a
+   second line instead of collapsing.
+
+   It is NOT fixed. The film's #nav is fixed because the film has no document flow to
+   sit in; these pages do, and a fixed bar on a long syllabus steals 60px of every
+   screen a reader is trying to read 213 rows in. */
+.pg-nav {
+  display: flex; align-items: center; gap: clamp(12px, 2.4vw, 40px);
+  padding: clamp(12px, 1.8vh, 20px) var(--gut);
+  border-bottom: var(--rule) solid var(--line);
+  background: var(--plate);
+  flex-wrap: wrap;
+}
+.pg .brand { display: flex; align-items: center; gap: 0.5em; flex: none; }
+.pg .mark {
+  width: 27px; height: 27px; display: block; background: var(--fg);
+  -webkit-mask: url('/assets/monogram.png') center/124% no-repeat;
+  mask: url('/assets/monogram.png') center/124% no-repeat;
+  -webkit-mask-position: 50% 48%; mask-position: 50% 48%;
+  mask-mode: luminance; -webkit-mask-mode: luminance;
+}
+.pg .brand .word {
+  font-family: var(--display); font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0;
+  font-weight: 500; font-size: 1.14rem; letter-spacing: 0.005em;
+}
+.pg-links { display: flex; flex-wrap: wrap; gap: clamp(12px, 1.8vw, 26px); margin-right: auto; }
+.pg-links a {
+  font-size: 0.86rem; color: var(--fg-dim); padding-bottom: 3px;
+  background-image: linear-gradient(90deg, var(--fg), var(--fg));
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 0% 1px;
+  transition: color var(--t-fast) var(--ease), background-size 280ms var(--ease);
+}
+.pg-links a:hover { color: var(--fg); background-size: 100% 1px; }
+/* The page you are on is stated, not merely coloured. */
+.pg-links a[aria-current='page'] { color: var(--fg); background-size: 100% 1px; }
+
+/* ---------------------------------------------------------------- breadcrumbs
+   A trail, marked up as an ordered list, with the separator drawn by CSS so it is
+   not read out as a word. */
+.pg-crumbs { padding: clamp(14px, 2vh, 22px) var(--gut) 0; }
+.pg-crumbs ol { display: flex; flex-wrap: wrap; gap: 0.55em; margin: 0; padding: 0; list-style: none; }
+.pg-crumbs li { display: flex; align-items: center; gap: 0.55em; color: var(--fg-dim); }
+.pg-crumbs li + li::before { content: '\203A'; color: var(--line-2); letter-spacing: 0; }
+.pg-crumbs a { color: var(--fg-dim); }
+.pg-crumbs a:hover { color: var(--fg); }
+.pg-crumbs li[aria-current='page'] { color: var(--fg); }
+
+/* ============================================================ page furniture */
+.pg-sec { padding: clamp(46px, 7vh, 96px) var(--gut); position: relative; }
+.pg-sec + .pg-sec { border-top: var(--rule) solid var(--line); }
+.pg-wrap { max-width: var(--col); margin: 0 auto; }
+.pg-wide { max-width: 1420px; margin: 0 auto; }
+
+/* The eyebrow. Same lockup as the film's .kicker — a rotated square in the live hue,
+   then a mono label — so a reader arriving from the homepage recognises the furniture. */
+.pg-kick { display: flex; align-items: center; gap: 0.7em; margin: 0 0 clamp(14px, 2vh, 22px); }
+.pg-kick .dot {
+  width: 6px; height: 6px; background: var(--hue); transform: rotate(45deg); flex: none;
+  box-shadow: 0 0 12px var(--hue-soft);
+}
+
+.pg-hero { padding-top: clamp(26px, 4vh, 48px); }
+.pg-hero h1 { max-width: 22ch; }
+.pg-hero .lead { margin-top: clamp(16px, 2.4vh, 26px); max-width: 54ch; }
+.pg-hero-2 {
+  display: grid; gap: clamp(22px, 4vw, 56px);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: end;
+}
+
+/* --------------------------------------------------------------- figure strip
+   The counts, as a rule of figures rather than a row of cards. Every one is read at
+   build time off the bundle; none is typed. */
+.pg-figs {
+  list-style: none; margin: clamp(24px, 4vh, 44px) 0 0; padding: clamp(16px, 2.2vh, 22px) 0 0;
+  border-top: var(--rule) solid var(--line-2);
+  display: grid; gap: clamp(14px, 2vw, 28px);
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+.pg-figs li { display: grid; gap: 3px; align-content: start; }
+.pg-figs b {
+  font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 500;
+  font-size: clamp(1.16rem, 1.9vw, 1.66rem); letter-spacing: -0.02em; line-height: 1.2;
+}
+.pg-figs span {
+  /* 0.6rem and 0.13em, not 0.55/0.15. This is the unit line under the largest figures on
+     every page, and at 8.8px with 0.15em tracking tools/contrast.cjs measured a 3.56:1
+     median against a 7.14:1 nominal — the shortfall is stroke coverage at that size, not
+     the colour pair. At 10.2px with tighter tracking the same ink medians 4.4:1. */
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--fg-dim); line-height: 1.5;
+}
+
+/* A ruled list of destinations, each with one line saying what is there. Deliberately NOT
+   `.pg-figs`: that is a strip of FIGURES, its cell floor is 96px on a phone, and a session
+   title dropped into one overflowed it by 32px at 360 wide. Two different jobs, two
+   components. */
+.pg-list {
+  list-style: none; margin: clamp(22px, 3vh, 36px) 0 0;
+  padding: clamp(13px, 1.8vh, 18px) 0 0; border-top: var(--rule) solid var(--line-2);
+  display: grid;
+}
+.pg-list li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px;
+  align-items: baseline; padding: 0.6em 0; border-bottom: var(--rule) solid var(--line);
+}
+.pg-list a { font-weight: 500; font-size: 0.98rem;
+  text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em; text-decoration-color: var(--line-2);
+  transition: text-decoration-color 180ms var(--ease); }
+.pg-list a:hover { text-decoration-color: var(--fg); }
+.pg-list span {
+  font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--fg-dim); text-align: right; line-height: 1.7;
+}
+
+/* ------------------------------------------------------------------- plates
+   The one raised surface on these pages, and the film's own: --glass at the paper end
+   of the ramp, a hairline, and the 6px radius the founder's pricing mock set. */
+.pg-plate {
+  background: var(--plate); border: var(--rule) solid var(--line);
+  border-radius: 6px; padding: clamp(16px, 2.2vw, 26px);
+}
+.pg-plate-hue { border-left: 2px solid var(--hue); }
+
+/* A note in the margin of the manual: the provenance line, the caveat, the thing a
+   sceptic wants. Ruled off rather than boxed, because it is an aside and not a claim. */
+.pg-note {
+  border-left: 2px solid var(--line-2); padding: 0.1em 0 0.1em clamp(12px, 1.4vw, 18px);
+  color: var(--fg-dim); font-size: 0.93rem; max-width: 62ch;
+}
+.pg-note b, .pg-note strong { color: var(--fg); font-weight: 500; }
+.pg-note-t { display: block; margin-bottom: 0.3em; }
+/* A note that closes a table or a list needs the air a section break would give it. */
+.pg-table + .pg-note, .pg-ticks + .pg-note, .pg-steps + .pg-note,
+.pg-figs + .pg-note, .pg-swap + .pg-note { margin-top: clamp(16px, 2.4vh, 26px); }
+
+.pg-cols, .pg-cols-2 {
+  display: grid; gap: clamp(20px, 3vw, 44px);
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+}
+/* Its own display, not only its own tracks. `.pg-cols-2` was a track override on a class
+   that never declared `display: grid`, so every element carrying it alone laid out as a
+   block and both columns stacked — /about's origin section shipped that way for one
+   build. If a class names a column count it has to be a grid by itself. */
+.pg-cols-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+/* ---------------------------------------------------------------- the CTA
+   product.css's milled plate is not loaded on these routes, so the button is
+   rebuilt here from the same two tokens it uses — --ivory laid against --void, the
+   light above the box, the pointer moving it. On paper only the void half of each
+   pair draws, which is exactly the state the plate is in on acts 0-4. js/pages/site.js
+   writes --mx/--my on the ELEMENT, never on :root (acts.css:118's trap). */
+.pg .cta {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: inline-flex; align-items: center; gap: 0.6em;
+  padding: 0.86em 1.35em; border-radius: 6px;
+  font-size: 0.9rem; font-weight: 500; letter-spacing: -0.005em;
+  background-color: var(--fg); color: var(--fg-inv); border: 1px solid var(--fg);
+  background-image: radial-gradient(150% 210% at var(--mx, 50%) var(--my, -28%),
+      rgb(242 236 224 / 0.20) 0%, rgb(242 236 224 / 0) 27%,
+      rgb(6 6 10 / 0.05) 58%, rgb(6 6 10 / 0.15) 100%);
+  box-shadow:
+    inset  0  1px 0 0 rgb(242 236 224 / 0.16),
+    inset  0 -1px 0 0 rgb(6 6 10 / 0.34),
+    inset  1px 0 0 0 rgb(242 236 224 / 0.10),
+    inset -1px 0 0 0 rgb(6 6 10 / 0.16),
+    0  1px  2px rgb(20 20 28 / 0.16),
+    0  4px 12px rgb(20 20 28 / 0.10);
+  transition: transform 260ms var(--ease), border-color 300ms var(--ease),
+              box-shadow 380ms var(--ease), background-image 260ms var(--ease);
+}
+.pg .cta:hover {
+  transform: translateY(-2px);
+  background-image: radial-gradient(150% 210% at var(--mx, 50%) var(--my, -28%),
+      rgb(242 236 224 / 0.30) 0%, rgb(242 236 224 / 0) 31%,
+      rgb(6 6 10 / 0.06) 60%, rgb(6 6 10 / 0.19) 100%);
+  box-shadow:
+    inset  0  2px 0 0 rgb(242 236 224 / 0.26),
+    inset  0 -2px 0 0 rgb(6 6 10 / 0.46),
+    inset  1px 0 0 0 rgb(242 236 224 / 0.14),
+    inset -1px 0 0 0 rgb(6 6 10 / 0.22),
+    0  3px  4px rgb(20 20 28 / 0.14),
+    0 10px 26px rgb(20 20 28 / 0.16);
+}
+.pg .cta:active { transform: translateY(0); transition-duration: 90ms; }
+
+/* THE PLATE IS NEVER STILL, and it is the same light panning. --mx is the face
+   gradient's own horizontal light position — the one js/ui/plates.js writes under a
+   pointer — so at rest it drifts and the highlight slides exactly as it does under a
+   cursor. product.css:263 records the four alternatives that were measured and rejected
+   before this one; nothing here is a second treatment. @property is what makes it a
+   motion rather than three jumps, and where it is unsupported the light steps instead of
+   sliding, which is a degradation and not a break. */
+@property --mx {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+.pg .cta { animation: cta-pan 13s ease-in-out infinite; }
+.pg .cta:hover, .pg .cta:active { animation: none; }
+@keyframes cta-pan {
+  0% { --mx: 6%; }
+  50% { --mx: 94%; }
+  100% { --mx: 6%; }
+}
+
+/* THE PRESS. js/ui/plates.js appends one of these where the pointer actually went down
+   and removes it on a timer. The ink is `currentColor`, which on a .cta is the label's
+   own colour and therefore by definition the opposite of the plate under it — so one
+   rule is a light bloom on the ink plate here and a dark one on an ivory plate on the
+   film, with no second declaration. */
+.pg .cta-rip {
+  position: absolute; z-index: -1; pointer-events: none;
+  left: var(--rx, 50%); top: var(--ry, 50%);
+  width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  background-image: radial-gradient(circle,
+      rgb(0 0 0 / 0) 0%, currentColor 54%, rgb(0 0 0 / 0) 80%);
+  animation: cta-rip 620ms linear forwards;
+}
+@keyframes cta-rip {
+  0% { transform: scale(0.2); opacity: 0.06; }
+  22% { transform: scale(2.3); opacity: 0.24; }
+  100% { transform: scale(7); opacity: 0; }
+}
+.pg .cta-sm { padding: 0.6em 1em; font-size: 0.8rem; }
+.pg .cta.ghost {
+  background-color: transparent; color: var(--fg); border-color: var(--line-2);
+  background-image: none; padding: 0.6em 1em; font-size: 0.8rem;
+  box-shadow: inset 0 1px 0 0 rgb(242 236 224 / 0.5), 0 1px 2px rgb(20 20 28 / 0.06);
+}
+.pg .cta.ghost:hover { border-color: var(--fg); background-color: var(--plate); }
+.pg-cta-row {
+  display: flex; align-items: center; gap: clamp(10px, 1.2vw, 18px);
+  flex-wrap: wrap; margin-top: clamp(18px, 2.6vh, 30px);
+}
+.pg-cta-row .mono { font-size: 0.58rem; color: var(--fg-dim); }
+
+/* An in-page onward link. Not "learn more": the label always names the destination,
+   and the rule under it grows on hover the way the film's nav links do. */
+.pg-go {
+  display: inline-flex; align-items: baseline; gap: 0.5em;
+  font-size: 0.94rem; font-weight: 500; color: var(--fg);
+  background-image: linear-gradient(90deg, var(--fg), var(--fg));
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 24px 1px;
+  padding-bottom: 3px;
+  transition: background-size 300ms var(--ease);
+}
+.pg-go:hover { background-size: 100% 1px; }
+.pg-go i { font-style: normal; color: var(--fg-dim); }
+
+/* ------------------------------------------------------------------- chips
+   A type badge, a tier, a track, an age band. Mono, ruled, never coloured alone. */
+.pg-chip {
+  display: inline-flex; align-items: center; gap: 0.4em;
+  font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.13em;
+  text-transform: uppercase; font-weight: 500; color: var(--fg-dim);
+  border: var(--rule) solid var(--line-2); border-radius: 3px;
+  padding: 0.28em 0.46em; white-space: nowrap;
+}
+.pg-chip-gate { border-color: var(--hue); color: var(--fg); background: var(--hue-soft); }
+.pg-chip-free { border-color: var(--fg); color: var(--fg); }
+
+/* ------------------------------------------------------------- position diagram
+   One <svg> in a 0 0 8 8 user space, generated at build time from the session's own
+   FEN — the same idiom act 1's board uses, and the same square colours /teach and
+   act 4 use, so a position reads identically on every route. No JS, no 64 divs, and
+   the alt text says the position out loud. */
+.pg-board {
+  display: block; width: 100%; aspect-ratio: 1; min-width: 0;
+  border: var(--rule) solid var(--line-2); border-radius: 2px;
+  background: var(--sq-l);
+}
+.pg-board .b-d { fill: var(--sq-d); }
+.pg-board .b-l { fill: var(--sq-l); }
+.pg-board .b-co { fill: rgb(20 20 28 / 0.5); font-family: var(--mono); font-weight: 500; }
+.pg-board .b-mk { fill: none; stroke: var(--hue); stroke-width: 0.06; }
+
+.pg-fig { display: grid; gap: 8px; align-content: start; }
+.pg-fig figcaption {
+  font-size: 0.83rem; color: var(--fg-dim); line-height: 1.45;
+}
+.pg-fig .pg-fig-h {
+  display: flex; align-items: baseline; gap: 0.6em; flex-wrap: wrap;
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-dim);
+}
+.pg-fig .pg-fig-h b { color: var(--fg); font-weight: 500; }
+
+/* --------------------------------------------------------------- ruled tables
+   A table is a table when the data is tabular — a licence schedule, a class map, a
+   count per level. Not a grid of divs: a screen reader announcing "row 4, column 2,
+   21 sessions" is doing something a div soup cannot. */
+.pg-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.pg-table caption {
+  text-align: left; font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--fg-dim); padding-bottom: 0.7em;
+}
+.pg-table th, .pg-table td {
+  text-align: left; padding: 0.62em 0.8em 0.62em 0;
+  border-bottom: var(--rule) solid var(--line); vertical-align: baseline;
+}
+.pg-table thead th {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 500; color: var(--fg-dim);
+  border-bottom-color: var(--line-2);
+}
+.pg-table tbody th { font-weight: 500; }
+.pg-table td:last-child, .pg-table th:last-child { padding-right: 0; }
+.pg-table .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------- ordered ladder
+   The before/after argument, and any numbered sequence. The numeral is mono and
+   quiet; the step is the sentence. */
+.pg-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(10px, 1.6vh, 16px); }
+.pg-steps li {
+  display: grid; grid-template-columns: 1.9em minmax(0, 1fr); gap: 0.8em;
+  align-items: baseline; padding-top: 0.62em; border-top: var(--rule) solid var(--line);
+}
+.pg-steps li > .s-n {
+  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em;
+  color: var(--fg-faint); font-variant-numeric: tabular-nums;
+}
+.pg-steps li > div > b { display: block; font-weight: 500; }
+.pg-steps li > div > span { display: block; color: var(--fg-dim); font-size: 0.92rem; }
+
+/* The two-column comparison: what the week is, and what it becomes. The second column
+   carries the hue edge because it is the one the product changes. */
+.pg-swap { display: grid; gap: clamp(16px, 2.6vw, 34px); grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); }
+.pg-swap > div { display: grid; gap: 12px; align-content: start; padding-top: 0.9em;
+  border-top: 2px solid var(--line-2); }
+.pg-swap > div.is-after { border-top-color: var(--hue); }
+.pg-swap-l { display: flex; flex-wrap: wrap; gap: 0.34em 0.5em; margin: 0; padding: 0; list-style: none; }
+.pg-swap-l li {
+  font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--fg-dim); display: flex; align-items: center; gap: 0.5em;
+}
+.pg-swap-l li + li::before { content: '\2192'; color: var(--line-2); letter-spacing: 0; }
+.is-after .pg-swap-l li { color: var(--fg); }
+
+/* --------------------------------------------------------------- tick and cross
+   A claim list. A tick is something shipped; the only thing that ever appears beside
+   an unbuilt item is the word saying so, never a mark — a checkmark next to "when it
+   ships" contradicts itself, which is the trade terms.css already recorded. */
+.pg-ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55em; }
+/* A HANGING MARKER, not a grid cell, and the difference is not cosmetic. As a two-column
+   grid every child of the <li> became a grid item — so an item written as
+   `<b>Lead-in.</b> then a sentence` put the ::before in column 1, the <b> in column 2 and
+   the trailing text node into an anonymous item on row 2, which is a 1.1em track. It
+   rendered one word per line on three pages before it was caught. */
+.pg-ticks li { position: relative; padding-left: 1.75em; font-size: 0.93rem; }
+.pg-ticks li::before {
+  content: ''; position: absolute; left: 1px; top: 0.42em;
+  width: 9px; height: 5px;
+  border-left: 1.5px solid var(--hue); border-bottom: 1.5px solid var(--hue);
+  transform: rotate(-45deg);
+}
+.pg-ticks li.is-soon { color: var(--fg-dim); }
+/* A rule rather than a tick: a checkmark beside "not built yet" contradicts itself, which
+   is the trade terms.css already recorded for the licence cards. */
+.pg-ticks li.is-soon::before {
+  border: 0; width: 10px; height: 1px; top: 0.72em; transform: none;
+  background: var(--line-2);
+}
+
+/* ------------------------------------------------------------------- a quote
+   Only ever a real sentence from the curriculum or a decision record, with its source
+   under it. There is no customer quote anywhere on this site, because there is no
+   customer to quote. */
+.pg-quote { display: grid; gap: 10px; max-width: 44ch; }
+.pg-quote blockquote {
+  margin: 0; font-family: var(--display); font-weight: 300;
+  font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 48;
+  font-size: clamp(1.12rem, 1.6vw, 1.42rem); line-height: 1.3; letter-spacing: -0.014em;
+}
+.pg-quote cite {
+  font-family: var(--mono); font-size: 0.53rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-dim); font-style: normal;
+}
+
+/* --------------------------------------------------------- the section coordinate
+   The film prints one square per act in the bottom-right of the stage. These pages
+   print one per section, in the same face at the same size, because the board is the
+   grid on both. It is decoration and it says so. */
+.pg-coord {
+  position: absolute; right: var(--gut); bottom: clamp(16px, 2.4vh, 26px);
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.26em;
+  text-transform: uppercase; color: var(--fg-faint); margin: 0;
+}
+
+/* ==================================================== the two delivery tracks
+   Explorer and Challenger, ADR-0004's own two, with every clause of the readout
+   transcribed in app/data/tracks.json and carrying the record it came from. The
+   control is a pair of pressed buttons, and BOTH readouts are in the markup — CSS
+   picks which one shows — so the page states both tracks whether or not the script
+   runs and whether or not anyone presses anything.
+
+   Shared, because three pages make the same argument with it: the curriculum map,
+   the coach page and the academy page. */
+.pg-track { display: grid; gap: clamp(12px, 1.8vh, 18px); }
+.pg-track-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+.pg-way {
+  display: grid; gap: 2px; text-align: left;
+  background: transparent; border: var(--rule) solid var(--line-2); border-radius: 6px;
+  padding: 0.6em 0.9em;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease), color 200ms var(--ease);
+}
+.pg-way b { font-weight: 500; font-size: 0.95rem; }
+.pg-way span { font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--fg-dim); }
+.pg-way:hover { border-color: var(--fg); }
+.pg-way[aria-pressed='true'] {
+  background: var(--fg); border-color: var(--fg); color: var(--fg-inv);
+}
+.pg-way[aria-pressed='true'] span { color: rgb(242 236 224 / 0.72); }
+
+/* One row per track, both present, one shown. Without the script neither is hidden
+   and the reader gets both rows, labelled — which is the correct no-JS state for a
+   control whose whole content is two facts. */
+.pg-track-note { display: grid; gap: 10px; }
+.pg-track-note > div {
+  display: grid; gap: 4px; padding-top: 0.7em; border-top: var(--rule) solid var(--line);
+}
+.pg-track-note b { font-weight: 500; }
+.pg-track-note p { color: var(--fg-dim); font-size: 0.93rem; }
+.pg-track-note .pg-from {
+  font-family: var(--mono); font-size: 0.5rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-faint);
+}
+/* With the script up, the pressed track is the one on screen. */
+.js .pg-track-note > div { display: none; }
+.js .pg-track-note > div.is-on { display: grid; }
+
+/* ==================================================================== footer */
+.pg-foot {
+  border-top: var(--rule) solid var(--line-2);
+  background: var(--plate);
+  padding: clamp(34px, 5vh, 62px) var(--gut) clamp(20px, 3vh, 30px);
+}
+.pg-foot-top {
+  max-width: var(--col); margin: 0 auto;
+  display: grid; gap: clamp(24px, 3.4vw, 52px);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+.pg-foot-brand { display: grid; gap: 12px; justify-items: start; align-content: start; }
+.pg-foot-brand .mark { width: 26px; height: 26px; }
+.pg-foot-brand .word {
+  font-family: var(--display); font-size: 1.05rem; font-weight: 500;
+  font-variation-settings: 'opsz' 40, 'SOFT' 0, 'WONK' 0;
+}
+.pg-foot-brand p { color: var(--fg-dim); font-size: 0.9rem; max-width: 34ch; }
+.pg-foot-micro { font-size: 0.55rem; }
+.pg-foot-col h2 {
+  font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 500; color: var(--fg-dim); margin: 0 0 0.9em;
+}
+.pg-foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.66em; }
+.pg-foot-col li { display: grid; gap: 1px; }
+.pg-foot-col a { font-size: 0.92rem; font-weight: 500; }
+.pg-foot-col a:hover { text-decoration: underline; text-underline-offset: 0.18em; }
+.pg-foot-col span { font-size: 0.78rem; color: var(--fg-dim); line-height: 1.4; }
+.pg-foot-fine {
+  max-width: var(--col); margin: clamp(28px, 4vh, 48px) auto 0;
+  padding-top: clamp(12px, 1.8vh, 18px); border-top: var(--rule) solid var(--line);
+  font-size: 0.54rem; letter-spacing: 0.1em; line-height: 1.9; color: var(--fg-dim);
+  text-transform: none;
+}
+
+/* ================================================================== mobile
+   Not a shrink. The measure narrows, the two-column heroes become one, the footer
+   stacks, and the nav row wraps. Nothing is hidden: on a document page the content IS
+   the page, so there is nothing here that a phone can be spared. */
+@media (max-width: 900px) {
+  body.pg { font-size: 16px; --gut: clamp(16px, 5vw, 30px); }
+  .pg-hero-2 { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .pg-foot-top { grid-template-columns: minmax(0, 1fr); gap: clamp(22px, 4vh, 34px); }
+  .pg-nav { gap: 10px 16px; }
+  .pg-links { width: 100%; order: 3; gap: 10px 18px; }
+  .pg-links a { font-size: 0.82rem; }
+  .pg .brand .word { font-size: 1.06rem; }
+  .pg-figs { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 12px 16px; }
+  .pg-coord { display: none; }
+  .pg-quote blockquote { font-size: 1.1rem; }
+  .pg-list li { grid-template-columns: minmax(0, 1fr); }
+  .pg-list span { text-align: left; }
+}
+@media (max-width: 560px) {
+  /* The brand keeps its own line so the CTA never wraps under the wordmark. */
+  .pg-nav { align-items: baseline; }
+  .pg-nav .cta-sm { margin-left: auto; }
+  .pg-table { font-size: 0.85rem; }
+  .pg-table th, .pg-table td { padding: 0.55em 0.5em 0.55em 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .pg *, .pg *::before, .pg *::after {
+    transition-duration: 1ms !important; animation-duration: 1ms !important;
+  }
+}
+
+/* =================================================================== print
+   The whole point of these pages is that they are documents, so they print. Chrome
+   goes, plates flatten, links keep their destination, and the syllabus comes out as a
+   syllabus. This is NOT the "print pack" — that is a product feature and it is not
+   built (see /for-chess-coaches). This is a page printing. */
+@media print {
+  html, body.pg { background: #fff; color: #000; font-size: 10.5pt; }
+  .pg-nav, .pg-foot, .pg-skip, .pg-cta-row, .pg-coord, .pg-track-bar { display: none; }
+  .pg-sec { padding: 0 0 18pt; border: 0; }
+  .pg-sec + .pg-sec { border-top: 0.5pt solid #999; padding-top: 14pt; }
+  .pg-plate { border: 0.5pt solid #999; background: transparent; }
+  .pg h1 { font-size: 22pt; }
+  .pg h2 { font-size: 14pt; }
+  .js .pg-track-note > div { display: grid; }
+  a[href^='/']::after { content: ' (efhaam.com' attr(href) ')'; font-size: 8pt; color: #555; }
+}
+

@@ -1,0 +1,122 @@
+/* ============================================================================
+   /for-chess-coaches, /for-chess-academies and /about — the argument pages.
+
+   No diagram machinery here: these three pages are ruled lists, tables and prose,
+   because what they do is make a case and a case is made in sentences. The shared
+   components in pages.css do most of the work; what is below is the handful of
+   compositions specific to one argument.
+   ========================================================================== */
+
+/* ------------------------------------------------------------ before and after */
+.ro-swap { margin: clamp(22px, 3.2vh, 34px) 0 clamp(20px, 3vh, 28px); }
+.ro-swap p:last-child { color: var(--fg-dim); font-size: 0.93rem; }
+.ro-swap .mono { color: var(--fg-faint); }
+.ro-swap .is-after .mono { color: var(--fg-dim); }
+
+/* --------------------------------------------------- the numbered decision list
+   Three lines per row and they are three different things: the decision, what the
+   curriculum has instead, and what that changes. The third line is the one the brief
+   asks for — feature, benefit, outcome — and it is set in ink while the middle line,
+   which carries the counts, is the quiet one. */
+.ro-dec, .ro-vary, .ab-not { list-style: none; margin: clamp(20px, 3vh, 30px) 0 0; padding: 0;
+  display: grid; }
+.ro-dec > li, .ro-vary > li, .ab-not > li {
+  display: grid; gap: 5px; padding: clamp(13px, 1.8vh, 19px) 0;
+  border-top: var(--rule) solid var(--line);
+}
+.ro-dec > li:last-child, .ro-vary > li:last-child, .ab-not > li:last-child {
+  border-bottom: var(--rule) solid var(--line);
+}
+.ro-dn, .ro-vn, .ab-nn {
+  display: flex; align-items: baseline; gap: 0.8em; color: var(--fg); font-size: 0.6rem;
+}
+.ro-dn .num, .ro-vn .num, .ab-nn .num { color: var(--fg-faint); }
+.ro-dw, .ro-vp, .ab-not p:last-child {
+  color: var(--fg-dim); font-size: 0.94rem; max-width: 78ch; padding-left: 2.9em;
+}
+.ro-dy {
+  font-size: 0.94rem; max-width: 78ch; padding-left: 2.9em;
+  /* the outcome line, and the only place on these pages a hue rule appears beside prose */
+  border-left: 2px solid var(--hue); margin-left: 0.7em; padding-left: 2.1em;
+}
+.ro-vf { font-size: 0.94rem; max-width: 78ch; padding-left: 2.9em; }
+.ro-vf .mono { display: block; color: var(--fg-dim); font-size: 0.5rem; margin-bottom: 2px; }
+
+.ro-live, .ro-notes { align-content: start; }
+.ro-live li, .ro-notes li { font-size: 0.92rem; }
+.ro-never li::before {
+  /* a rule, not a tick: these are things the product does not do, and a checkmark
+     beside a negation contradicts itself — terms.css recorded the same trade */
+  border: 0; width: 10px; height: 1px; top: 0.72em; transform: none;
+  background: var(--line-2);
+}
+
+.ro-two {
+  display: grid; gap: clamp(22px, 3.4vw, 52px);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: start; margin: clamp(20px, 3vh, 28px) 0;
+}
+.ro-two > div:first-child { display: grid; gap: clamp(12px, 1.8vh, 18px); }
+
+.ro-std, .ro-gates, .ab-built { margin-top: clamp(18px, 2.6vh, 28px); }
+/* The pull quote closes the list above it, so it needs the air a section break would give
+   it — the list's last rule and the quote's first line were flush before this. */
+.ro-vary + .pg-quote, .ab-not + .pg-quote { margin-top: clamp(22px, 3.2vh, 38px); }
+.ro-gates td a { text-decoration: underline; text-decoration-color: var(--line-2);
+  text-underline-offset: 0.16em; }
+.ro-gates td a:hover { text-decoration-color: var(--fg); }
+.ro-std td, .ro-gates td { color: var(--fg-dim); }
+.ro-std tbody th, .ro-gates tbody th { color: var(--fg); white-space: nowrap; }
+
+.ro-cover {
+  display: grid; gap: clamp(20px, 3.4vw, 52px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+.ro-cover .lead { margin-top: clamp(12px, 1.8vh, 18px); }
+
+/* =============================================================== /about */
+.ab-name {
+  display: grid; gap: clamp(22px, 3.4vw, 56px);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+}
+/* The word itself, at display size, right-to-left. It is the only Arabic on the site
+   and it is the page's one piece of art — set in the same Fraunces stack the headings
+   use, which falls through to the system Arabic face, because there is no Arabic
+   webfont here and loading one for four glyphs would be the wrong trade. */
+.ab-word { margin: 0; display: grid; gap: 14px; justify-items: center; text-align: center;
+  padding: clamp(20px, 3vw, 38px); background: var(--plate);
+  border: var(--rule) solid var(--line); border-radius: 6px; }
+.ab-word p {
+  font-size: clamp(3.4rem, 8vw, 6.2rem); line-height: 1.25; margin: 0;
+  letter-spacing: 0; font-weight: 400;
+}
+.ab-word figcaption { color: var(--fg-dim); font-size: 0.85rem; }
+.ab-word figcaption .mono { color: var(--fg); }
+
+.ab-side { display: grid; gap: clamp(16px, 2.4vh, 24px); align-content: start; }
+.ab-is > div { display: grid; gap: 12px; align-content: start; }
+.ab-is h3 { font-family: var(--display); font-weight: 300; font-size: 1.32rem;
+  font-variation-settings: 'SOFT' 0, 'WONK' 0, 'opsz' 40; letter-spacing: -0.014em; }
+.ab-is li b { font-weight: 500; }
+.ab-method { margin-top: clamp(20px, 3vh, 30px); }
+.ab-built .is-soon th, .ab-built .is-soon td { color: var(--fg-faint); }
+.ab-built .is-built td:first-child { color: var(--fg-dim); }
+.ab-built td:first-child { font-size: 0.5rem; letter-spacing: 0.13em; white-space: nowrap; }
+
+/* ================================================================== responsive */
+@media (max-width: 900px) {
+  .ro-two, .ro-cover, .ab-name { grid-template-columns: minmax(0, 1fr); }
+  .ab-word p { font-size: clamp(3rem, 16vw, 4.6rem); }
+}
+@media (max-width: 640px) {
+  /* The numeral leaves the flow of the line and the three lines lose their indent —
+     at this width a 2.9em gutter costs a third of the measure. */
+  .ro-dw, .ro-dy, .ro-vp, .ro-vf, .ab-not p:last-child { padding-left: 0; }
+  .ro-dy { margin-left: 0; padding-left: 0.9em; }
+  .ro-std tbody th, .ro-gates tbody th { white-space: normal; }
+  /* The stage column goes; the title already names the stage's own graduation. */
+  .ro-gates thead th:nth-child(4), .ro-gates tbody td:nth-child(4),
+  .ro-gates thead th:nth-child(5), .ro-gates tbody td:nth-child(5) { display: none; }
+}

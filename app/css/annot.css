@@ -36,9 +36,10 @@
   column-gap: clamp(24px, 3.2vw, 60px);
   align-content: stretch;
 
-  /* This one handover is a cover, not a dissolve: the console and the bento are
-     both opaque panel grids, so the bento arrives before the console leaves and
-     slides up over it. */
+  /* This one handover is a cover, not a dissolve: this console and act 6's session
+     plate are both opaque, so act 6 arrives before this act leaves and slides up over
+     it. (It was two opaque panel GRIDS until 2026-09-05, when the bento became one
+     plate; the cover still holds, and --in2/--out are unchanged either side.) */
   --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
   --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
   --out: clamp(0, calc(var(--h) / 0.42), 1);

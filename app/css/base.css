@@ -138,7 +138,9 @@ body.gl-failed .gl, body.gl-failed #atmos, body.gl-failed #scrim { display: none
 body.gl-failed #ladder, body.gl-failed #readout { display: none; }
 body.gl-failed .act > * { opacity: 1 !important; transform: none !important; }
 body.gl-failed .console { height: auto; transform: none; }
-body.gl-failed .bento { height: auto; grid-template-rows: none; grid-auto-rows: minmax(120px, auto); }
+body.gl-failed .sy-field { grid-template-columns: minmax(0, 1fr); }
+body.gl-failed .sy-side { padding: 0; text-align: left; justify-items: start; }
+body.gl-failed .sy-r, body.gl-failed .sy-sheet { display: none; }
 body.gl-failed .stage-panels { position: static; width: auto; }
 body.gl-failed .stage-panel { position: static; opacity: 1; transform: none; margin-bottom: 10px; }
 

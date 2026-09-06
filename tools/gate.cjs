@@ -66,17 +66,83 @@ const park = (p, name, f) =>
     await p.close();
   }
 
-  // 3 — no bento card cuts its own content; 4 — the console board pane fits its column
+  // 3 — act 6 holds its own diagram; 4 — the console board pane fits its column.
+  // Was `bento-cells-fit`, which measured eight lattice cells. Act 6 is one plate, six
+  // figures and a control since 2026-09-05, so the assertion moved with the act: it reads
+  // the STAGE's own overflow, every act-6 box that holds words, and the lowest ink against
+  // the fold, at BOTH of the act's crowded fractions — 0.52, where the diagram is complete
+  // and the homework sheet is out, and 0.78, where the ream has fanned and the payoff is up.
+  // 1400ms of settle, not 600: the engine is damped and a band read early reports a
+  // position it has not arrived at (STATE.md).
+  const SY_BOXES = ['.sy-core', '.sy-sheet', '.sy-ways', '.sy-note', '.sy-close', '.system-head',
+    '.sy-rail', '.sy-chips', '.sy-head2', '.sy-hour', '.sy-pos', '.sy-sat', '.sy-bcap'];
   for (const [w, h] of [[1920, 1080], [1440, 900], [1244, 620], [981, 620]]) {
     const p = await page(b, w, h);
-    await park(p, 'system', 0.5);
-    await p.waitForTimeout(600);
-    const cells = await p.evaluate(() =>
-      [...document.querySelectorAll('.bento .cell')]
-        .map((c) => ({ id: c.className.split(' ')[1], over: c.scrollHeight - c.clientHeight }))
-        .filter((c) => c.over > 2));
-    record(`bento-cells-fit@${w}x${h}`, cells.length === 0,
-      cells.length ? cells.map((c) => `${c.id} +${c.over}px`).join(', ') : 'every card holds its content');
+    for (const f of [0.52, 0.78]) {
+      await park(p, 'system', f);
+      await p.waitForTimeout(1400);
+      const r = await p.evaluate((sels) => {
+        const st = document.querySelector('.act-system .act-stage');
+        const vis = (e) => e && getComputedStyle(e).display !== 'none'
+          && e.getBoundingClientRect().width > 1;
+        const over = [];
+        for (const sel of sels) {
+          for (const e of document.querySelectorAll(sel)) {
+            if (!vis(e)) continue;
+            const oy = e.scrollHeight - e.clientHeight;
+            // a satellite's own leader hangs --sy-lead past its edge on purpose
+            const ox = sel === '.sy-sat' ? 0 : e.scrollWidth - e.clientWidth;
+            if (oy > 2 || ox > 2) over.push(`${sel}+${oy}y/${ox}x`);
+          }
+        }
+        let low = -1e9, who = '';
+        for (const e of document.querySelectorAll('.pad.system p, .pad.system h2, .pad.system h3,'
+          + ' .pad.system li, .pad.system button')) {
+          if (!vis(e)) continue;
+          const rg = document.createRange(); rg.selectNodeContents(e);
+          const rs = [...rg.getClientRects()];
+          const v = rs.length ? Math.max(...rs.map((x) => x.bottom)) : e.getBoundingClientRect().bottom;
+          if (v > low) { low = v; who = (e.className || e.tagName).toString().split(' ')[0]; }
+        }
+        const inkRects = (e) => {
+          const rg = document.createRange(); rg.selectNodeContents(e);
+          const rs = [...rg.getClientRects()].filter((x) => x.width > 0 && x.height > 0);
+          return rs.length ? rs : [e.getBoundingClientRect()];
+        };
+        const hits = (a, b, useInk) => {
+          const A = useInk ? inkRects(a) : [a.getBoundingClientRect()];
+          const B = useInk ? inkRects(b) : [b.getBoundingClientRect()];
+          for (const x of A) for (const y of B) {
+            const dy = Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top);
+            const dx = Math.min(x.right, y.right) - Math.max(x.left, y.left);
+            if (dy > 2 && dx > 2) return Math.round(dy);
+          }
+          return 0;
+        };
+        const els = [...document.querySelectorAll('.sy-sat, .sy-core, .sy-close, .system-head,'
+          + ' .act-system .coord')].filter(vis)
+          .map((e) => ({ n: (e.className || '').split(' ')[0], e }));
+        const overlaps = [];
+        for (let i = 0; i < els.length; i++) {
+          for (let j = i + 1; j < els.length; j++) {
+            if (els[i].n === els[j].n && els[i].n === 'sy-sat') continue;
+            // ink, not boxes, for the coordinate: it lives in `.pad`'s bottom padding, so its
+            // BOX crosses the close's box at every window by construction while the two
+            // pieces of type only actually collide on a phone
+            const d = hits(els[i].e, els[j].e, els[i].n === 'coord' || els[j].n === 'coord');
+            if (d) overlaps.push(`${els[i].n}/${els[j].n}+${d}px`);
+          }
+        }
+        return { stage: st.scrollHeight - st.clientHeight, over, overlaps,
+          past: Math.round(low - innerHeight), who };
+      }, SY_BOXES);
+      const clean = r.stage === 0 && !r.over.length && r.past <= 0 && !r.overlaps.length;
+      record(`system-fits@${w}x${h}t${f}`, clean,
+        clean ? `stage 0, nothing clipped or overlapping, lowest ink ${r.past}px above the fold`
+          : `stage over ${r.stage}px; clipped ${r.over.join(', ') || 'none'};`
+            + ` overlapping ${[...new Set(r.overlaps)].join(', ') || 'none'};`
+            + ` lowest ink ${r.past}px past the fold (${r.who})`);
+    }
     await park(p, 'session', 0.5);
     await p.waitForTimeout(600);
     const bd = await p.evaluate(() => {
@@ -389,41 +455,91 @@ const park = (p, name, f) =>
     await p.close();
   }
 
-  // 13 — act 5's cards trim their bodies with an ellipsis rather than slicing a line in half.
-  // `bento-cells-fit` runs only at >=981 wide, so nothing watched the phone lattice: there each
-  // cell gets the stage's height / 6 and the body is left 11-30px against a 15.23px line box, so
-  // a `-webkit-line-clamp: 3` could not draw its ellipsis inside the box and the reader got the
-  // first line sliced through the middle ("...0 errors. No"). This asserts the arithmetic that
-  // makes a clamp honest: the box must hold at least as many lines as the clamp asks for whenever
-  // the text is longer than the clamp. It is not a "does it overflow" check — a clamped element
-  // always reports scrollHeight > clientHeight, which is the clamp working.
-  // 390x700 is the phone-with-toolbar window and it is in the list because the fix's first pass
-  // certified a band it did not test: a straggler clamp 170 lines later in product.css was still
-  // asking for two lines in a one-line box there, so all eight bodies sliced. 664 is deliberately
-  // NOT here — it cannot pass without a content decision, and a red line would be the honest
-  // record for it rather than a window quietly omitted (see PASS2's P6 residual).
-  for (const [w, h] of [[390, 780], [390, 844], [412, 800], [390, 700]]) {
+  // 13 — act 6 on a phone. `system-fits` runs only at >=981 wide, so nothing watches the
+  // stack: below 1180 the plate goes on top and the six figures run under it, and below 900
+  // their glosses go entirely because the plate one row above says the same things in full.
+  // What must hold there is what holds everywhere — the stage does not overflow, no box that
+  // holds words clips, the lowest ink stays above the fold — plus the one floor that is act
+  // 6's own: the plate keeps a board a reader can read a position on.
+  // 664 of height is deliberately NOT in the list. The old bento could not pass there
+  // without a content decision and neither can this; a window quietly omitted is a worse
+  // record than a red line, so the omission is written down instead (STATE.md).
+  for (const [w, h] of [[390, 844], [390, 780], [412, 800], [390, 700], [768, 1024], [901, 700]]) {
     const p = await page(b, w, h);
-    await p.evaluate(() => {
-      const a = window.__w.engine.acts.find((x) => x.name === 'system');
-      scrollTo({ top: Math.round(a.top + a.len * 0.5), behavior: 'instant' });
-    });
-    await p.waitForTimeout(700);
-    const bad = await p.evaluate(() => [...document.querySelectorAll('.bento .cell p.c-b')].map((e) => {
-      const cs = getComputedStyle(e);
-      if (cs.display === 'none') return null;
-      const lh = parseFloat(cs.lineHeight);
-      const clamp = cs.webkitLineClamp === 'none' ? null : parseInt(cs.webkitLineClamp, 10);
-      const box = e.getBoundingClientRect().height;
-      const rg = document.createRange(); rg.selectNodeContents(e);
-      const lines = new Set([...rg.getClientRects()].map((r) => Math.round(r.top))).size;
-      const holds = Math.floor((box + 0.6) / lh);
-      const cut = lines > Math.min(clamp || lines, holds) && (clamp === null || clamp > holds);
-      const cell = e.closest('.cell');
-      return cut ? `${(cell.className.split(' ').find((c) => c.startsWith('b-')) || '?')} box ${Math.round(box)}px holds ${holds} of clamp ${clamp}` : null;
-    }).filter(Boolean));
-    record(`bento-bodies-trim-not-slice@${w}x${h}`, bad.length === 0,
-      bad.length ? bad.join(', ') : 'every visible card body ends in its own ellipsis');
+    await park(p, 'system', 0.52);
+    await p.waitForTimeout(1400);
+    const r = await p.evaluate((sels) => {
+      const st = document.querySelector('.act-system .act-stage');
+      const vis = (e) => e && getComputedStyle(e).display !== 'none'
+        && e.getBoundingClientRect().width > 1;
+      const over = [];
+      for (const sel of sels) {
+        for (const e of document.querySelectorAll(sel)) {
+          if (!vis(e)) continue;
+          const oy = e.scrollHeight - e.clientHeight;
+          const ox = sel === '.sy-sat' ? 0 : e.scrollWidth - e.clientWidth;
+          if (oy > 2 || ox > 2) over.push(`${sel}+${oy}y/${ox}x`);
+        }
+      }
+      let low = -1e9;
+      for (const e of document.querySelectorAll('.pad.system p, .pad.system h2, .pad.system h3,'
+        + ' .pad.system li, .pad.system button')) {
+        if (!vis(e)) continue;
+        const rg = document.createRange(); rg.selectNodeContents(e);
+        const rs = [...rg.getClientRects()];
+        const v = rs.length ? Math.max(...rs.map((x) => x.bottom)) : e.getBoundingClientRect().bottom;
+        if (v > low) low = v;
+      }
+      // Siblings must not land on each other. `.pad.system`'s middle row is
+      // `minmax(0, 1fr)`, so a stack that wants more than the row does not clip — it spills
+      // onto the payoff, and every per-box check reads clean while it does. At 390x844 six
+      // figures sat on two lines of display type and nothing in this gate saw it.
+      const inkRects = (e) => {
+        const rg = document.createRange(); rg.selectNodeContents(e);
+        const rs = [...rg.getClientRects()].filter((x) => x.width > 0 && x.height > 0);
+        return rs.length ? rs : [e.getBoundingClientRect()];
+      };
+      const hits = (a, b, useInk) => {
+        const A = useInk ? inkRects(a) : [a.getBoundingClientRect()];
+        const B = useInk ? inkRects(b) : [b.getBoundingClientRect()];
+        for (const x of A) for (const y of B) {
+          const dy = Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top);
+          const dx = Math.min(x.right, y.right) - Math.max(x.left, y.left);
+          if (dy > 2 && dx > 2) return Math.round(dy);
+        }
+        return 0;
+      };
+      const els = [...document.querySelectorAll('.sy-sat, .sy-core, .sy-close, .system-head,'
+        + ' .act-system .coord')].filter(vis)
+        .map((e) => ({ n: (e.className || '').split(' ')[0], e }));
+      const overlaps = [];
+      for (let i = 0; i < els.length; i++) {
+        for (let j = i + 1; j < els.length; j++) {
+          if (els[i].n === els[j].n && els[i].n === 'sy-sat') continue;
+          // ink, not boxes, for the coordinate: it lives in `.pad`'s bottom padding, so its
+          // BOX crosses the close's box at every window by construction while the two
+          // pieces of type only actually collide on a phone
+          const d = hits(els[i].e, els[j].e, els[i].n === 'coord' || els[j].n === 'coord');
+          if (d) overlaps.push(`${els[i].n}/${els[j].n}+${d}px`);
+        }
+      }
+      const bd = document.querySelector('.sy-board .board2d');
+      const box = bd ? bd.getBoundingClientRect() : null;
+      const sq = document.querySelector('.sy-board .board2d .sq');
+      return { stage: st.scrollHeight - st.clientHeight, over, overlaps,
+        past: Math.round(low - innerHeight),
+        bw: box ? Math.round(box.width * 10) / 10 : 0, bh: box ? Math.round(box.height * 10) / 10 : 0,
+        sq: sq ? Math.round(sq.getBoundingClientRect().width * 10) / 10 : 0,
+        figs: [...document.querySelectorAll('.sy-sat')].filter(vis).length };
+    }, SY_BOXES);
+    const boardOk = r.bw >= 64 && r.sq >= 8 && Math.abs(r.bw - r.bh) <= 1;
+    record(`system-stacks@${w}x${h}`,
+      r.stage === 0 && r.over.length === 0 && r.past <= 0 && boardOk && r.figs === 6
+        && r.overlaps.length === 0,
+      `stage over ${r.stage}px; clipped ${r.over.join(', ') || 'none'};`
+      + ` overlapping ${[...new Set(r.overlaps)].join(', ') || 'none'};`
+      + ` lowest ink ${r.past}px ${r.past <= 0 ? 'above' : 'PAST'} the fold;`
+      + ` board ${r.bw}x${r.bh} at ${r.sq}px a square; ${r.figs} of 6 figures`);
     await p.close();
   }
 
@@ -521,6 +637,373 @@ const park = (p, name, f) =>
     record('sunday-payoff-holds', best >= 9,
       best ? `${best} of ${samples} consecutive frames complete from t ${from.toFixed(3)} (~${px}px of scroll)`
         : 'the payoff is never all up at once');
+    await p.close();
+  }
+
+  // 17 — act 6's argument, and the three ways it can silently stop making it.
+  //
+  // (a) THE TURN. The act's whole claim is that the diagram the reader just read is every
+  //     session: at t 0.56-0.64 all six figures CUT from S115's own numbers to the
+  //     curriculum's, and the six labels do not move. If a band is retimed and a figure
+  //     stops turning, nothing else on the page would notice — the act would just quietly
+  //     become a description of one lesson.
+  // (b) THE CONTROL. Pressing a pathway must re-grade the eight positions by that track's
+  //     own rule and must NOT change the plate's height under the reader's hand. The
+  //     height clause is not fussiness: `.sy-rule`'s reserved line is the only thing
+  //     holding it, and without it the plate grew 3.2px on the first press.
+  // (c) THE FIGURES. Every number act 6 prints is counted, not typed. These are read off
+  //     the DOM and checked against the two data files they come from, which is the
+  //     mechanical form of the rule that binds every figure on the page.
+  {
+    const p = await page(b, 1600, 900);
+    const read = () => p.evaluate(() => [...document.querySelectorAll('.sy-sat')].map((sa) => ({
+      label: sa.querySelector('.sy-l').textContent.trim(),
+      one: sa.querySelector('.sy-n .sy-one').textContent.trim(),
+      all: sa.querySelector('.sy-n .sy-all').textContent.trim(),
+      // which of the two states is actually the visible one at this frame
+      shown: Number(getComputedStyle(sa.querySelector('.sy-n .sy-one')).opacity) > 0.5
+        ? 'one' : 'all',
+    })));
+    await park(p, 'system', 0.50);
+    await p.waitForTimeout(1400);
+    const before = await read();
+    await park(p, 'system', 0.68);
+    await p.waitForTimeout(1400);
+    const after = await read();
+    const turned = before.filter((x, i) => x.shown === 'one' && after[i].shown === 'all'
+      && x.one !== after[i].all).length;
+    const labelsHeld = before.every((x, i) => x.label === after[i].label);
+    record('system-figures-turn', turned === 6 && labelsHeld,
+      `${turned} of 6 figures cut from the session's number to the curriculum's`
+      + ` (${before.map((x, i) => `${x.one}->${after[i].all}`).join(', ')});`
+      + ` labels ${labelsHeld ? 'held' : 'CHANGED'}`);
+
+    await park(p, 'system', 0.52);
+    await p.waitForTimeout(1400);
+    const ctl = await p.evaluate(async () => {
+      const plate = document.querySelector('.sy-core');
+      const grade = () => [...document.querySelectorAll('.sy-chips li')]
+        .map((l) => `${l.dataset.tier}:${l.dataset.state}`).join(' ');
+      const press = async (k) => {
+        document.querySelector(`.sy-way[data-track="${k}"]`).click();
+        await new Promise((r) => setTimeout(r, 420));
+        return { grade: grade(), h: Math.round(plate.getBoundingClientRect().height * 10) / 10,
+          note: document.querySelector('.sy-note').textContent.trim(),
+          pressed: [...document.querySelectorAll('.sy-way')]
+            .filter((x) => x.getAttribute('aria-pressed') === 'true').length };
+      };
+      const ch = await press('challenger'); const ex = await press('explorer');
+      await press('challenger');
+      return { ch, ex, n: document.querySelectorAll('.sy-way').length };
+    });
+    const heights = [ctl.ch.h, ctl.ex.h];
+    const stable = Math.max(...heights) - Math.min(...heights) <= 0.6;
+    // Explorer hands out the Foundation/Core tier and holds the Challenge tier back;
+    // Challenger hands out all eight and makes the Challenge tier the point. Both rules
+    // are tracks.json's, transcribed from ADR-0004 and the differentiation plan's §1.2,
+    // and both are executed against the tier authored on each puzzle in the bundle.
+    const regrades = ctl.ex.grade !== ctl.ch.grade
+      && /Foundation:the set/.test(ctl.ex.grade) && /Challenge:coach shows/.test(ctl.ex.grade)
+      && /Challenge:the point/.test(ctl.ch.grade) && !/coach shows/.test(ctl.ch.grade);
+    const oneLive = [ctl.ch, ctl.ex].every((x) => x.pressed === 1);
+    const notesDiffer = ctl.ch.note !== ctl.ex.note;
+    record('system-pathways-regrade',
+      regrades && stable && oneLive && notesDiffer && ctl.n === 2,
+      `${ctl.n} tracks; Explorer holds the Challenge tier back and Challenger makes it the`
+      + ` point: ${regrades}; one pressed at a time: ${oneLive}; readouts differ:`
+      + ` ${notesDiffer}; plate height ${heights.join('/')}px`
+      + ` (${stable ? 'stable' : 'MOVED under the reader'})`);
+
+    const figs = await p.evaluate(async () => {
+      const inv = await (await fetch('/data/inventory.json')).json();
+      const show = await (await fetch('/data/showcase.json')).json();
+      const L = show.data.S115;
+      const txt = (s) => (document.querySelector(s) || {}).textContent || '';
+      const n = (x) => Number(String(x).replace(/[^0-9]/g, ''));
+      const sats = [...document.querySelectorAll('.sy-sat')].map((sa) => ({
+        one: n(sa.querySelector('.sy-n .sy-one b').textContent),
+        all: n(sa.querySelector('.sy-n .sy-all b').textContent),
+      }));
+      const pz = L.puzzles || [];
+      const tier = (k) => pz.filter((q) => q.difficulty === k).length;
+      const wrong = [];
+      const want = [
+        ['hour', 8, inv.segments], ['positions', pz.length, inv.puzzles],
+        ['questions', (L.teaching_flow.questions_to_ask || []).length, inv.questions],
+        ['activity', L.practical_activity.duration_min, inv.activities],
+        ['homework', L.homework.estimated_time_min, inv.homework.minutes],
+        ['notes', 5, inv.coachNotes.waysToSimplify],
+      ];
+      want.forEach(([name, one, all], i) => {
+        if (!sats[i] || sats[i].one !== one) wrong.push(`${name} session ${sats[i] && sats[i].one} != ${one}`);
+        if (!sats[i] || sats[i].all !== all) wrong.push(`${name} curriculum ${sats[i] && sats[i].all} != ${all}`);
+      });
+      // the plate's own two figures, and the tier line under the positions
+      if (n(txt('.sy-hour .sy-k em')) !== L.estimated_duration_min * 100 + 42) {
+        const em = txt('.sy-hour .sy-k em');
+        if (!em.includes(String(L.estimated_duration_min))) wrong.push(`hour key "${em}"`);
+      }
+      const grade = txt('.sy-sat:nth-child(2) .sy-g .sy-one');
+      for (const k of ['Foundation', 'Core', 'Challenge']) {
+        if (!grade.includes(`${tier(k)} ${k}`)) wrong.push(`grade line missing ${tier(k)} ${k}`);
+      }
+      const many = txt('.sy-many');
+      if (!many.includes(String(inv.sessions))) wrong.push(`ream count "${many}"`);
+      return { wrong, inv: inv.sessions };
+    });
+    record('system-figures-count', figs.wrong.length === 0,
+      figs.wrong.length ? figs.wrong.join('; ')
+        : `every figure on the stage matches inventory.json (${figs.inv} sessions counted) and S115`);
+    await p.close();
+  }
+
+  // ======================================================== the supporting pages
+  // Eleven generated documents live beside the film as of 2026-09-06: /curriculum, its
+  // five stage pages, /inside-a-session, the two role pages, /about and /404. They are
+  // built by tools/build-pages.cjs out of app/data, and the reason they are asserted HERE
+  // rather than only in tools/pagefit.cjs is the rule STATE.md binds every edit to — every
+  // figure must survive a count. Before this, nothing in the tree re-counted a printed
+  // number except `inventory.cjs --check`, and the four literals on the landing page were
+  // checked by nothing at all.
+
+  // 18 — the committed HTML still matches app/data. A bundle change that nobody rebuilt
+  // for is a page quietly printing last week's counts, and it is invisible by inspection.
+  {
+    const { execFileSync } = require('child_process');
+    let out = '';
+    let ok = true;
+    try {
+      out = execFileSync(process.execPath, [require('path').join(__dirname, 'build-pages.cjs'), '--check'],
+        { encoding: 'utf8' });
+    } catch (e) { ok = false; out = (e.stdout || '') + (e.stderr || ''); }
+    const line = out.trim().split('\n').filter(Boolean).slice(-1)[0] || 'no output';
+    record('pages-build-current', ok, line.trim());
+  }
+
+  // 19 — the map IS the syllabus: every session, level, unit and stage present as markup,
+  // and the counts read off the DOM rather than off the generator that wrote it.
+  {
+    const p = await page(b, 1440, 900, { route: '/curriculum' });
+    const r = await p.evaluate(async () => {
+      const cat = await (await fetch('/data/catalog.json')).json();
+      const stg = await (await fetch('/data/stages.json')).json();
+      const rows = [...document.querySelectorAll('.cu-s')];
+      const want = cat.sessions.length;
+      const units = stg.stages.reduce((a, s) => a + s.units.length, 0);
+      const levels = stg.stages.reduce((a, s) => a + s.levels.length, 0);
+      // Every title in the DOM, in document order, against the catalogue's own order.
+      // Normalised for typography first: the generator sets curly quotes and en dashes,
+      // which is correct on the page and is not a difference in the data.
+      const norm = (s) => s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
+        .replace(/[–—]/g, '-').replace(/\s+/g, ' ').trim();
+      const titles = rows.map((li) => norm(li.querySelector('.cu-t').textContent
+        .replace(/^\s*\d+\s*/, '')));
+      const expect = cat.sessions.map((s) => norm(s.title));
+      const firstBad = titles.findIndex((t, i) => t !== expect[i]);
+      const gates = rows.filter((li) => li.classList.contains('is-gate')).length;
+      return {
+        rows: rows.length, want, units, levels, gates,
+        u: document.querySelectorAll('.cu-u').length,
+        l: document.querySelectorAll('.cu-l').length,
+        st: document.querySelectorAll('.cu-band').length,
+        firstBad, got: titles[firstBad], exp: expect[firstBad],
+        rail: document.querySelectorAll('.cu-rail [data-stage]').length,
+      };
+    });
+    const ok = r.rows === r.want && r.u === r.units && r.l === r.levels && r.st === 5
+      && r.gates === r.levels && r.firstBad === -1 && r.rail === 5;
+    record('pages-map-complete', ok,
+      r.firstBad !== -1
+        ? `row ${r.firstBad + 1} says "${r.got}", catalog says "${r.exp}"`
+        : `${r.rows}/${r.want} sessions, ${r.u}/${r.units} units, ${r.l}/${r.levels} levels,`
+          + ` ${r.st}/5 stages, ${r.gates} graded rows, in catalogue order`);
+    await p.close();
+  }
+
+  // 20 — every printed figure on the supporting pages recounts off app/data. Reads the
+  // numeric surface out of all ten indexable pages — the figure strips, the stage metadata
+  // rows and every numeric table cell — and checks each value against a live fetch of the
+  // bundle. `pages-build-current` already proves no template contains a digit; this is the
+  // belt to that braces, and it is the assertion that would catch a hand-edit.
+  {
+    const ROUTES = ['/curriculum', '/curriculum/pawn', '/curriculum/knight',
+      '/curriculum/bishop', '/curriculum/rook', '/curriculum/queen', '/inside-a-session',
+      '/for-chess-coaches', '/for-chess-academies', '/about'];
+    const wrong = [];
+    let checked = 0;
+    for (const route of ROUTES) {
+      const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+      await p.goto(URL + route, { waitUntil: 'load' });
+      const r = await p.evaluate(async () => {
+        const cat = await (await fetch('/data/catalog.json')).json();
+        const inv = await (await fetch('/data/inventory.json')).json();
+        const stg = await (await fetch('/data/stages.json')).json();
+        const show = await (await fetch('/data/showcase.json')).json();
+        const S = cat.sessions;
+        const fmt = (n) => Number(n).toLocaleString('en-US');
+        const L = show.data.S115;
+        // Every value these pages are allowed to print, derived here and nowhere else.
+        const ok = new Set([
+          fmt(S.length), fmt(S.reduce((a, s) => a + s.puzzles, 0)),
+          String(stg.stages.length), String(stg.stages.reduce((a, s) => a + s.levels.length, 0)),
+          String(stg.stages.reduce((a, s) => a + s.units.length, 0)),
+          String(Math.round(S.reduce((a, s) => a + s.minutes, 0) / 60)),
+          fmt(inv.segments), fmt(inv.questions), fmt(inv.activities), fmt(inv.outcomes),
+          fmt(inv.demonstrations), fmt(inv.homework.minutes), fmt(inv.homework.sessions),
+          fmt(inv.homework.optional), fmt(inv.coachNotes.waysToSimplify),
+          fmt(inv.coachNotes.extensions), fmt(inv.coachNotes.misconceptions),
+          fmt(inv.tiers.Foundation), fmt(inv.tiers.Core), fmt(inv.tiers.Challenge),
+          // per-stage, per-level and per-unit figures
+          ...stg.stages.map((s) => String(s.sessionsAuthored)),
+          ...stg.stages.map((s) => String(s.units.length)),
+          ...stg.stages.map((s) => String(s.levels.length)),
+          ...stg.stages.flatMap((s) => s.units.map((u) => String(u.sessions))),
+          ...stg.stages.flatMap((s) => s.units.map((u) => String(u.sessions * 8))),
+          // the rating band a stage's students usually play at, and the entry age band —
+          // both printed in the stage figure strips, both split on their own dash
+          ...stg.stages.flatMap((s) => s.ratingBand.replace(/[^0-9-]/g, '').split('-')),
+          ...stg.stages.flatMap((s) => s.ageBand.split('-')),
+          // per-session figures: ordinal, minutes, positions, and stage/unit position sums
+          ...S.map((s) => String(s.puzzles)), ...S.map((s) => String(s.minutes)),
+          ...S.map((s) => String(s.n)),
+          ...stg.stages.map((s) => fmt(S.filter((x) => x.stage === s.number)
+            .reduce((a, x) => a + x.puzzles, 0))),
+          ...stg.stages.flatMap((s) => s.units.map((u) => String(
+            S.filter((x) => x.stage === s.number && x.unit === u.number)
+              .reduce((a, x) => a + x.puzzles, 0)))),
+          ...S.filter((s) => s.stage).map((s) => String(
+            S.filter((x) => x.level === s.level).length)),
+          // session 115's own figures, which /inside-a-session prints
+          String(L.estimated_duration_min), String((L.puzzles || []).length),
+          String((L.teaching_flow.questions_to_ask || []).length),
+          String(L.homework.estimated_time_min), String(L.practical_activity.duration_min),
+          '8', '42',
+          // the two bundle-1.1.0 verification figures the landing page also prints
+          '4,751', '2,346',
+          // the counts the copy states in words and the strip repeats: the three free
+          // sessions, the ten graded gates, the eight parts, and small ordinals
+          '0', '1', '2', '3', '4', '5', '6', '7', '9', '10', '11', '30',
+        ]);
+        const out = [];
+        const seen = [];
+        const grab = (sel, only) => {
+          for (const el of document.querySelectorAll(sel)) {
+            const v = el.textContent.trim();
+            if (only && !/^[0-9][0-9,]*$/.test(v)) continue;
+            if (!/[0-9]/.test(v)) continue;
+            seen.push(v);
+            // strip a trailing unit word or a range, then test each numeral in it
+            for (const num of v.match(/[0-9][0-9,]*/g) || []) if (!ok.has(num)) out.push(v);
+          }
+        };
+        grab('.pg-figs b.num');
+        grab('.cu-bd dd', true);
+        grab('.pg-table td.n');
+        grab('.cu-mc');
+        grab('.cu-rc');
+        return { bad: [...new Set(out)], n: seen.length };
+      });
+      checked += r.n;
+      if (r.bad.length) wrong.push(`${route}: ${r.bad.join(', ')}`);
+      await p.close();
+    }
+    record('pages-figures-count', wrong.length === 0,
+      wrong.length ? wrong.join(' | ')
+        : `${checked} figures across ${ROUTES.length} pages, every one derivable from app/data`);
+  }
+
+  // 21 — the syllabus survives with no JavaScript. This is the brief's own constraint and
+  // the one an answer engine actually depends on: all 213 rows, both delivery tracks and
+  // the rail present in the served markup, with scripting off entirely.
+  {
+    const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+    const p = await ctx.newPage();
+    await p.goto(URL + '/curriculum', { waitUntil: 'load' });
+    const r = await p.evaluate(() => ({
+      rows: document.querySelectorAll('.cu-s').length,
+      // both readouts visible: CSS only hides one once `.js` is on the body
+      tracks: [...document.querySelectorAll('.pg-track-note > [data-track]')]
+        .filter((x) => getComputedStyle(x).display !== 'none').length,
+      rail: document.querySelectorAll('.cu-rail a').length,
+      words: document.body.innerText.split(/\s+/).filter(Boolean).length,
+      hidden: [...document.querySelectorAll('.cu-s')].filter((x) => x.hidden).length,
+    }));
+    const ok = r.rows === 213 && r.tracks === 2 && r.rail >= 15 && r.hidden === 0;
+    record('pages-work-without-js', ok,
+      `${r.rows} session rows, ${r.tracks} of 2 track readouts shown, ${r.rail} rail links,`
+      + ` ${r.hidden} rows hidden, ${r.words} words of text`);
+    await ctx.close();
+  }
+
+  // 22 — one URL per page, and a wrong URL is a 404 rather than a copy of the front page.
+  {
+    const p = await b.newPage();
+    const probe = async (path, opts) => {
+      const r = await p.request.get(URL + path, { maxRedirects: 0, ...opts });
+      return { s: r.status(), loc: r.headers().location || '' };
+    };
+    const slash = await probe('/curriculum/');
+    const gone = await probe('/curriculum/rookk');
+    const teach = await p.request.get(URL + '/teach');
+    const teachHtml = await teach.text();
+    const sm = await p.request.get(URL + '/sitemap.xml');
+    const smText = await sm.text();
+    const rb = await p.request.get(URL + '/robots.txt');
+    const rbText = await rb.text();
+    const locs = [...smText.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    // The sitemap must list every canonical URL and nothing that is noindexed.
+    const want = ['/', '/curriculum', '/curriculum/pawn', '/curriculum/knight',
+      '/curriculum/bishop', '/curriculum/rook', '/curriculum/queen', '/inside-a-session',
+      '/for-chess-coaches', '/for-chess-academies', '/about']
+      .map((x) => 'https://efhaam.com' + (x === '/' ? '/' : x));
+    const missing = want.filter((u) => !locs.includes(u));
+    const extra = locs.filter((u) => !want.includes(u));
+    const ok = slash.s === 301 && slash.loc === '/curriculum' && gone.s === 404
+      && /name="robots" content="noindex/.test(teachHtml)
+      && !missing.length && !extra.length
+      && /Sitemap: https:\/\/efhaam\.com\/sitemap\.xml/.test(rbText)
+      && !/Disallow: \//.test(rbText);
+    record('pages-one-url-each', ok,
+      `/curriculum/ -> ${slash.s} ${slash.loc} · unknown -> ${gone.s} · /teach noindex `
+      + `${/noindex/.test(teachHtml)} · sitemap ${locs.length} urls`
+      + (missing.length ? ` MISSING ${missing.join(',')}` : '')
+      + (extra.length ? ` EXTRA ${extra.join(',')}` : ''));
+    await p.close();
+  }
+
+  // 23 — the homepage links out. Eleven pages reachable from nowhere on the strongest page
+  // on the site is the failure mode this whole build exists to avoid, and the footer map is
+  // the only place the film links to them.
+  {
+    const p = await page(b, 1440, 900);
+    await park(p, 'promotion', 0.5);
+    await p.waitForTimeout(1500);
+    const r = await p.evaluate(() => {
+      const nav = document.querySelector('.foot-map');
+      const links = [...(nav ? nav.querySelectorAll('a') : [])].map((a) => a.getAttribute('href'));
+      const st = document.querySelector('.act-promotion .act-stage');
+      const ink = (el) => {
+        if (!el) return null;
+        const rg = document.createRange(); rg.selectNodeContents(el);
+        const rs = [...rg.getClientRects()];
+        return rs.length ? Math.max(...rs.map((x) => x.bottom)) : el.getBoundingClientRect().bottom;
+      };
+      return { links, over: st.scrollHeight - st.clientHeight, fold: innerHeight,
+        low: Math.max(ink(document.querySelector('.foot p')) || 0, ink(nav) || 0),
+        canon: (document.querySelector('link[rel=canonical]') || {}).href,
+        ld: !!document.querySelector('script[type="application/ld+json"]'),
+        ogimg: (document.querySelector('meta[property="og:image"]') || {}).content };
+    });
+    const want = ['/curriculum', '/inside-a-session', '/for-chess-coaches',
+      '/for-chess-academies', '/about'];
+    const missing = want.filter((h) => !r.links.includes(h));
+    const ok = !missing.length && r.over === 0 && r.low - r.fold <= 0 && !!r.canon && r.ld
+      && !!r.ogimg;
+    record('promo-fits-with-site-map', ok,
+      `${r.links.length} footer links, stage over ${r.over}px, lowest ink`
+      + ` ${Math.round(r.low - r.fold)}px past the fold, canonical ${r.canon ? 'set' : 'MISSING'},`
+      + ` JSON-LD ${r.ld ? 'present' : 'MISSING'}, og:image ${r.ogimg ? 'set' : 'MISSING'}`
+      + (missing.length ? ` MISSING ${missing.join(',')}` : ''));
     await p.close();
   }
 

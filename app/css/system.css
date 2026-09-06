@@ -1,0 +1,796 @@
+/* ============================================================================
+   ACT 6 — the system around the session.
+
+   Loaded LAST, after annot.css, so it wins every cascade tie inside its own act;
+   every selector in this file is scoped under `.act-system` or a `.sy-` name that
+   exists nowhere else, so nothing here can reach another act. That is the same
+   arrangement act 5 has in annot.css and act 7 in terms.css.
+
+   THE ACT IS ONE OBJECT AND SIX FIGURES. An ink plate in the middle — the artefact
+   a coach teaches from — standing on the paper room the parent and the photocopier
+   get, which is the tonal cut the film already runs on (director.js: lift reaches 1
+   at n 6.06, so this whole act is the paper end). Three figures a side, each joined
+   to the plate by a hairline leader that draws itself out of the label.
+
+   THEN THE TURN, and it is the only thing this act does. From t 0.53 the plate fans
+   out into a ream of itself and every figure CUTS from S115's number to the whole
+   curriculum's. The labels do not move. The reader is not asked to learn a second
+   diagram; they learn the one they just read is every session.
+
+   EVERY BEAT IS A clamp() ON --t. Nothing here is written per frame from JS. The act
+   is 760vh, so its pin is 660vh and --h opens at (760-200)/(760-100) = 0.8485: the
+   whole story has to be told, and STILL, by t 0.72, which leaves 0.13 of the pin —
+   86vh — with the diagram complete and motionless before the handover starts.
+   ========================================================================== */
+
+.act-system .pad.system {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: stretch;
+  row-gap: clamp(10px, 1.8vh, 26px);
+
+  /* the two the act inherits: arrival on --e so the diagram is never a bare board
+     waiting for cards, and departure on --h, unchanged from the bento */
+  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
+  --out: clamp(0, calc(var(--h) / 0.42), 1);
+
+  /* the plate, as the act pins */
+  --kp: clamp(0, calc((var(--t) - 0.020) / 0.100), 1);
+  /* Six figures, one every 0.048, each over 0.062 — the last closes at 0.442. Each one
+     computes its own band from `--o`, the place it takes in the DEAL, which system.js
+     writes once. The deal ALTERNATES SIDES (hour, activity, positions, homework,
+     questions, notes) while each column keeps its own top-to-bottom order: dealt in
+     document order, the whole left column arrived before the right one started and the
+     diagram sat lopsided for a third of the act. */
+  /* The homework leaves the plate as paper on the fifth figure's own band — and goes
+     back in before the turn, because it is a detail of ONE session and the turn is the
+     moment the act stops being about one. It also has to be gone before the payoff
+     arrives at 0.66: out, the sheet reaches within a few pixels of that line. */
+  --hw: calc(clamp(0, calc((var(--t) - 0.345) / 0.075), 1)
+       * (1 - clamp(0, calc((var(--t) - 0.545) / 0.055), 1)));
+  /* the ream fans out from under the plate */
+  --ream: clamp(0, calc((var(--t) - 0.530) / 0.110), 1);
+  /* and the payoff, with everything complete behind it */
+  --cl: clamp(0, calc((var(--t) - 0.660) / 0.055), 1);
+}
+
+.system-head {
+  display: grid; gap: 6px clamp(20px, 4vw, 64px);
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr); align-items: end;
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+.system-head .kicker { grid-column: 1 / -1; margin-bottom: 4px; }
+/* 1.14, not .d3's 0.94, and the figure is measured rather than chosen: Fraunces at this
+   optical size inks 3px past a 1.06em line box (the descenders of "everything around it"),
+   (the descenders of "everything around it"), which is why the head reported 4-5px of
+   scrollable overflow at every window. Nothing clipped it, but a box that lies about its
+   own height is not worth keeping. 1.2 is where it reaches exactly zero, measured at
+   1440x900 with .tmpwork/hd.cjs; it costs 12px across the two lines. Same reasoning as
+   act 5's `.ses-h` floor of 1.24. */
+.system-head .d3 { font-size: clamp(1.5rem, 3vw, 2.8rem); line-height: 1.2; }
+.system-head .lead { max-width: 48ch; font-size: clamp(0.94rem, 1.1vw, 1.08rem); }
+
+/* ============================================================== the diagram */
+.sy-wrap {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr); min-height: 0; min-width: 0;
+  opacity: calc(var(--in2) * (1 - var(--out)));
+}
+.sy-field {
+  /* NO column gap. The leader has to land ON the plate's edge from a known distance,
+     and a grid gap plus a centred plate is not a known distance — so the gap is the
+     side columns' own padding and the leader is exactly that padding wide. */
+  display: grid; gap: 0;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 2.2fr) minmax(150px, 1fr);
+  align-items: center; min-height: 0; min-width: 0;
+  max-width: 1480px; margin-inline: auto; width: 100%;
+  --sy-lead: clamp(22px, 3.2vw, 52px);
+}
+
+/* ---------------------------------------------------------- the six figures */
+.sy-side {
+  position: relative; min-width: 0;
+  display: grid; grid-auto-rows: auto;
+  align-content: space-evenly; gap: clamp(10px, 2.2vh, 30px);
+  padding-block: clamp(4px, 1vh, 14px);
+}
+.sy-side-l { padding-right: var(--sy-lead); text-align: right; justify-items: end; }
+.sy-side-r { padding-left: var(--sy-lead); }
+/* A GROUND, because these figures are the only type in the act with no plate under
+   them and the room here is the lit board seen from above. `--fg-faint` measured
+   2.33:1 on this act's paper once already (acts.css:31), so the ink is --fg / --fg-dim
+   and this wash guarantees what it sits on: ivory at 0.5, faded out at both ends so it
+   has no edge to show, reaching past the gutter so it has no vertical one either. Same
+   device as `#nav::before` and `.foot::before`. */
+.sy-side::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  inset: -10px -14px;
+  background: linear-gradient(180deg, rgb(246 242 233 / 0), rgb(246 242 233 / 0.5) 12%,
+    rgb(246 242 233 / 0.5) 88%, rgb(246 242 233 / 0));
+  opacity: 0.9;
+}
+
+.sy-sat {
+  position: relative; min-width: 0;
+  display: grid; gap: 2px; align-content: start;
+  --f: clamp(0, calc((var(--t) - (0.140 + var(--o) * 0.048)) / 0.062), 1);
+  /* the figure's own cut, staggered in the same order the deal ran, so the turn reads as
+     a wave across the diagram rather than as six things happening at once. Last: 0.630. */
+  --cut: calc(0.560 + var(--o) * 0.014);
+  /* COMPLEMENTARY, AND 0.001 WIDE. A 0.008 fall with a 0.008 gap before the rise — act 1's
+     head-swap shape — is right for two lines of Fraunces and wrong for a numeral: swept on
+     the engine's own k/120 grid with .tmpwork/cut.cjs, 8 of 90 frame-figures caught the gap
+     and showed the figure at 0.125 opacity, which reads as broken rather than as a cut.
+     These two sum to exactly 1 at every value of --t, so a figure is never absent, and the
+     ramp is an eighth of one quantisation step, so the double exposure it trades for is at
+     most one frame. Measured across the same 90 frame-figures: the worst frame is a single
+     one at 0.7 / 0.3 — the new figure with a ghost of the old behind it, which reads as a
+     cross-cut. Nothing is ever absent. Re-run .tmpwork/cut.cjs after retiming this. */
+  --one: calc(1 - clamp(0, calc((var(--t) - var(--cut)) / 0.001), 1));
+  --all: clamp(0, calc((var(--t) - var(--cut)) / 0.001), 1);
+  opacity: var(--f);
+  transform: translateY(calc((1 - var(--f)) * 10px));
+}
+
+.sy-l {
+  margin: 0; color: var(--fg);
+  font-size: clamp(0.6rem, 0.72vw, 0.72rem); letter-spacing: 0.18em; font-weight: 600;
+}
+/* 1.3 on all three of the figure's boxes, and the reason is layout overflow rather than
+   looks. JetBrains Mono's content area is taller than its em, so a numeral set at 1.1 hangs
+   its own inline box below the flex line it is baseline-aligned in, and every satellite
+   reported 3-4px of overflow on a phone because of it. 1.3 is where it reaches zero. */
+.sy-n {
+  margin: 0; display: grid; align-items: end; line-height: 1.3;
+  color: var(--fg);
+}
+.sy-n > span { grid-area: 1 / 1; display: flex; align-items: baseline; gap: 0.42em; }
+.sy-side-l .sy-n > span { justify-content: flex-end; }
+.sy-n b {
+  font-weight: 400; font-size: clamp(1.5rem, 2.5vw, 2.4rem);
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums;
+}
+.sy-n small {
+  font-family: var(--mono); font-size: clamp(0.5rem, 0.58vw, 0.6rem);
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-faint);
+  line-height: 1.3;
+}
+.sy-n b { line-height: 1.3; }
+.sy-g { margin: 1px 0 0; display: grid; }
+.sy-g > span { grid-area: 1 / 1; }
+.sy-g, .sy-g > span {
+  font-size: clamp(0.76rem, 0.86vw, 0.88rem); line-height: 1.42;
+  color: var(--fg-dim); text-wrap: pretty;
+}
+/* the two states of every figure and every sentence: a CUT, 0.008 of --t wide with a
+   0.008 gap, which is act 1's own head-swap rule. Two tabular numerals of different
+   widths dissolved through each other read as neither. */
+.sy-one { opacity: var(--one); }
+.sy-all { opacity: var(--all); }
+
+/* The leader: a 1px rule from the figure's own midpoint to the plate's edge, ending in
+   a dot on it, drawing itself out of the label as the figure arrives. scaleX only, from
+   a 1px-tall box, so there is nothing here for layout to do. Same construction as act
+   5's six callouts (annot.css:250-265), turned through ninety degrees. */
+.sy-r {
+  position: absolute; top: 50%; height: 1px; width: var(--sy-lead);
+  background: var(--line-2); pointer-events: none;
+}
+.sy-r::after {
+  content: ''; position: absolute; top: -2px; width: 5px; height: 5px;
+  border-radius: 50%; background: var(--hue);
+}
+.sy-side-l .sy-r { right: calc(-1 * var(--sy-lead)); transform-origin: 0 50%; }
+.sy-side-l .sy-r::after { right: -2px; }
+.sy-side-r .sy-r { left: calc(-1 * var(--sy-lead)); transform-origin: 100% 50%; }
+.sy-side-r .sy-r::after { left: -2px; }
+.sy-r { transform: scaleX(var(--f)); }
+
+/* ================================================================= the plate
+   It does NOT take the paper lift. The director ramps --fg, --fg-dim, --fg-faint,
+   --line, --line-2 and --glass as the room turns to paper, so a plate that inherited
+   them would become a cream panel with mid-grey type on it. This one is opaque ebony
+   and re-declares all six at tokens.css's dark-room values, exactly as act 5's console
+   does (annot.css), so every rule inside can keep saying var(--line). */
+.sy-core {
+  position: relative; z-index: 1; min-width: 0; align-self: center;
+  --fg: #f4efe4;
+  --fg-dim: #b8ae9d;
+  --fg-faint: #8b8397;
+  --line: rgb(244 239 228 / 0.13);
+  --line-2: rgb(244 239 228 / 0.26);
+  --glass: rgb(7 7 10 / 0.88);
+  color: var(--fg);
+  background-color: var(--ebony);
+  border: 1px solid rgb(244 239 228 / 0.1);
+  /* 14px, act 5's console's own radius, so the two artefacts are the same object. */
+  border-radius: 14px;
+  padding: clamp(12px, 1.15vw, 20px) clamp(14px, 1.35vw, 24px);
+  display: grid; gap: clamp(7px, 1.15vh, 15px); align-content: start;
+  isolation: isolate; overflow: visible;
+  /* one step of the ream's fan. A phone gets a shallower one — see the ladder. */
+  --rd: 8px;
+  transform: translateY(calc((1 - var(--kp)) * 22px))
+             scale(calc(0.982 + var(--kp) * 0.018));
+  opacity: var(--kp);
+  /* THE REAM. Nine copies of the plate's own box, rising out from behind it as --ream
+     goes 0 to 1 and stepping toward the paper so the stack recedes into the room. They
+     are box-shadows and not elements for a reason: a negative z-index child paints
+     ABOVE its parent's own background, so a DOM ream would have covered the plate it
+     is a copy of. Zero blur; each one is the plate, 8px further up and 2px narrower,
+     which is what makes it read as depth rather than as a shadow.
+     STRICTLY VERTICAL, and that is a measured constraint, not a taste. A fan with a
+     horizontal component walked over the left column's three leaders and the last word
+     of two of its sentences: the leader dot lands 21px from the plate's edge at 1440,
+     and the fan was 63px wide. The negative spread does the perspective instead.
+     The four insets are the milled bevel .cta uses; the two soft drops are what an ink
+     plate casts on paper. Same list length in every state, so nothing switches. */
+  box-shadow:
+    inset  0  1px 0 0 rgb(242 236 224 / 0.16),
+    inset  0 -1px 0 0 rgb(6 6 10 / 0.34),
+    inset  1px 0 0 0 rgb(242 236 224 / 0.07),
+    inset -1px 0 0 0 rgb(6 6 10 / 0.16),
+    0 calc(var(--ream) * var(--rd) * -1) 0 -2px rgb(15 14 20 / 0.94),
+    0 calc(var(--ream) * var(--rd) * -2) 0 -4px rgb(18 17 24 / 0.86),
+    0 calc(var(--ream) * var(--rd) * -3) 0 -6px rgb(23 21 30 / 0.78),
+    0 calc(var(--ream) * var(--rd) * -4) 0 -8px rgb(29 27 37 / 0.68),
+    0 calc(var(--ream) * var(--rd) * -5) 0 -10px rgb(38 35 47 / 0.58),
+    0 calc(var(--ream) * var(--rd) * -6) 0 -12px rgb(50 46 60 / 0.46),
+    0 calc(var(--ream) * var(--rd) * -7) 0 -14px rgb(66 61 77 / 0.34),
+    0 calc(var(--ream) * var(--rd) * -8) 0 -16px rgb(88 82 100 / 0.22),
+    0 calc(var(--ream) * var(--rd) * -9) 0 -18px rgb(116 109 130 / 0.12),
+    0  2px  5px rgb(6 6 10 / 0.22),
+    0 20px 54px rgb(6 6 10 / 0.20);
+}
+/* the milled face, tracking the pointer. chrome.js's bindPlates writes --mx/--my on
+   the element it is over; this is .cta's own gradient (product.css:172), and on an ink
+   plate it is the ivory half of each pair that draws. */
+.sy-plate {
+  background-image: radial-gradient(120% 170% at var(--mx, 50%) var(--my, -22%),
+      rgb(242 236 224 / 0.13) 0%,
+      rgb(242 236 224 / 0) 34%,
+      rgb(6 6 10 / 0.05) 66%,
+      rgb(6 6 10 / 0.16) 100%);
+}
+
+/* the plate's wrapper. It exists so the homework sheet can be a SIBLING ordered before
+   the plate: a z-index:-1 CHILD paints above its own parent's background, so a sheet
+   inside the plate would have covered the plate. */
+.sy-corewrap { position: relative; display: grid; min-width: 0; align-self: center; }
+
+/* ------------------------------------------------------- the plate's own head */
+/* board left, words right. The board is the one element that makes this plate the
+   product rather than a description of it, and it is the same component, the same two
+   square colours and the same CSS as act 5's console board (annot.css:559). */
+.sy-head2 {
+  display: grid; gap: 2px clamp(10px, 1.1vw, 18px); min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto;
+  align-items: start;
+}
+.sy-board {
+  grid-column: 1; grid-row: 1 / 4; align-self: start;
+  width: clamp(76px, 11.5vh, 132px); aspect-ratio: 1;
+  container-type: size;
+  /* .board2d's own arrival band is act 5's --k2; this act drives it from its own plate */
+  --k2: 1;
+}
+.sy-bcap {
+  grid-column: 1; grid-row: 4; margin: 3px 0 0;
+  display: grid; gap: 0; color: var(--fg-faint);
+  /* tracked at 0.11em, "BLACK TO MOVE" was 110px against a 104px board and wrapped to
+     three lines. 0.055em and one step down holds it on one. */
+  font-size: clamp(0.4rem, 0.48vw, 0.5rem); letter-spacing: 0.055em;
+  max-width: clamp(76px, 11.5vh, 132px);
+}
+.sy-bcap b { color: var(--fg-dim); font-weight: 500; }
+.sy-crumb, .sy-t, .sy-sub, .sy-pre { grid-column: 2; }
+.sy-crumb { margin: 0; color: var(--fg-faint); font-size: clamp(0.5rem, 0.6vw, 0.6rem);
+  letter-spacing: 0.15em; display: flex; align-items: baseline; gap: 0.4em;
+  min-width: 0; white-space: nowrap; }
+.sy-crumb b { color: var(--hue); font-weight: 500; flex: none; }
+.sy-crumb > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sy-t {
+  margin: 0; font-family: var(--display); font-weight: 300;
+  font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0;
+  font-size: clamp(1.05rem, 1.5vw, 1.62rem); line-height: 1.12; letter-spacing: -0.02em;
+}
+.sy-sub { margin: 0; color: var(--fg-dim); font-size: clamp(0.74rem, 0.86vw, 0.9rem);
+  line-height: 1.42; max-width: 56ch; text-wrap: pretty; }
+.sy-pre { margin: 2px 0 0; display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 2px 0.55em; min-width: 0;
+  color: var(--fg-faint); font-size: clamp(0.48rem, 0.56vw, 0.58rem); letter-spacing: 0.15em; }
+.sy-pre b { color: var(--fg-dim); font-weight: 500; letter-spacing: 0.1em; white-space: nowrap; }
+.sy-pre > span:first-child { white-space: nowrap; }
+/* rim coordinates are for a board a room reads from. At 13px a square they are noise. */
+.sy-board .board2d .co { display: none; }
+
+/* ------------------------------------------------- a block's key, twice over */
+.sy-k { margin: 0 0 4px; display: flex; justify-content: space-between; gap: 10px;
+  color: var(--fg-faint); font-size: clamp(0.46rem, 0.55vw, 0.56rem); letter-spacing: 0.16em; }
+.sy-k em { font-style: normal; color: var(--fg-dim); margin-left: auto; }
+/* "THE HOUR" and "THE POSITIONS" are what the two figures beside the plate already say,
+   and the leader is what joins them to it — so on the diagram tier the plate does not
+   repeat the word, it keeps only the count. Below 1180 the leaders go (the sides move
+   under the plate), and the words come back with the job. */
+[data-part] > .sy-k > span:first-child { display: none; }
+
+/* ------------------------------------------------------------------ the hour
+   Eight parts, each as wide as its own minutes, so the shape of the hour is the
+   picture. The puzzles part is lit: that is the part act 5's console was open on. */
+.sy-rail { display: flex; margin: 0; padding: 0; list-style: none; gap: 2px; min-width: 0; }
+.sy-rail li {
+  flex: 1 1 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: 1px; align-content: end;
+  border-top: 2px solid var(--line-2); padding-top: 4px;
+  transition: border-color 260ms var(--ease), color 260ms var(--ease);
+}
+/* the minute line keeps its box whether the part carries a figure or not, so the rail
+   is one straight rule and not a comb */
+.sy-min { min-height: 1em; }
+.sy-rail li.is-on { border-top-color: var(--hue); }
+.sy-seg {
+  font-family: var(--mono); font-size: clamp(0.4rem, 0.5vw, 0.52rem); letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--fg-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: clip;
+}
+.sy-rail li.is-on .sy-seg { color: var(--fg); }
+.sy-min { font-size: clamp(0.42rem, 0.52vw, 0.55rem); color: var(--fg-dim); letter-spacing: 0.04em; }
+
+/* ------------------------------------------------------------- the positions
+   Eight graded chips. The grade is authored per puzzle in the bundle, and it is what
+   lets one written hour serve two ages — which is what the control below does with it. */
+.sy-chips { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px;
+  margin: 0; padding: 0; list-style: none; }
+.sy-chips li {
+  position: relative; min-width: 0; display: grid; gap: 1px; justify-items: start;
+  border: 1px solid var(--line); border-radius: 4px;
+  padding: clamp(3px, 0.45vh, 6px) clamp(3px, 0.4vw, 7px);
+  background: rgb(244 239 228 / 0.035);
+  transition: opacity 300ms var(--ease), border-color 300ms var(--ease),
+              background 300ms var(--ease);
+}
+.sy-chips b { font-family: var(--mono); font-weight: 500; color: var(--fg-dim);
+  font-size: clamp(0.42rem, 0.5vw, 0.54rem); letter-spacing: 0.06em; }
+.sy-stars { color: var(--hue); font-size: clamp(0.34rem, 0.42vw, 0.44rem); letter-spacing: 0.14em; }
+.sy-tier { font-family: var(--mono); font-size: clamp(0.34rem, 0.42vw, 0.44rem);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: clip; }
+/* what the chosen pathway does to this position. `bonus` and `coach shows` are
+   PATHWAYS.md's own words for Track A's two upper tiers, not a dimming for effect. */
+/* The rule line keeps EXACTLY its own box whether the track writes into it or not, which
+   is why line-height and min-height are the same figure: at the inherited 1.55 the box was
+   8.9px with text and 5.8px without, and the plate grew 3.2px under the reader's hand the
+   moment they pressed Foundation. Measured with .tmpwork/sysint.cjs. */
+.sy-rule { font-family: var(--mono); font-size: clamp(0.32rem, 0.4vw, 0.42rem);
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--hue);
+  line-height: 1.15; min-height: 1.15em; white-space: nowrap; }
+/* Four states, and each one is a track's authored rule for that tier rather than a dimming
+   for effect. `the set` is what the room is handed; `warm-up` and `the point` are
+   Challenger's own emphasis (ADR-0004: "all 8, Challenge tier emphasized"); `coach shows`
+   is the plan's phrase for the tier Explorer holds back. */
+.sy-chips li[data-state='the set'] { border-color: var(--hue); background: var(--hue-soft); }
+.sy-chips li[data-state='the set'] .sy-rule::after { content: 'set'; }
+.sy-chips li[data-state='the point'] { border-color: var(--hue); background: var(--hue-soft);
+  box-shadow: 0 0 15px -4px var(--hue), inset 0 0 0 1px var(--hue); }
+.sy-chips li[data-state='the point'] .sy-rule::after { content: 'the point'; }
+.sy-chips li[data-state='warm-up'] { opacity: 0.66; }
+.sy-chips li[data-state='warm-up'] .sy-rule::after { content: 'warm-up'; }
+.sy-chips li[data-state='coach shows'] { opacity: 0.42; border-style: dashed; }
+.sy-chips li[data-state='coach shows'] .sy-rule::after { content: 'coach'; }
+
+/* ------------------------------------------------------------- the two tracks
+   Explorer and Challenger, from tracks.json. Pressing one re-grades the eight positions
+   above it by that track's own rule and prints that track's own parameters. `.sy-rule`
+   above keeps a reserved line whatever the state, so the plate cannot change height under
+   the reader's hand — terms.css's billing pill learned that the hard way. */
+/* The control arrives WITH the plate, not on a band of its own. It used to wait until
+   t 0.455 while its box kept its height, so for the first two thirds of the act the
+   artefact was half an empty panel — and it is part of the product rather than a later
+   reveal. The sequencing the act needs is carried by the six figures dealing in around
+   it, which is where the reader is looking. */
+.sy-ways {
+  border-top: 1px solid var(--line); padding-top: clamp(6px, 1vh, 12px);
+}
+.sy-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.sy-way {
+  appearance: none; cursor: pointer; text-align: left;
+  display: grid; gap: 1px; min-width: 0;
+  font: inherit; color: var(--fg-dim);
+  background-color: rgb(244 239 228 / 0.04);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: clamp(4px, 0.7vh, 8px) clamp(6px, 0.7vw, 11px);
+  transition: color 240ms var(--ease), background-color 240ms var(--ease),
+              border-color 260ms var(--ease), box-shadow 300ms var(--ease);
+  box-shadow: inset 0 1px 0 0 rgb(242 236 224 / 0.05);
+}
+.sy-way b { font-weight: 500; font-size: clamp(0.72rem, 0.85vw, 0.9rem); letter-spacing: -0.005em; }
+.sy-way .mono { font-size: clamp(0.4rem, 0.48vw, 0.5rem); letter-spacing: 0.12em;
+  color: var(--fg-faint); }
+.sy-way:hover { color: var(--fg); border-color: var(--line-2);
+  background-color: rgb(244 239 228 / 0.075);
+  box-shadow: inset 0 1px 0 0 rgb(242 236 224 / 0.12); }
+.sy-way[aria-pressed='true'] {
+  color: var(--fg); border-color: var(--hue); background-color: var(--hue-soft);
+  box-shadow: inset 0 1px 0 0 rgb(242 236 224 / 0.16), 0 0 18px -6px var(--hue);
+}
+.sy-way[aria-pressed='true'] .mono { color: var(--fg-dim); }
+.sy-note { margin: 5px 0 0; color: var(--fg-dim); line-height: 1.4;
+  font-size: clamp(0.62rem, 0.74vw, 0.76rem); min-height: 2.8em; text-wrap: pretty; }
+/* the full readout, and the one-line form the shortest windows print instead */
+.sy-note-s { display: none; }
+
+/* -------------------------------------------------------------- the homework
+   The one thing on the plate that is not the plate's colour, and the reason is the
+   film's own tonal cut: dark is what the coach teaches from, light is what goes home.
+   So the homework leaves the artefact as paper. It carries the session's real homework,
+   and it slides out on the fifth figure's band — the one that names it. */
+.sy-sheet {
+  /* anchored to the plate's FOOT and hidden behind it at rest: at --hw 0 its own box
+     coincides with the bottom of the plate, which covers it; at 1 it has slid down out
+     of the foot by its own height less the 12px the plate keeps hold of. */
+  position: absolute; left: 6%; right: 6%; bottom: 0; z-index: 0;
+  background: var(--ivory);
+  color: var(--on-light);
+  border-radius: 0 0 10px 10px;
+  padding: clamp(12px, 1.3vh, 20px) clamp(14px, 1.3vw, 22px) clamp(9px, 1vh, 14px);
+  display: grid; gap: 4px;
+  box-shadow: 0 12px 26px rgb(6 6 10 / 0.16), inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+  transform: translateY(calc(var(--hw) * (100% - 12px)));
+  opacity: calc(var(--kp) * clamp(0, calc(var(--hw) * 3), 1));
+}
+.sy-corewrap .sy-core { z-index: 1; }
+.sy-sk { margin: 0; color: var(--on-light-faint); font-size: clamp(0.44rem, 0.52vw, 0.54rem);
+  letter-spacing: 0.16em; }
+.sy-hwl { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.sy-hwl li { display: grid; grid-template-columns: 6.6em minmax(0, 1fr); gap: 8px;
+  align-items: baseline; border-top: 1px solid var(--hair-ink); padding-top: 3px;
+  font-size: clamp(0.6rem, 0.7vw, 0.74rem); line-height: 1.36; color: var(--on-light-dim); }
+.sy-hwl .mono { color: var(--on-light-faint); font-size: clamp(0.4rem, 0.48vw, 0.5rem);
+  letter-spacing: 0.1em; }
+/* one line each, so the sheet is a sheet and not a document */
+.sy-hwl li > span:last-child {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* the ream's own count. It arrives with the fan, in the crumb's row, because that is
+   where the reader already is when the six figures turn. */
+.sy-many {
+  margin-left: auto; flex: none; display: flex; align-items: baseline; gap: 0.5em;
+  white-space: nowrap;
+  opacity: clamp(0, calc((var(--ream) - 0.30) / 0.35), 1);
+}
+.sy-many b { color: var(--hue); font-weight: 500; letter-spacing: 0.08em; }
+.sy-many span { color: var(--fg-dim); }
+
+/* ------------------------------------------------------------ pointer, and why
+   The plate's own face already tracks the pointer (bindPlates writes --mx/--my on it),
+   which is what stops it reading as a flat rectangle. This is the other half: pointing
+   at a figure lights the leader that joins it to the plate, and — for the three figures
+   that name a block the plate actually draws — lights that block too. An enhancement
+   only. Nothing in the diagram depends on it and a coarse pointer never sees it. */
+.sy-sat:hover .sy-r { background: var(--hue); }
+.sy-sat:hover .sy-r::after { width: 7px; height: 7px; top: -3px; }
+.sy-side-l .sy-sat:hover .sy-r::after { right: -3px; }
+.sy-side-r .sy-sat:hover .sy-r::after { left: -3px; }
+.sy-r::after { transition: width 220ms var(--ease), height 220ms var(--ease); }
+.sy-field[data-lit='hour'] [data-part='hour'] > .sy-k,
+.sy-field[data-lit='pos'] [data-part='pos'] > .sy-k { color: var(--fg); }
+.sy-field[data-lit='hour'] .sy-rail li { border-top-color: var(--line-2); }
+.sy-field[data-lit='hour'] .sy-rail li.is-on { border-top-color: var(--hue); }
+.sy-field[data-lit='hour'] .sy-seg { color: var(--fg-dim); }
+.sy-field[data-lit='pos'] .sy-chips li { border-color: var(--line-2); }
+/* the sheet comes further out of the plate when the figure that names it is pointed at */
+.sy-field[data-lit='hw'] .sy-sheet {
+  transform: translateY(calc(max(var(--hw), 0.62) * (100% - 12px) + clamp(6px, 1.6vh, 18px)));
+  opacity: var(--kp);
+}
+.sy-sheet { transition: transform 460ms var(--ease), opacity 320ms var(--ease); }
+
+/* =================================================================== the close
+   Act 0 makes this promise in display type. This act has just shown the mechanism, so
+   the same sentence is the payoff rather than a repeat — and the line under it is the
+   rebuttal to act 1, whose whole subject is the coach's own Sunday. */
+.sy-close {
+  display: grid; gap: 4px; justify-items: center; text-align: center;
+  opacity: calc(var(--cl) * (1 - var(--out)));
+  transform: translateY(calc((1 - var(--cl)) * 8px));
+}
+.sy-payoff {
+  margin: 0; max-width: 46ch; color: var(--fg);
+  font-family: var(--display); font-weight: 300;
+  font-variation-settings: 'opsz' 60, 'SOFT' 0, 'WONK' 0;
+  font-size: clamp(1rem, 1.55vw, 1.72rem); line-height: 1.18; letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+.sy-sun {
+  margin: 0; color: var(--fg-dim); font-size: clamp(0.5rem, 0.6vw, 0.62rem);
+  letter-spacing: 0.2em; display: flex; align-items: center; gap: 0.8em;
+}
+.sy-sun::before, .sy-sun::after {
+  content: ''; width: clamp(14px, 3vw, 46px); height: 1px; background: var(--line-2);
+}
+
+/* ==================================================== the responsive ladder
+   Not a shrink. The act is a diagram at the widths a diagram reads at, and a stack
+   everywhere else — and when the leaders go, the naming they were doing moves onto the
+   plate. Each step below says what it spends and why, cheapest first, which is the same
+   arrangement act 5's ladder has in annot.css and act 7's in terms.css.
+
+   THE SPLIT STOPS BEING A SPLIT AT 1180. Below that the two side columns are under 210px
+   and a leader has nothing to travel across: the plate goes on top and the six figures
+   run under it in two rows of three. This is the same trade act 5 makes at the same
+   width, for the same reason. */
+@media (max-width: 1180px) {
+  .sy-field {
+    display: flex; flex-direction: column; gap: clamp(9px, 1.7vh, 20px);
+    max-width: 880px;
+  }
+  .sy-corewrap { order: -1; }
+  .sy-side {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(8px, 1.4vw, 18px);
+    padding: 0; text-align: left; justify-items: start; align-content: start;
+  }
+  .sy-side::before { inset: -7px -10px; }
+  /* a leader needs a side to come out of, and the hairline that grouped the column
+     becomes the rule over each figure — act 3's `.gates` idiom */
+  .sy-r { display: none; }
+  .sy-sat { border-top: 1px solid var(--line-2); padding-top: 5px; }
+  .sy-side-l .sy-n > span { justify-content: flex-start; }
+  /* THE WORDS COME BACK WITH THE JOB. With no leader joining "the hour" to the rail, the
+     plate has to name its own blocks again. */
+  [data-part] > .sy-k > span:first-child { display: block; }
+  .sy-n b { font-size: clamp(1.4rem, 3.4vw, 2rem); }
+  /* AND THE GLOSSES GO WITH THE LEADERS, at the same breakpoint and for the same reason.
+     Stacked, the plate sits directly above the six figures saying the same things in full —
+     the rail IS the hour, the graded chips ARE the positions, the two buttons ARE the tracks
+     — so the sentence under each figure is the one redundant thing on the stage. It is also
+     the 80px the stack needs: `.pad.system`'s middle row is `minmax(0, 1fr)`, so what does
+     not fit does not clip, it lands on the payoff. Measured at t 0.78, sibling overlap
+     before -> after: 1180x800 54px -> 0, 1100x900 34 -> 0, 981x620 8 -> 0, 901x620 3 -> 0.
+     The rule itself is at the FOOT of this file and carries `.act-system` — a fourth
+     instance of this file's cascade trap. Written here it was beaten by the 820 tier's own
+     `.sy-g { display: grid }`, which is declared later at equal specificity, and the sweep
+     read the same 54px before and after the "fix". */
+}
+
+/* A PHONE KEEPS THE DIAGRAM AND THE CONTROL. Two rows of three becomes three rows of
+   two; the plate keeps its board, its rail, its eight graded positions and its three
+   pathways, because those four things ARE the argument and a phone reader is not owed
+   less of it. What it loses is the sheet's third line and the leaders. */
+@media (max-width: 900px) {
+  .act-system .pad.system { row-gap: clamp(18px, 3.2vh, 30px); }
+  .sy-field { max-width: none; }
+  .sy-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sy-core { padding: 11px 12px; gap: 7px; border-radius: 10px; }
+  .sy-head2 { gap: 2px 10px; }
+  .sy-board { width: clamp(64px, 21vw, 104px); }
+  .sy-bcap { max-width: clamp(64px, 21vw, 104px); }
+  .sy-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sy-n b { font-size: clamp(1.3rem, 7.6vw, 1.9rem); }
+  .sy-l { font-size: 0.58rem; letter-spacing: 0.14em; }
+  .sy-g { font-size: 0.72rem; }
+  .sy-note { min-height: 0; }
+  .sy-payoff { font-size: clamp(1rem, 4.6vw, 1.4rem); }
+  .sy-hwl li:nth-child(3) { display: none; }
+  /* The coordinate sits in the pad's own bottom padding on every act, and on every act but
+     this one the last row of content stops short of it. Act 6's payoff is a centred
+     full-width sentence in the last grid row, so at 390 the label landed inside it
+     ("...would have built. H8"). Dropping it 2px from the stage edge clears the row by 9px;
+     it is an 8px mono label in a corner and the site sets type at that size there already. */
+  .act-system .coord { bottom: 2px; }
+}
+
+/* Under 600 the rail's eighth is 40px and a part's name is not a name at 24px of it. The
+   minutes stay: they are what makes the rail a written hour rather than eight boxes. */
+/* 8 chips across 268px of inner width is 31px each, which holds "P1" and its stars and
+   not a rule word as well. The lit / dimmed state carries the track's decision instead. */
+@media (max-width: 360px) {
+  .sy-rule { display: none; }
+}
+
+@media (max-width: 600px) {
+  .sy-seg { display: none; }
+  .sy-rail li { padding-top: 3px; }
+  .sy-min { font-size: 0.46rem; }
+  .sy-way { padding: 4px 6px; }
+  .sy-way b { font-size: 0.7rem; }
+}
+
+/* A PINNED 100vh STAGE IS THE WHOLE BUDGET, and on a phone the stack wants 1,028px of a
+   764px one. What it spends, and the order, is a content decision rather than a shrink:
+
+   THE GLOSSES GO FIRST. The six sentences are the "so what" beside each figure, and on a
+   phone the plate is directly above them saying the same things in full — the rail IS the
+   hour, the eight graded chips ARE the positions, the three buttons ARE the pathways. The
+   figures and their labels stay, because the figures are what turn, and the turn is the
+   act. The argument they were carrying survives in the head's lead and in the payoff. */
+@media (max-width: 900px) {
+  .sy-g { display: none; }
+  .sy-sub { display: none; }
+  .sy-bcap { display: none; }
+  .sy-board { grid-row: 1 / 3; }
+  .sy-side { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px 10px; }
+  .sy-sat { gap: 0; }
+  .sy-note { min-height: 0; }
+  .sy-core { gap: 6px; }
+  /* A THIRD OF THE FAN, AND THE ROW GAP TO CLEAR IT. At 390 the full 72px reached into
+     the headline and put the plate's own dark ghosts behind the last line of ink-on-paper
+     type, which is a contrast problem rather than an untidy one. 27px of fan needs 27px of
+     clear air above the plate, and the gap is where it comes from. */
+  .sy-core { --rd: 3px; }
+  /* the unit goes UNDER the number. Side by side it was 130px in a 106px column and ran
+     into the figure next to it — which the fit sweep could not see, because a satellite's
+     horizontal overflow is normally its own leader hanging into the gutter. */
+  .sy-n > span { flex-direction: column; align-items: flex-start; gap: 0; }
+  .sy-n small { line-height: 1.15; }
+  .sy-field { gap: 7px; }
+}
+
+/* THE PLATE'S SECOND LINES AND THE SHEET GO ON EVERY PHONE, not only a short one, and the
+   reason is arithmetic rather than taste: a 390x844 stage gives the field 446px and the
+   stack wants 555px of it. The overflow does not clip — a `minmax(0, 1fr)` row lets its
+   content spill — it LANDS ON THE PAYOFF, which is why the fit sweep read clean while six
+   figures sat on top of two lines of display type. Everything below was already judged
+   expendable at 800 of height; a phone is a phone. Measured before/after at 390x844:
+   field content 555px -> 441px, sibling overlaps 6 -> 0. */
+@media (max-width: 900px) {
+  .sy-pre { display: none; }
+  .sy-sheet { display: none; }
+  .sy-sun { display: none; }
+  .sy-close { gap: 0; }
+  .sy-chips { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .sy-tier { display: none; }
+  /* the aside is the plan's per-group note; it costs the key a second line on every phone
+     and the buttons say the same thing by existing */
+  .sy-ways .sy-k em { display: none; }
+  .sy-stars { font-size: 0.38rem; }
+  .sy-way { padding: 3px 5px; }
+  .sy-payoff { font-size: clamp(0.94rem, 4.2vw, 1.2rem); }
+}
+
+/* And at the floor, the plate keeps the board, the hour, the positions and the pathways —
+   which is the product — and gives up the type scale around them. */
+/* The second condition is the 360-389 wide band, where every line wraps one further and the
+   stack still lands on the payoff up to about 780 of height — measured at 360x740, +7px, the
+   last overlap in the sweep. 390 wide is deliberately outside it: it is clean above 720 and
+   keeps the full readout. The third condition is 320-340 wide at ANY height — 320x871 is
+   tall and still overlapped by 25px, because at that width every line wraps twice and the
+   height it buys goes straight back into the wrapping. Same width the bento's own residual
+   list singled out. */
+@media (max-width: 900px) and (max-height: 720px),
+       (max-width: 389px) and (max-height: 799px),
+       (max-width: 340px) {
+  /* the whole one-line readout instead of the whole two-line one. Not a clamp: a clamped
+     claim is a lost claim, so the short form is authored in tracks.json and swapped here. */
+  .sy-note-l { display: none; }
+  .sy-note-s { display: inline; }
+  .sy-note { min-height: 0; }
+  .sy-sat { gap: 0; }
+  .sy-n small { font-size: 0.44rem; }
+  .sy-t { font-size: 0.95rem; }
+  .sy-n b { font-size: clamp(1.1rem, 6vw, 1.4rem); }
+  .sy-l { font-size: 0.5rem; letter-spacing: 0.1em; }
+  /* the floor is the gate's own: a board is not a board under 64px or 8px a square */
+  .sy-board { width: clamp(66px, 17vw, 78px); }
+  .sy-field { gap: 7px; }
+  .sy-core { padding: 9px 10px; gap: 5px; }
+}
+
+/* ------------------------------------------------------------- short and wide
+   A pinned 100vh stage means height is the whole budget, and the founder's own window is
+   1219x543 — the shortest of them. Same arrangement as act 7's ladder: five blocks, each
+   spending the cheapest thing left. The 820 condition is the one three other files already
+   share; 700, 620 and 560 are act 6's own and every selector in them is a `.sy-` name, so
+   none of them reaches another act.
+
+   820 — SPACING, and the sheet's third line. Nothing the reader can act on. */
+@media (max-height: 820px) and (min-width: 901px) {
+  .act-system .pad.system { row-gap: clamp(7px, 1.1vh, 14px); }
+  /* the coordinate, for the reason the phone block gives: below 820 the pad's bottom padding
+     tightens past the coord's own offset and the label lands inside the payoff's row */
+  .act-system .coord { bottom: 4px; }
+  .sy-core { padding: 10px clamp(12px, 1.2vw, 20px); gap: clamp(5px, 0.9vh, 11px); }
+  .sy-side { gap: clamp(8px, 1.7vh, 22px); }
+  .sy-sub { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+    overflow: hidden; }
+  .sy-hwl li:nth-child(3) { display: none; }
+  .sy-g { display: grid; }
+  .sy-g > span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; }
+}
+
+/* 700 — the plate's second lines. The subtitle restates the title; the board's caption
+   restates the chip the leader points at; the payoff's mono under-line is a flourish. */
+@media (max-height: 700px) and (min-width: 901px) {
+  .sy-sub { display: none; }
+  .sy-bcap { display: none; }
+  .sy-board { grid-row: 1 / 4; }
+  .sy-sun { display: none; }
+  .sy-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; min-height: 0; }
+  .sy-hwl li:nth-child(2) { display: none; }
+  .sy-g > span { -webkit-line-clamp: 2; }
+}
+
+/* 620 — the sheet goes, and the prerequisites with it. The homework figure beside the
+   plate still carries the claim the sheet was illustrating ("15 min at home · 2 online,
+   2 over the board, 2 to think about"), and `.sy-many` — the ream's own count, which the
+   turn depends on — stays on the row the prerequisites vacate. */
+@media (max-height: 620px) and (min-width: 901px) {
+  .sy-sheet { display: none; }
+  .sy-pre > span:first-child, .sy-pre > b { display: none; }
+  .sy-n b { font-size: clamp(1.3rem, 2vw, 1.9rem); }
+  .sy-payoff { font-size: clamp(0.95rem, 1.3vw, 1.32rem); }
+  .sy-t { font-size: clamp(1rem, 1.3vw, 1.3rem); }
+  .sy-chips li { padding: 2px 4px; }
+}
+
+/* 560 — the floor, and it is the type scale rather than another claim. Everything the act
+   argues is still on the stage at 1219x543. */
+@media (max-height: 560px) and (min-width: 901px) {
+  .system-head .d3 { font-size: clamp(1.25rem, 2.2vw, 1.9rem); }
+  .sy-l { font-size: 0.54rem; letter-spacing: 0.14em; }
+  .sy-g > span { -webkit-line-clamp: 2; font-size: 0.68rem; }
+  .sy-board { width: clamp(66px, 13.5vh, 92px); }
+  .sy-side { gap: 7px; }
+  .sy-close { gap: 0; }
+}
+
+/* The stack is taller than the split, so the two tiers meet: 901-1180 wide and short is
+   the one band where both the plate's blocks and six glosses want the same pixels. The
+   glosses go, for the reason the phone gives — with no leader, the plate names its own
+   blocks and says the same things in full one row above. */
+@media (max-width: 1180px) and (max-height: 820px) {
+  .sy-g > span { -webkit-line-clamp: 2; }
+  /* the last 2px at 1180x800, which is the one window in the band where the stack and the
+     820 tier meet and neither had anything left to give */
+  .sy-field { gap: 8px; }
+  .sy-sat { padding-top: 4px; }
+}
+@media (max-width: 1180px) and (max-height: 700px) {
+  .sy-sub { display: none; }
+  .sy-bcap { display: none; }
+  .sy-sheet { display: none; }
+  .sy-sun { display: none; }
+  .sy-sat { gap: 0; }
+  /* The last few pixels at 981x620 and 901x620, and they are spacing rather than a claim.
+     Note that the overlap only shows at t 0.78: `.sy-close` arrives by translating UP 8px,
+     so at 0.52 the transform holds it clear of the row and its RESTING position is the one
+     that collides. Any overlap check on this act has to read the fraction where the payoff
+     is up, which is why the sweep and the gate both park at 0.78 as well as 0.52. */
+  .act-system .pad.system { row-gap: 8px; }
+  .sy-field { gap: 6px; }
+  .sy-side { gap: 5px; }
+  .sy-sat { padding-top: 2px; }
+}
+
+/* ----------------------------------------------------------- reduced motion
+   Every reveal in this act is scroll position, not duration, so there is nothing to
+   remove there — a reader who scrolls back sees the diagram assemble backwards either
+   way. What DOES have a duration is the small set of eased state changes: the sheet's
+   travel, the chips' re-grade, a leader's dot growing under the pointer. Those keep
+   their end states and lose the easing, which is the same trade `.cta` makes in
+   product.css:660. The plate's pointer-lit face is a static state and stays.  */
+@media (prefers-reduced-motion: reduce) {
+  .sy-sheet, .sy-chips li, .sy-rail li, .sy-way, .sy-r::after { transition: none; }
+}
+
+/* The floor: a phone with both browser bars up. 664 of height is where the bento had its
+   own recorded residual, and here the last 15px was spacing rather than content — the two
+   row gaps and the eyebrow's margin. Nothing is lost at this window that is not lost at
+   700; measured 390x664, sibling overlap 15px -> 0. */
+@media (max-width: 900px) and (max-height: 690px) {
+  .act-system .pad.system { row-gap: 10px; }
+  .system-head .kicker { margin-bottom: 0; }
+  .sy-field { gap: 6px; }
+}
+
+/* --------------------------------------------------------- the gloss, once, at the foot
+   Scoped with `.act-system` (0,2,0) and last in the file, because it has to beat TWO earlier
+   `.sy-g` declarations: the 820 tier's `display: grid` and the base rule's. Written inside
+   the 1180 block at (0,1,0) it lost to the 820 tier at 1180x800 and the overlap it was
+   there to remove did not move by a pixel. */
+@media (max-width: 1180px) {
+  .act-system .sy-g { display: none; }
+}

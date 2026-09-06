@@ -49,7 +49,7 @@ export function buildStages(panelsEl, gatesEl, stages, catalog, headEl, subEl) {
     // of a partial bundle rather than of this one — build-stages.ts still emits
     // 'coming' and 'partial', so it stays.
     el(top, 'span', 'sp-status',
-      st.status === 'coming' ? 'next to be written' : `all ${st.sessionsAuthored} written`);
+      st.status === 'coming' ? 'next to be written' : `all ${st.sessionsAuthored} ready`);
 
     el(p, 'h3', 'sp-name', st.piece);
     el(p, 'p', 'sp-theme', st.theme);

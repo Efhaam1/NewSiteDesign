@@ -1,0 +1,90 @@
+# Publishes app/ to GitHub Pages.
+#
+# Pages serves a project repo under /NewSiteDesign/, but the site addresses its
+# own assets from the domain root (/css/, /js/, /assets/, /vendor/, /data/) --
+# 34 references, including the three.js import map and several template
+# literals. Rewriting those in the source would break the local server on
+# 127.0.0.1:4321 and every tools/*.cjs assertion that loads from it, so the
+# prefix is injected HERE, into the artifact only. The tree stays as it is.
+#
+# Prefixing keeps the paths absolute, which is what makes this depth-blind: the
+# same string works from /NewSiteDesign/ and from /NewSiteDesign/teach/, so
+# nothing has to know how deep it sits.
+#
+# THE PAGE ROUTES ARE REWRITTEN WITH A TRAILING SLASH, and that is not cosmetic.
+# The eleven supporting pages ship as directories (app/curriculum/index.html and
+# so on), and Pages serves a directory only at its slashed form -- /curriculum
+# 301s to /curriculum/. So every href, including the ones carrying a #s115
+# fragment or a ?s=S115 query, is rewritten to the slashed form here. Without it
+# every internal link on those pages 404s on the deployed artifact while working
+# perfectly on 127.0.0.1:4321.
+#
+# The site's own canonical URLs are deliberately NOT rewritten. They name the
+# production domain from ADR-0006 (https://efhaam.com/...) in the unslashed form
+# tools/serve.cjs serves and sitemap.xml lists, which is correct for production
+# and means this artifact canonicalises to the real site rather than competing
+# with it. It also means the Pages URL is a preview and not a public address. If
+# it ever has to be one, the fix belongs in tools/pages/shell.cjs's ORIGIN, not in
+# a hand-edit of the artifact.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage app/ as the site
+        run: |
+          cp -r app _site
+          touch _site/.nojekyll
+
+      - name: Prefix root-absolute paths with the Pages base
+        env:
+          BASE: /NewSiteDesign
+        run: |
+          before=$(grep -rlE '["'"'"'`(]/(css|js|assets|vendor|data)/' _site \
+            --include='*.html' --include='*.css' --include='*.js' | wc -l)
+          find _site -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \) -print0 \
+            | xargs -0 sed -i -E \
+                -e "s%([\"'\`(])/(css|js|assets|vendor|data)/%\1${BASE}/\2/%g" \
+                -e "s%href=\"/teach\"%href=\"${BASE}/teach/\"%g" \
+                -e "s%href=\"/teach\?%href=\"${BASE}/teach/?%g" \
+                -e "s%href=\"/(about|curriculum|inside-a-session|for-chess-coaches|for-chess-academies)(/[a-z]+)?([#?][^\"]*)?\"%href=\"${BASE}/\1\2/\3\"%g" \
+                -e "s%href=\"/#%href=\"${BASE}/#%g" \
+                -e "s%href=\"/\"%href=\"${BASE}/\"%g"
+          echo "rewrote $before file(s)"
+          echo "--- any root-absolute refs left? (expect none) ---"
+          ! grep -rnE '["'"'"'`(]/(css|js|assets|vendor|data)/' _site \
+              --include='*.html' --include='*.css' --include='*.js'
+          echo "--- sample ---"
+          grep -nE 'stylesheet|importmap|main\.js' _site/index.html | head -5
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

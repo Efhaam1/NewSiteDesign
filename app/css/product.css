@@ -15,83 +15,15 @@
    tier that also carries three other acts.
    ======================================================================== */
 
-/* ========================================================== ACT 6 — bento */
-.system {
-  grid-template-rows: auto minmax(0, 1fr);
-  align-content: stretch;
-  --in2: clamp(0, calc((var(--e) - 0.06) / 0.34), 1);
-  --in: clamp(0, calc((var(--e) - 0.46) / 0.46), 1);
-  --in2: clamp(0, calc((var(--e) - 0.2) / 0.42), 1);
-  --out: clamp(0, calc(var(--h) / 0.42), 1);
-}
-.system-head { display: grid; gap: 6px clamp(20px, 4vw, 64px);
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end;
-  opacity: calc(var(--in2) * (1 - var(--out))); }
-.system-head .kicker { grid-column: 1 / -1; margin-bottom: 4px; }
-.system-head .d3 { font-size: clamp(1.5rem, 3vw, 2.8rem); }
-.system-head .lead { max-width: 46ch; font-size: clamp(0.94rem, 1.1vw, 1.08rem); }
-.bento {
-  margin-top: clamp(10px, 1.6vh, 20px);
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  grid-template-rows: repeat(10, minmax(0, 1fr));
-  gap: clamp(5px, 0.55vw, 9px);
-  min-height: 0;
-  /* --in2, not --in: the cells start dealing on the earlier band, so the container
-     must arrive with them or the handover lands on an empty ivory board. */
-  opacity: calc(var(--in2) * (1 - var(--out)));
-}
-/* Explicit areas, because a bento that reflows is just a card grid. Eight
-   surfaces on an eight-column board: the curriculum takes the big block, the
-   rest cut into the lattice around it. */
-.b-curriculum { grid-column: 1 / 6; grid-row: 1 / 6; }
-.b-console    { grid-column: 6 / 9; grid-row: 1 / 4; }
-.b-verified   { grid-column: 6 / 9; grid-row: 4 / 7; }
-.b-checkpoint { grid-column: 1 / 3; grid-row: 6 / 11; }
-.b-tracks     { grid-column: 3 / 6; grid-row: 6 / 9; }
-.b-paper      { grid-column: 6 / 9; grid-row: 7 / 9; }
-.b-privacy    { grid-column: 3 / 6; grid-row: 9 / 11; }
-.b-point      { grid-column: 6 / 9; grid-row: 9 / 11; }
-.cell {
-  position: relative; overflow: hidden; min-width: 0;
-  border: 1px solid var(--line);
-  background: var(--glass);
-  padding: clamp(11px, 1vw, 16px);
-  display: grid; align-content: start; gap: 7px;
-  transform: translateY(calc((1 - var(--cin, 1)) * 40px)) scale(calc(0.97 + var(--cin, 1) * 0.03));
-  opacity: var(--cin, 1);
-  transition: border-color 300ms var(--ease), background 300ms var(--ease);
-}
-.cell:hover { border-color: var(--hue); }
-.cell .c-k { font-family: var(--mono); font-size: 0.47rem; letter-spacing: 0.16em;
-  text-transform: uppercase; color: var(--fg-faint); margin: 0;
-  display: flex; justify-content: space-between; gap: 8px; }
-.cell .c-k em { font-style: normal; color: var(--hue); }
-.cell .c-t { margin: 0; font-family: var(--display); font-weight: 400; letter-spacing: -0.018em;
-  font-size: clamp(1rem, 1.35vw, 1.42rem); line-height: 1.06;
-  font-variation-settings: 'opsz' 48, 'SOFT' 0, 'WONK' 0; }
-.cell .c-b { margin: 0; font-size: 0.765rem; line-height: 1.4; color: var(--fg-dim); }
-.cell .c-n { font-family: var(--mono); font-variant-numeric: tabular-nums;
-  font-size: clamp(1.5rem, 2.6vw, 2.5rem); letter-spacing: -0.03em; line-height: 1; margin: 0; }
-.cell .c-n small { font-size: 0.34em; letter-spacing: 0.14em; color: var(--fg-faint);
-  margin-left: 0.5em; text-transform: uppercase; }
-
-
-/* the curriculum cell drills itself in: stages -> units -> a session */
-.drill { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.drill li { display: grid; grid-template-columns: 1.9em 1fr auto; gap: 8px; align-items: center;
-  font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--fg-faint); border-top: 1px solid var(--line); padding-top: 4px; }
-.drill li b { color: var(--fg-dim); font-weight: 400; letter-spacing: 0.06em; }
-.drill li i { display: block; height: 2px; width: 100%; background: rgb(244 239 228 / 0.1);
-  position: relative; grid-column: 2 / -1; }
-.drill li.on { color: var(--fg); }
-.drill li.on b { color: var(--fg); }
-/* Ten checkpoints, all written: the meter reads across the card now rather than
-   stacking ten lit bars down it, which cost the gate list its last three rows. */
-.stack { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; }
-.stack span { display: block; height: 4px; background: var(--hue); opacity: 0.22; }
-.stack span.on { opacity: 1; }
+/* ========================================================== ACT 6 — the system
+   Act 6 is authored in system.css, which loads after this file, for the same reason act
+   4 moved to annot.css: the plate, the six figures, their leaders, the ream and the
+   pathway control are all measured against each other and belong in one place. What used
+   to be here — .system, .system-head, .bento, the eight .b-* areas, .cell and its .c-*
+   furniture, .drill and .stack — was the eight-card bento the founder replaced on
+   2026-09-05. The selectors are gone; .flow, .gate-names, .tracks and .drill-foot went
+   with them further down, and `.cell` came out of the two paper-lift lists below.
+   ======================================================================== */
 
 /* ============================================================ paper lift
    --lift is continuous (0 dark room, 1 ivory room), so the page changes tone
@@ -103,11 +35,11 @@
 body {
   color: var(--fg);
 }
-.lead, .cell .c-b, .sp-theme, .cmp-verdict { color: var(--fg-dim); }
-.mono, .coord, .kicker, .ticker span, .facts dt, .scraps li, .cell .c-k,
-.drill li, .sp-units li, .gates li { color: var(--fg-faint); }
-.cell, .cmp-card, .pane, .stage-panel, .scrub { background: var(--glass); border-color: var(--line); }
-.ticker, .facts > div, .proof, .drill li { border-color: var(--line); }
+.lead, .sp-theme, .cmp-verdict { color: var(--fg-dim); }
+.mono, .coord, .kicker, .ticker span, .facts dt, .scraps li,
+.sp-units li, .gates li { color: var(--fg-faint); }
+.cmp-card, .pane, .stage-panel, .scrub { background: var(--glass); border-color: var(--line); }
+.ticker, .facts > div, .proof { border-color: var(--line); }
 .cta { background: var(--fg); color: var(--fg-inv); border: 1px solid var(--fg); }
 .cta.ghost { color: var(--fg); border-color: var(--line-2); }
 .mark { background: var(--fg); }
@@ -450,42 +382,6 @@ body {
   transform: translateY(-50%) rotate(45deg); transform-origin: 100% 0;
 }
 
-/* bento cell furniture. This block lived at the end of the file, after every media
-   query, so the short-window tiers below could not hide the lists it declares — the
-   ten-row gate list then overran its card at 1220x569. Base rules belong above the
-   tiers that thin them. */
-/* Same problem as .gate-names below, and the same answer: b-console is three lattice
-   rows, and after its body was cut to one line the fifth flow row (practice 14m) was
-   still 6px past the card at 1440x900 - so the row box is tightened rather than the
-   list truncated. The card counts five segments in its own figure; it has to show five.
-   Only the bento's mini copy tightens: act 4's full-size .flow keeps its 5px. */
-/* `.flow` is act 5's now, and only act 5's: the bento's b-console card prints five
-   segments against 47 minutes (bento.js:67-74) and sets each bar's width inline. Act 4's
-   own eight-segment flow is `.con-flow` in annot.css and shares nothing with this. */
-.flow { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.flow li { display: grid; grid-template-columns: 9.4em 2.3em 1fr; align-items: center; gap: 8px;
-  font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--fg-faint); }
-.flow .track { height: 3px; background: rgb(244 239 228 / 0.09); position: relative; }
-.flow .track i { position: absolute; inset: 0 auto 0 0; background: var(--hue);
-  box-shadow: 0 0 9px var(--hue-soft); }
-.flow.mini { gap: 3px; }
-.flow.mini li { grid-template-columns: 5.6em 2em 1fr; font-size: 0.46rem; }
-.gate-names { margin: 0; padding: 0; list-style: none; display: grid; gap: 1px; }
-/* Ten rows, and the card is five lattice rows tall: at 1440x900 the list has ~196px
-   to live in, so the row box is tightened rather than the list truncated. */
-.gate-names li { display: grid; grid-template-columns: 2.1em 1fr; gap: 6px; align-items: baseline;
-  border-top: 1px solid var(--line); padding-top: 2px;
-  font-size: 0.66rem; line-height: 1.24; color: var(--fg-dim); }
-.gate-names code { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.1em; color: var(--hue); }
-.tracks { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.tracks li { display: grid; grid-template-columns: 6.4em 2.6em 1fr; gap: 8px; align-items: baseline;
-  border-top: 1px solid var(--line); padding-top: 5px; }
-.tracks b { font-weight: 500; font-size: 0.84rem; }
-.tracks code { font-family: var(--mono); font-size: 0.56rem; color: var(--hue); letter-spacing: 0.08em; }
-.tracks span { font-size: 0.7rem; color: var(--fg-faint); }
-.drill-foot { margin-top: auto; }
-
 /* ================================================================== mobile
    Not a shrink. The camera path stays, the copy stacks, and the surfaces that
    need width (console, bento) become deliberate single-column compositions. */
@@ -579,16 +475,15 @@ body {
   .pane { padding: 11px; gap: 7px; }
 
   .system-head { grid-template-columns: 1fr; }
-  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr));
-    height: 100%; min-height: 0; }
-  .b-curriculum { grid-column: 1 / 3; grid-row: 1 / 3; }
-  .b-console    { grid-column: 1 / 2; grid-row: 3 / 4; }
-  .b-verified   { grid-column: 2 / 3; grid-row: 3 / 4; }
-  .b-checkpoint { grid-column: 1 / 2; grid-row: 4 / 5; }
-  .b-tracks     { grid-column: 2 / 3; grid-row: 4 / 5; }
-  .b-privacy    { grid-column: 1 / 2; grid-row: 5 / 6; }
-  .b-paper      { grid-column: 2 / 3; grid-row: 5 / 6; }
-  .b-point      { grid-column: 1 / 3; grid-row: 6 / 7; }
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* P6 — ONE LINE, NOT THREE, AND THE REASON IS ARITHMETIC. The phone lattice is
      `repeat(2, minmax(0, 1fr))` by six rows, so each cell gets the stage's height / 6 — 94px at
      390x844, 84.7px at 390x780 — and after the kicker, the title, the figure, the padding and the
@@ -607,21 +502,15 @@ body {
      whose 601-900 short band is the same rows failing the same way). Note what is NOT in it:
      320x844, 360x844 and 360x915 all measure 0 cut, so this is not "320-360 wide at every
      height". */
-  .cell .c-b { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
-    overflow: hidden; }
-  .b-curriculum .c-b { -webkit-line-clamp: 1; }
-  .b-point .c-t { font-size: 0.86rem; }
-  .b-point .c-b { -webkit-line-clamp: 1; }
-  .cell { padding: 9px; gap: 5px; }
-  .cell .c-t { font-size: 0.95rem; }
-  .cell .c-b { font-size: 0.68rem; }
-  .cell .c-n { font-size: 1.5rem; }
-  .drill li, .gate-names li, .tracks li { font-size: 0.44rem; }
-  /* One bento cell is ~92px on a phone, which holds a key, a title and a body — not
-     a table under them. Four of the ten gate rows would read as if there were four,
-     and the two track rows only repeat the title above them, so both lists go. */
-  .gate-names, .tracks, .drill-foot, .flow.mini { display: none; }
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
   .promo { max-width: none; }
   /* 0.42rem was 6.72px - the smallest type on the site, and below legibility whatever
      colour it is. The block keeps the base 0.56rem (8.96px) on a phone too; measured, it
@@ -635,8 +524,8 @@ body {
      board. It reaches the gutters so it has no vertical edge to show, and it fades at top
      and bottom so it has no horizontal one. NOT the GL wash at world.js:250-251: that is
      one shader shared by all eight acts and its colour is mix(uDark, uPaper, uLift), so
-     strengthening its bottom band would put an ivory band under act 5's bento and act 6's
-     ledger (findings.md:601). */
+     strengthening its bottom band would put an ivory band under act 6's session plate and
+     act 7's card grid (findings.md:601; both act numbers are the post-2026-09-05 ones). */
   .foot { position: relative; }
   .foot::before {
     content: ''; position: absolute; z-index: -1; pointer-events: none;
@@ -648,30 +537,18 @@ body {
 
 /* Short windows: a 1440x620 browser is common and the acts were laid out against
    height, not against the space actually left over. */
-/* P6 — act 5 on a phone that is not tall. The lattice gives each cell the stage's height / 6, so
-   the body's box is 84.7px/6-worth of leftovers: 11-20px at 780 of height against a 15.23px line.
-   The clamp above is now one line, which is all the box can show, and these two declarations are
-   what get that one line INTO the box:
-     `.system-head .lead` — 68px of the head's 145px, and one element instead of eight card bodies.
-       It is the act's own third sentence ("Dark is what the coach teaches from...") and it is the
-       one piece of copy this fix spends: 24 words, at <=900 wide and <=870 tall only.
-     `.cell { padding: 8px 10px; gap: 4px }` — the <=820px-height tier's own cell metrics, worth
-       ~10px a cell, which is two thirds of a line.
-   Measured with `node .audit5/clamped.cjs`, cells CUT WITHOUT ELLIPSIS, before -> after, the before
-   column reproduced from the snapshot's own declarations rather than estimated: 390x780 8 -> 0,
-   390x800 8 -> 0, 390x844 6 -> 0, 412x780 8 -> 0, 412x844 6 -> 0, 600x780 7 -> 0, 900x780 4 -> 0,
-   390x915 5 -> 0. And with the straggler clamp below fixed too: 390x700 8 -> 0, 412x700 8 -> 0,
-   600x700 3 -> 0, 900x700 2 -> 0, 393x736 1 -> 0.
-   RESIDUAL, recorded as PASS2's P25: below ~665 of height at every phone width (390x664 still
-   reads 6 cut cells) and at 320-375 wide (320x700 4, 360x700 3, 375x736 2, 320x871 4). There the
-   row holds zero lines, so the lever is content and not a clamp. */
+/* Act 6 on a phone that is not tall. `.system-head .lead` is the one piece of copy this
+   tier spends - 68px of the head, and one element rather than a body per card - and it is
+   the same trade the block made when act 6 was an eight-card bento. What replaced the
+   bento's own clamped card bodies is act 6's height ladder in system.css, measured there
+   across 26 windows at both of the act's crowded fractions. */
 @media (max-width: 900px) and (max-height: 870px) {
   .system-head .lead { display: none; }
-  .cell { padding: 8px 10px; gap: 4px; }
+  
   /* b-checkpoint's dash graphic, which both neighbouring tiers already hide (the <=700 block
      below and the shared 820 tier); its count is in the card's own title, "Ten gates, one per
      level.", so this costs no words and buys that card its line back. */
-  .stack { display: none; }
+  
 }
 
 @media (max-height: 820px) and (min-width: 901px) {
@@ -697,35 +574,16 @@ body {
   .stage-panels { bottom: clamp(16px, 3vh, 30px); }
   .sp-units, .sp-theme { display: none; }
   .pane { gap: 6px; padding: 10px 12px; }
-  .cell { padding: 8px 10px; gap: 4px; }
-  .cell .c-b { font-size: 0.7rem; }
-  .drill-foot { display: none; }
-  /* The 8x10 lattice gives ~28px rows on a short window, which clamps every card
-     to an empty white box. Four columns by three rows keeps all eight surfaces and
-     gives each one enough height to say something. */
-  .bento { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); }
-  .b-curriculum { grid-column: 1 / 3; grid-row: 1 / 3; }
-  .b-console    { grid-column: 3 / 4; grid-row: 1 / 2; }
-  .b-verified   { grid-column: 4 / 5; grid-row: 1 / 2; }
-  .b-checkpoint { grid-column: 3 / 4; grid-row: 2 / 3; }
-  .b-tracks     { grid-column: 4 / 5; grid-row: 2 / 3; }
-  .b-paper      { grid-column: 1 / 2; grid-row: 3 / 4; }
-  .b-privacy    { grid-column: 2 / 3; grid-row: 3 / 4; }
-  .b-point      { grid-column: 3 / 5; grid-row: 3 / 4; }
-  /* At three rows a cell is ~135px: a key, a title and two lines. The decorative
-     graphics inside the cards do not fit and were pushing the titles out of view. */
-  /* .tracks joins this list for the same reason the phone tier drops it
-     (product.css:364): at this height the tier below already hides `.tracks span`,
-     so the two rows are reduced to "Explorer 5-7" and "Challenger 8-12" - which is
-     verbatim the card's own title above them. Both track names and both age bands
-     stay on screen in `.c-t`. */
-  .c-ink, .flow.mini, .gate-names, .stack, .tracks { display: none; }
-  .tracks span { display: none; }
-  .tracks li { grid-template-columns: 6em 2.6em; }
-  .cell .c-n { font-size: 1.4rem; }
-  .cell .c-b { -webkit-line-clamp: 3; }
-  .b-curriculum .c-b { -webkit-line-clamp: 2; }
-  .drill li { font-size: 0.48rem; padding-top: 3px; }
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
   .ticker { gap: 6px 24px; }
   /* `max(8.6vw, 17vh)`: on width alone the headline stopped growing while its 1fr row kept
      the slack, so at 1203x564 three lines of 79px sat in a 324px row and left 95px of dead
@@ -746,108 +604,14 @@ body {
 }
 
 /* ------------------------------------------------------- the band above the 820 tier
-   The 8x10 bento lattice takes its row height from the viewport - `repeat(10, minmax(0,
-   1fr))` at product.css:145 - while the cards' content does not, and the only rule that
-   reconciled the two was the `(max-height: 820px)` tier below, which switches to 4x3. So
-   from 821px of height up to wherever the full lattice happens to fit, nothing thinned
-   anything and the cards clipped. Measured at act 5 t=0.5, before: 1920x821 SEVEN cards
-   over, b-console by 28px; 1600x821 six; 1440x821 four; 901x821 b-point +10 and b-tracks
-   +46 - and it persisted to 1920x900 (b-console +5, b-point +3), 981x900 (b-tracks +6,
-   b-point +7) and 901x980 (b-tracks +3), i.e. well into a maximised browser on a 1080p
-   screen.
+   A five-branch block used to live here, from 821px of height up to a per-width ceiling,
+   because the bento's 8x10 lattice took its row height from the viewport while the cards'
+   content did not and only the 820 tier reconciled them. Act 6 is not a lattice any more:
+   its own height ladder is in system.css, keyed on height alone, and it was swept at both
+   of the act's crowded fractions across 26 windows. The block and its 100 lines of
+   boundary archaeology are in git history at 323600e if the shape is ever needed again.
+   The hero's own residual in the same band is the next block, and it is unaffected. */
 
-   THE CEILING IS PER WIDTH ON PURPOSE, and the five conditions are not decoration. The
-   band's top edge is not monotonic in width - 1920 clips at 900 while 1440 is clean at 899
-   - because a narrower window gives taller lattice rows but also narrower cards, so the
-   text wraps one line further. A single height ceiling high enough to catch 1920x900 and
-   901x980 would also fire at 1440x900, the reference window, where nothing is broken and
-   this thinning would be pure loss.
-
-   THE CEILINGS CARRY MARGIN, DELIBERATELY, and are not the measured edge. Above the edge
-   they thin where nothing was broken - about 13px of height at 1920 and 2560, up to 20px
-   at branch 1's own lower edge of 1500, 18px at 981. That is the safe direction and it is
-   left there on purpose: every one of the three pockets this block shipped with came from
-   under-reach, and the edge is text-wrap driven, so it moves with font metrics and cannot
-   be pinned to one machine's pixel. Recorded as P1d in .audit5/PASS2.md with the numbers.
-
-   THE WIDTH BOUNDARIES ARE MEASURED, NOT CHOSEN. 1121 is where `.tracks`' third column
-   stops wrapping at 899 of height; 960 is where it stops wrapping at 940. Both were found
-   1px at a time after the same card clipped 8px and 13px one pixel the wrong side of a
-   number somebody guessed. **After any edit here, sweep BOTH SIDES OF EVERY BOUNDARY IN
-   BOTH AXES** - (900, 901, 959, 960, 1100, 1101, 1120, 1121, 1499, 1500) x (820, 821, 898,
-   899, 919, 920, 939, 940, 985, 986). All three pockets were at a boundary this block
-   itself drew, and the third was at a HEIGHT boundary that a widths-only sweep missed.
-
-   WHAT A READER IN THE BAND LOSES, accurately: three lists - `.tracks`' two rows,
-   `.gate-names`' ten, `.drill-foot`'s three - and one type step. All three lists are hidden
-   by the 820 tier one pixel below (product.css:428, 448), which is the precedent that makes
-   this a component fix rather than a decision; findings.md:37 prescribes exactly that shape
-   for this class of gap ("Reuse the declarations already in the file... on a second tier
-   keyed on both width and height - do NOT widen the shared condition"). But do not read
-   "already lost below" as "lost nothing": six of the ten gate names are hardcoded in
-   bento.js and appear nowhere else on the page, and `.tracks`' third column is not a repeat
-   of the card's title either. The three `.drill-foot` figures do survive elsewhere - 213 of
-   213 and 1,996 unique positions in act 7's proof strip and act 2's `.levels-foot`, and
-   `210 hours of class` in act 0's hero ticker, NOT in act 7's strip; measured visible at
-   rest at every band window, 39.8-90.1px above the fold.
-   CORRECTED 2026-09-01, PITCH step 2: the hero ticker no longer carries `210 hours of class` -
-   it was re-cut to `213 of 213 sessions written`, `1,640 puzzles already chosen`, `0 chess
-   errors, 4,702 checks` and `S001-S213 every hour has an id`, because four true inventory
-   figures answered none of the buyer's questions. So the third figure now lives ONLY in
-   `bento.js:32`, i.e. only inside this `.drill-foot` - which this tier and the two at :391
-   and :592 hide. The hiding decision still stands on the other two figures; this one is now
-   a real loss below 901px wide until PITCH step 7 puts the same datum in act 7's proof strip
-   as `12,575` minutes written (12,575 min = 209.6h = the same 210 hours). Do not restore it
-   to the hero.
-
-   TWO DECLARATIONS ARE NOT THE 820 TIER'S. `.b-point .c-t { font-size: 0.86rem }` is the
-   phone tier's value (product.css:363) and is the one thing a reader 1px below the band
-   does not see; it is load-bearing (+4 at 1920x821, +18 at 981x821 without it) and costs no
-   words. `.flow.mini { gap: 0 }` is neither tier's - base is 3px and both tiers hide the
-   list outright, so the band is more generous with it than either neighbour. Nothing here
-   clamps a body: `-webkit-line-clamp` needs `display: -webkit-box`, which exists only in
-   the phone tier, so the three clamps this block first carried were inert and were removed
-   rather than left to imply a cost the code was not collecting. */
-/* `min-height: 821px` is load-bearing in every condition, not tidiness: this block sits after
-   the 820 tier, so without it `.cell`'s padding and gap would override that tier's tighter
-   `8px 10px / 4px` at 1244x620 and 981x620 - two of the gate's own windows - and loosen the
-   cards the 820 tier had just made fit. Measured: it did, and the gate passed either way.
-
-   The five branches, and why each edge is where it is. 1101-1120 is its own branch because
-   `.tracks`' third column stops wrapping at 1121, so at 1101-1120 the card still needs relief
-   up to ~917 while 1440 is clean by 899; measured before that branch existed, 1120x898 was
-   clean because the block fired and 1120x899 was eight pixels over because it did not. 901-959
-   is its own branch because the same column stops wrapping at 960 at 940 of height: 956, 957,
-   958 and 959 all clip 13px there and 960 is clean, which a 955/956 guess would have shipped
-   as a four-pixel-wide pocket. The boundary list for any future edit is in the block above,
-   and it is two-dimensional on purpose - the third pocket was at a HEIGHT boundary that a
-   widths-only sweep missed.
-
-   One ceiling is the exception to the margin doctrine above: 985 sits about five pixels UNDER
-   its own edge (unaided, 901 wide reads +1 at 986 and 988 and 0 at 991). +1 is inside the 2px
-   tolerance the item measures on, so nothing clips - but it is the one edge with no margin,
-   and it is the first place to look if this card ever clips again at 901-959 wide. */
-@media (min-width: 1500px) and (min-height: 821px) and (max-height: 919px),
-       (min-width: 1101px) and (max-width: 1120px) and (min-height: 821px) and (max-height: 919px),
-       (min-width: 1121px) and (max-width: 1499px) and (min-height: 821px) and (max-height: 898px),
-       (min-width: 901px) and (max-width: 959px) and (min-height: 821px) and (max-height: 985px),
-       (min-width: 960px) and (max-width: 1100px) and (min-height: 821px) and (max-height: 939px) {
-  .cell { padding: 11px; gap: 5px; }
-  .tracks, .gate-names, .drill-foot { display: none; }
-  .b-point .c-t { font-size: 0.86rem; }
-  /* the last 4px on b-console at 1920x821. This is the one value here that is neither
-     tier's - base is 3px and both tiers hide the list outright, so the band is more
-     generous with this list than either neighbour, not less. */
-  .flow.mini { gap: 0; }
-}
-/* The narrowest branch needs the 820 tier's own spacing as well, and only spacing: at
-   901-945 wide x 821-865 tall b-point ran 10px over with 11px/5px and is clean with
-   8px 10px / 4px - measured 121.6px of content in a 113.8px card at 901x821, and the two
-   declarations are worth exactly the 10px. No words are lost. */
-@media (min-width: 901px) and (max-width: 959px) and (min-height: 821px) and (max-height: 985px),
-       (min-width: 960px) and (max-width: 1100px) and (min-height: 821px) and (max-height: 939px) {
-  .cell { padding: 8px 10px; gap: 4px; }
-}
 
 /* --------------------------------------------- P8 - the hero, in the same band above the tier
    B1 bounded the headline with `min(clamp(3rem, 9.9vw, 11rem), 17vh)` (acts.css:134) and that
@@ -885,13 +649,8 @@ body {
 /* Very short windows: the console keeps the lesson and loses the after-class
    material, which is the only part of it nobody needs mid-lesson. */
 @media (max-width: 900px) and (max-height: 700px) {
-  .gate-names, .stack, .flow.mini { display: none; }
   .cs-chain { display: none; }
-  .cell .c-b { -webkit-line-clamp: 1; }
-  /* P6: was 2, and being 231 lines later than the phone tier (product.css:374 to here) and 175
-     later than the <=870 block, it silently beat the fix's own clamp — at 390x700 all eight bodies held one line and asked for two, so all eight sliced
-     mid-word. One value, zero words: the second line was never visible. */
-  .drill li { font-size: 0.42rem; }
+  
 }
 
 @media (max-height: 640px) and (min-width: 901px) {
@@ -899,7 +658,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell, .stage-panel { transition: none; }
+   .stage-panel { transition: none; }
   .console { transform: none; }
   /* the plate keeps its bevel and its pointer-lit face — both are static states —
      and loses the 2px travel and the eased crossfade between them. */
@@ -916,61 +675,11 @@ body {
   .cta:hover .cta-l { transform: none; }
 }
 
-/* real ink on real paper, in the card that claims the product prints */
-.c-ink {
-  width: 100%; margin-top: auto; display: block;
-  height: clamp(30px, 7.4vh, 104px); object-fit: cover; object-position: 50% 42%;
-  filter: saturate(0.72) contrast(1.06);
-  border: 1px solid var(--line);
-}
-@media (max-width: 900px) { .c-ink { display: none; } }
+/* ------------------------------------------------- act 6's card bodies, the bands no clamp
+   could reach. Three banded branches used to close this file, hiding the eight bento card
+   bodies at the phone heights where the lattice row held ZERO lines - 390x664, 320x800,
+   320x871 and their neighbours, every edge walked a pixel at a time. Act 6 has no lattice
+   and no card bodies now: the six glosses are hidden outright below 900px wide, where the
+   plate above them says the same things in full, so there is no band left for a clamp to
+   fail in. The three branches and their measured grid are in git history at 323600e. */
 
-/* ---------------------------------------------------- P17 + P25 - act 5's card bodies, the bands
-   no clamp can reach. P6 clamped `.cell .c-b` to the line the phone lattice actually gives, and
-   that closed every window where the row holds at least one line. What is left is rows that hold
-   ZERO lines: at 390x664 six of the eight boxes are 10.3-10.6px against a 15.23px line box, so
-   there is no clamp value that draws an ellipsis inside the box and the lever is content. This is
-   P6's reviewer's own ruling (verdict-P6 5.1) - hide the bodies in those bands, not a scroller: the
-   bento is the whole stage of a pinned act whose timeline is the reader's scroll (bento.js:151-167),
-   so a nested full-stage scroller would compete with the gesture that advances the act.
-
-   Three branches, and every edge measured on BOTH sides (`node .audit5/clamped.cjs <w> <h> 5 0.5
-   'p.c-b'`, cells CUT WITHOUT ELLIPSIS). The grid, 320-900 wide by 620-915 tall, before:
-     620  8 8 8 8 7 5 4 3      680  7 6 6 5 4 2 1 1      780  3 3 2 . . . . .
-     640  7 7 7 6 5 3 2 3      700  4 3 2 . . . . .      844  . . . . . . . .
-     660  7 7 7 6 5 3 2 1      736  4 3 2 . . . . .      871  4 3 1 . . . . .
-     664  7 7 7 6 5 3 2 1                                915  3 . . . . . . .
-   (columns 320 360 375 390 412 600 700 900)
-   - `(max-height: 692px)` at <=900 wide: 691 reads 5 cut at 390, 694 reads 0; 901x620 and 901x680
-     read 0, so 900 is the right width edge and the desktop lattice is untouched.
-   - `(max-width: 387px) and (max-height: 802px)`: 387x700 reads 1 cut, 388x700 reads 0; 320x800
-     reads 3, 320x805 reads 0.
-   - `(max-width: 387px) and (min-height: 871px)`: 870 reads 0 at 320/360/375 and 871 reads 4/3/1.
-     That edge is exactly the `(max-width: 900px) and (max-height: 870px)` tier's own ceiling - above
-     it the cards lose that tier's `padding: 8px 10px; gap: 4px` and clip again. Giving the band
-     those two declarations instead of hiding the body was measured and does NOT work (320x871 4->3,
-     360x871 3->3, 375x871 1->2, i.e. one window got worse), so the content lever is the only one.
-   Recorded over-application, both in the safe direction: 900 wide is already clean from 685 up but
-   the first branch reaches 692, and 360x915 / 375x915 are clean but fall in the third branch.
-   Placed at the end of the file on purpose - `.cell .c-b` is declared in five earlier blocks
-   including a `-webkit-line-clamp` inside `(max-width: 900px) and (max-height: 700px)`, and a
-   banded fix must sit after every tier it competes with. */
-/* ATTEMPT 2. Attempt 1 took two ceilings out of the MIDDLE of unmeasured gaps and left a pocket at
-   each, and left the third branch unbounded above. All three are now pinned on both sides.
-   - 692 -> 693. 693 was never read: it clips 5 cells at 388 and 390 (b-checkpoint, b-tracks,
-     b-paper, b-privacy, b-point, boxes 14.5-14.6px against a 15.232px line), 4 at 412, 2 at 500 and
-     600, 1 at 660/700/720; 800x693 and 900x693 are clean, and 694 is clean at every width.
-   - 802 -> 804. 803 and 804 clip 2 cells at 320/340/360 and 1 at 375/387; 805 is clean.
-   - the third branch gains a `max-height`, pinned at 936px. Unbounded it deleted all eight bodies from every
-     tall narrow window - 320x1024, 375x1180, 387x1180 - where the bodies are measured to trim
-     cleanly with their own ellipsis. Ablated, the failing range above 871 ends between 930 (3 cut at
-     320) and 940 (0) - and I made the same mistake once more before pinning it, because 935 taken
-     from the middle of that gap left 320x936 clipping 2 cells. Walked one pixel at a time: 936 is
-     the LAST failing height at 320 (2 cut) and 937, 938, 939, 940, 941 and 942 are all clean, so the
-     ceiling is 936. It over-applies to 360 and 375 across 916-936 only, which is recorded rather
-     than unmeasured, and 1024 and 1180 are now outside it at every width. */
-@media (max-width: 900px) and (max-height: 693px),
-       (max-width: 387px) and (max-height: 804px),
-       (max-width: 387px) and (min-height: 871px) and (max-height: 936px) {
-  .cell .c-b { display: none; }
-}

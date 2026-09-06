@@ -62,7 +62,49 @@ const { chromium } = require(PW);
   const at = await p.evaluate(() => Math.round(scrollY / (document.documentElement.scrollHeight - innerHeight) * 100));
   console.log('nav #system ->', at + '% of page', at > 60 && at < 95 ? 'OK' : 'CHECK');
 
-  // 5. act 7's billing pill. The only control on the licence sheet, and what it has to
+  // 5. act 6's track control — Explorer / Challenger. The only control on the session
+  // plate, and what it has to do is re-grade the eight positions by the pressed track's
+  // own rule WITHOUT changing the
+  // plate's height under the reader's hand - the reserved line on `.sy-rule` is the only
+  // thing holding that, and without it the plate grew 3.2px on the first press.
+  await p.evaluate(() => { const a = window.__w.engine.acts.find(x => x.name === 'system');
+    window.scrollTo(0, Math.round(a.top + a.len * 0.52)); });
+  await p.waitForTimeout(1500);
+  const way = async (k) => {
+    await p.click(`.sy-way[data-track="${k}"]`);
+    await p.waitForTimeout(420);
+    return p.evaluate(() => ({
+      grade: [...document.querySelectorAll('.sy-chips li')].map(l => l.dataset.state).join(','),
+      note: document.querySelector('.sy-note').textContent.trim().slice(0, 46),
+      pressed: [...document.querySelectorAll('.sy-way')].map(x => x.getAttribute('aria-pressed')).join(','),
+      h: Math.round(document.querySelector('.sy-core').getBoundingClientRect().height * 10) / 10,
+    }));
+  };
+  const wC = await way('challenger'); const wE = await way('explorer');
+  console.log('track regrades the eight positions:', wE.grade !== wC.grade ? 'OK' : 'FAIL');
+  console.log('  Challenger', wC.grade);
+  console.log('  Explorer  ', wE.grade);
+  console.log('track readout changes:', wC.note !== wE.note ? 'OK' : 'FAIL', '|', wE.note);
+  console.log('track moves aria-pressed:',
+    wC.pressed === 'false,true' && wE.pressed === 'true,false' ? 'OK' : 'FAIL',
+    wC.pressed, '->', wE.pressed);
+  console.log('session plate holds its height:',
+    Math.abs(wC.h - wE.h) <= 0.6 ? 'OK' : 'FAIL', wC.h + '/' + wE.h);
+  // and the pointer link between a figure and the block it names
+  const lit = await p.evaluate(async () => {
+    const sat = [...document.querySelectorAll('.sy-sat')].find(s => s.dataset.lit === 'hour');
+    sat.dispatchEvent(new PointerEvent('pointerenter', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 120));
+    const on = document.querySelector('.sy-field').dataset.lit;
+    sat.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 120));
+    return { on, off: document.querySelector('.sy-field').dataset.lit };
+  });
+  console.log('pointing at a figure lights the block it names:',
+    lit.on === 'hour' && !lit.off ? 'OK' : 'CHECK (hover-only, coarse pointers see nothing)',
+    lit.on, '->', lit.off);
+
+  // 6. act 7's billing pill. The only control on the licence sheet, and what it has to
   // do is move the emphasis between two figures WITHOUT hiding either of them - so this
   // checks the promoted figure changes, the demoted one is still on the page, aria-pressed
   // follows the press, and the card row does not change height under the reader.

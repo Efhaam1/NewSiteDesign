@@ -348,7 +348,7 @@ function marks(s, coach, bs) {
  * on "Overloaded. / Unbalanced. / Too little." — three failures of one kind, which is that
  * nobody had decided what the hour was. Two sentences, same register.
  */
-const CLAIM = 'Written once. Taught the same.';
+const CLAIM = 'Planned once. Taught the same.';
 
 /**
  * THE ANSWER, in three parts, and each one answers the coach card it stands over.
@@ -509,7 +509,7 @@ export function buildCompare(root, variance, catalog, stages) {
   // act is selling. acts.css declares the mono face on them explicitly instead, which is
   // the same fix `.cv-ti` and `.cv-rt` carry. No new act-1 element may carry `mono`.
   el(el(one, 'p', 'cv-eb', 'the standard'), 'b', 'num',
-    `${count.sessions} of ${count.planned} written`);
+    `${count.sessions} of ${count.planned} ready to teach`);
 
   // ---- the brand and the claim
   // The monogram, and it is the page's own `.mark` — the same masked PNG the nav and act 7's
@@ -528,9 +528,10 @@ export function buildCompare(root, variance, catalog, stages) {
   // pair as its console and its "Open prep sheet" control (console.js:342-364).
   // `Positions, copyable` is the copy control on both — FEN in act 4 (console.js:318) and
   // FEN or PGN on /teach (teach/main.js:424).
-  // What it does NOT say: worksheets, or anything printed. The print pack is still being
-  // built and act 5 says so in as many words (bento.js:136); claiming it here would put
-  // the page in disagreement with itself two screens apart.
+  // What it does NOT say: worksheets, or anything printed. There is no print or PDF export
+  // in either tree - CurriculumWebsite's own lesson player says so at LessonPlayer.tsx:15,
+  // "Print - not here; it is the PDF route in Phase C" - so no act may imply one. Act 6
+  // sells the homework that IS written, per session, and says nothing about printing it.
   // ---- the three fixes, one over each coach
   const fix = el(one, 'div', 'cv-fix');
   const parts = variance.session.segments.map((g) => g.label);
@@ -554,8 +555,8 @@ export function buildCompare(root, variance, catalog, stages) {
   // ---- what a coach opens, on one line. These are the two views /teach ships and toggles
   // between (teach/main.js:134-144) and the copy control on both — FEN in act 4
   // (console.js:318), FEN or PGN on /teach (teach/main.js:424). It does NOT say worksheets
-  // or anything printed: the print pack is still being built and act 5 says so in as many
-  // words (bento.js:136).
+  // or anything printed: there is no print or PDF export built in either tree (see the
+  // note above), and act 6 sells the written homework instead.
   el(one, 'p', 'cv-open', 'Teaching view · prep view · positions copyable, FEN + PGN');
 
   // The one verification claim on this panel, and it is act 0's own wording, scoped to
@@ -564,7 +565,7 @@ export function buildCompare(root, variance, catalog, stages) {
   // passes every check (STATE.md).
   const foot = el(one, 'p', 'cv-ft',
     `${count.stages} stages · ${count.levels} levels · ages ${count.ages}`);
-  el(foot, 'b', 'num', '0 chess errors in 4,702 checks');
+  el(foot, 'b', 'num', '0 chess errors in 4,751 checks');
 
   // The shared brief, written from the bundle rather than retyped into the markup
   // (ADR-0011 §5), which is why the kicker ships empty. It no longer opens with "The

@@ -1,0 +1,218 @@
+{
+ "version": "1.0",
+ "generated": "2026-09-05",
+ "tracks": {
+  "A": {
+   "name": "Foundation",
+   "ages": "5-7",
+   "session_min": 45,
+   "stage1_classes": 41,
+   "practical_play": "mini_game only",
+   "notes": "45-minute shape; Foundation-tier puzzles compulsory; mini-games replace full games."
+  },
+  "B": {
+   "name": "Standard",
+   "ages": "7-9",
+   "session_min": 60,
+   "stage1_classes": 41,
+   "practical_play": "mini-games and short focused games",
+   "notes": "Lessons as written."
+  },
+  "C": {
+   "name": "Accelerated",
+   "ages": "9-12",
+   "session_min": 60,
+   "stage1_classes": 24,
+   "practical_play": "focused full games from S008",
+   "notes": "Stage-1 teaching sessions are paired; review and assessment sessions are never merged."
+  }
+ },
+ "accelerated_stage1": [
+  {
+   "class": "C1",
+   "sessions": [
+    "S001",
+    "S002"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C2",
+   "sessions": [
+    "S003",
+    "S004"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C3",
+   "sessions": [
+    "S005",
+    "S006"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C4",
+   "sessions": [
+    "S007"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C5",
+   "sessions": [
+    "S008",
+    "S009"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C6",
+   "sessions": [
+    "S010",
+    "S011"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C7",
+   "sessions": [
+    "S012"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C8",
+   "sessions": [
+    "S013"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C9",
+   "sessions": [
+    "S014",
+    "S015"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C10",
+   "sessions": [
+    "S016",
+    "S017"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C11",
+   "sessions": [
+    "S018",
+    "S019"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C12",
+   "sessions": [
+    "S020",
+    "S021"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C13",
+   "sessions": [
+    "S022",
+    "S023"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C14",
+   "sessions": [
+    "S024",
+    "S025"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C15",
+   "sessions": [
+    "S026"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C16",
+   "sessions": [
+    "S027"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C17",
+   "sessions": [
+    "S028",
+    "S029"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C18",
+   "sessions": [
+    "S030",
+    "S031"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C19",
+   "sessions": [
+    "S032",
+    "S033"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C20",
+   "sessions": [
+    "S034",
+    "S035"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C21",
+   "sessions": [
+    "S036",
+    "S037"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C22",
+   "sessions": [
+    "S038",
+    "S039"
+   ],
+   "merged": true
+  },
+  {
+   "class": "C23",
+   "sessions": [
+    "S040"
+   ],
+   "merged": false
+  },
+  {
+   "class": "C24",
+   "sessions": [
+    "S041"
+   ],
+   "merged": false
+  }
+ ],
+ "convergence": "From S042 (Stage 2) all tracks run one session per class."
+}
